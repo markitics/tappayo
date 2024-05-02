@@ -11,6 +11,8 @@ struct ContentView: View {
     @State var counter = 1
     
     var body: some View {
+        TerminalConnectionView()
+        
         VStack {
             Spacer()
             Image(systemName: "globe")
