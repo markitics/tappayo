@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "stripe-terminal-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stripe/stripe-terminal-ios",
+      "state" : {
+        "revision" : "6aa4f88109ec124f88d6ebd0a0f6f22915ed0d50",
+        "version" : "3.5.0"
+      }
+    }
+  ],
+  "version" : 2
+}
