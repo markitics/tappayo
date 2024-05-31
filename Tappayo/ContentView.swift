@@ -23,6 +23,7 @@ struct ContentView: View {
                 // Since discoverReadersAction is a throwing function, it needs to be called within a do-catch block
                 do {
                     try readerDiscoveryController.discoverReadersAction()
+                    print("in ContentView, tried discoverReadersAction")
                 } catch {
                     // Handle errors here
                     print("Error occurred: \(error)")
@@ -42,11 +43,11 @@ struct ContentView: View {
             HStack
             {
                 Button("minus") {
-                    print("clicked")
+                    print("clicked -1")
                     counter -= 1
                 }
                 Button("plus") {
-                    print("clicked")
+                    print("clicked +1")
                     counter += 1
                 }
             }
