@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State var counter = 1
+    @State private var connectionStatus = "Not connected"
     
     let readerDiscoveryController = ReaderDiscoveryViewController()
     
@@ -16,8 +17,7 @@ struct ContentView: View {
         
         
         VStack {
-            TerminalConnectionView()
-            
+            TerminalConnectionView(connectionStatus: $connectionStatus)
             // Button in SwiftUI that calls the discoverReadersAction method
             Button("Discover Readers") {
                 // Since discoverReadersAction is a throwing function, it needs to be called within a do-catch block
@@ -55,6 +55,11 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
+        .onAppear {
+            readerDiscoveryController.updateConnectionStatus = { status in
+                self.connectionStatus = status
+            }
+        }
     }
 }
 
