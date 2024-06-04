@@ -40,7 +40,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 if let reader = reader {
                     print("Successfully connected to reader: \(reader)")
                     self.isConnected = true
-                    self.updateConnectionStatus?("Successfully connected to reader")
+                    self.updateConnectionStatus?("Ready")
                     
                 } else if let error = error {
                     print("connectLocalMobileReader failed: \(error)")
@@ -78,10 +78,13 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 self.updateConnectionStatus?("Create payment intent succeeded")
 
                 _ = Terminal.shared.collectPaymentMethod(paymentIntent) { collectResult, collectError in
-                    if let error = collectError {
+                    if let error = collectError as NSError?, (error.code == 1 || error.code == 2020) {
+                        print("collectPaymentMethod was canceled: \(error)")
+                        self.updateConnectionStatus?("Ready")
+                    } else if let error = collectError {
                         print("collectPaymentMethod failed: \(error)")
                         self.updateConnectionStatus?("Collect payment method failed: \(error.localizedDescription)")
-                    } else if let paymentIntent = collectResult {
+                    }  else if let paymentIntent = collectResult {
                         print("collectPaymentMethod succeeded")
                         self.updateConnectionStatus?("Collect payment method succeeded")
                         // ... Confirm the payment
