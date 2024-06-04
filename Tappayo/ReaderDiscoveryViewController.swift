@@ -6,7 +6,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     var discoverCancelable: Cancelable?
     var updateConnectionStatus: ((String) -> Void)?
     var isConnected = false
-//    var pendingAmount: Int?
+    var isDiscovering = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -14,9 +14,12 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     }
     
     func discoverAndConnectReader() {
+        guard !isDiscovering else { return } // Prevent multiple discoveries
+        isDiscovering = true
         let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
         updateConnectionStatus?("Discovering readers...")
         self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
+            self.isDiscovering = false
             if let error = error {
                 print("discoverReaders failed: \(error)")
                 self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription)")
@@ -26,7 +29,6 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
             }
         }
     }
-
     
     func connectToReader(reader: Reader) {
         do {
@@ -51,52 +53,53 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         }
     }
 
-    
-
-  
-    // Action for a "Checkout" button
     func checkoutAction(amount: Int) throws {
-            guard isConnected else {
-                updateConnectionStatus?("Not connected to a reader. Connecting now...")
-                discoverAndConnectReader()
-                return
-            }
+        guard !isDiscovering else {
+            updateConnectionStatus?("Discovering readers, please wait...")
+            return
+        }
 
-            let params = try PaymentIntentParametersBuilder(amount: UInt(amount * 100), currency: "usd")
-                .setCaptureMethod(.automatic)
-                .build()
+        guard isConnected else {
+            updateConnectionStatus?("Not connected to a reader. Connecting now...")
+            discoverAndConnectReader()
+            return
+        }
 
-            Terminal.shared.createPaymentIntent(params) { createResult, createError in
-                if let error = createError {
-                    print("createPaymentIntent failed: \(error)")
-                    self.updateConnectionStatus?("Create payment intent failed: \(error.localizedDescription)")
-                } else if let paymentIntent = createResult {
-                    print("createPaymentIntent succeeded")
-                    self.updateConnectionStatus?("Create payment intent succeeded")
+        let params = try PaymentIntentParametersBuilder(amount: UInt(amount * 100), currency: "usd")
+            .setCaptureMethod(.automatic)
+            .build()
 
-                    _ = Terminal.shared.collectPaymentMethod(paymentIntent) { collectResult, collectError in
-                        if let error = collectError {
-                            print("collectPaymentMethod failed: \(error)")
-                            self.updateConnectionStatus?("Collect payment method failed: \(error.localizedDescription)")
-                        } else if let paymentIntent = collectResult {
-                            print("collectPaymentMethod succeeded")
-                            self.updateConnectionStatus?("Collect payment method succeeded")
-                            // ... Confirm the payment
-                            // https://docs.stripe.com/terminal/payments/collect-card-payment?terminal-sdk-platform=ios#confirm-payment
-                            Terminal.shared.confirmPaymentIntent(paymentIntent) { confirmResult, confirmError in
-                                if let error = confirmError {
-                                    print("confirmPaymentIntent failed: \(error)")
-                                    self.updateConnectionStatus?("Confirm payment intent failed: \(error.localizedDescription)")
-                                } else if confirmResult != nil {
-                                    print("confirmPaymentIntent succeeded")
-                                    self.updateConnectionStatus?("Confirm payment intent succeeded")
-                                }
+        Terminal.shared.createPaymentIntent(params) { createResult, createError in
+            if let error = createError {
+                print("createPaymentIntent failed: \(error)")
+                self.updateConnectionStatus?("Create payment intent failed: \(error.localizedDescription)")
+            } else if let paymentIntent = createResult {
+                print("createPaymentIntent succeeded")
+                self.updateConnectionStatus?("Create payment intent succeeded")
+
+                _ = Terminal.shared.collectPaymentMethod(paymentIntent) { collectResult, collectError in
+                    if let error = collectError {
+                        print("collectPaymentMethod failed: \(error)")
+                        self.updateConnectionStatus?("Collect payment method failed: \(error.localizedDescription)")
+                    } else if let paymentIntent = collectResult {
+                        print("collectPaymentMethod succeeded")
+                        self.updateConnectionStatus?("Collect payment method succeeded")
+                        // ... Confirm the payment
+                        // https://docs.stripe.com/terminal/payments/collect-card-payment?terminal-sdk-platform=ios#confirm-payment
+                        Terminal.shared.confirmPaymentIntent(paymentIntent) { confirmResult, confirmError in
+                            if let error = confirmError {
+                                print("confirmPaymentIntent failed: \(error)")
+                                self.updateConnectionStatus?("Confirm payment intent failed: \(error.localizedDescription)")
+                            } else if confirmResult != nil {
+                                print("confirmPaymentIntent succeeded")
+                                self.updateConnectionStatus?("Confirm payment intent succeeded")
                             }
                         }
                     }
                 }
             }
         }
+    }
     
     // MARK: DiscoveryDelegate
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
