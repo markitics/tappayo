@@ -4,9 +4,15 @@ struct ContentView: View {
     @State private var amount: Double = 0.00
     @State private var basket: [Double] = []
     @State private var connectionStatus = "Not connected"
+    
+//    Don't just use @State, because we want the Settings changes to take effect immediately; not just after app is re-launched
     @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
-    @State private var accentColor: Color = UserDefaults.standard.accentColor
+    @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
+    // actually, this failed because we ran into "immutable" errors for quickActions and accentColor
+//    @AppStorageArray(key: "quickAmounts") private var quickAmounts: [Double] = [0.99, 1.00, 5.00, 10.00, 20.00]
+//    @AppStorageColor(key: "accentColor") private var accentColor: Color = Color(red: 0.0, green: 214.0 / 255.0, blue: 111.0 / 255.0)
+//    @AppStorage("darkModePreference") private var darkModePreference: String = "system"
 
     let readerDiscoveryController = ReaderDiscoveryViewController()
     
@@ -85,7 +91,7 @@ struct ContentView: View {
                             Text("$\(String(format: "%.2f", quickAmount))")
                         }
                         .padding()
-//                        .background(accentColor)
+//                        .background(myAccentColor)
                         .background(Color.gray)
                         .foregroundColor(.white)
                         .cornerRadius(8)
@@ -210,15 +216,34 @@ struct ContentView: View {
                     self.connectionStatus = status
                 }
                 readerDiscoveryController.viewDidLoad()
+                
+                // next four lines so the changes we make in settings are reflected immediately, without needing to restart the app
+                quickAmounts = UserDefaults.standard.quickAmounts
+                myAccentColor = UserDefaults.standard.myAccentColor
+                darkModePreference = UserDefaults.standard.darkModePreference
                 applyDarkModePreference()
             }
-            .onChange(of: darkModePreference) { _ in
-                applyDarkModePreference()
-            }
+//            Since we are using UserDefaults and updating the state variables on onAppear and onDisappear in SettingsView.swift, these onChange handlers are not necessary in ContentView.swift.
+//            .onChange(of: darkModePreference) { _ in
+//                // Ensure accent dark mode preference, set in the Settings page, updates immediately
+//                applyDarkModePreference()
+//            }
+//            .onChange(of: accentColor) { _ in
+//                // Ensure accent color updates immediately
+//                if let contentView = UIApplication.shared.windows.first?.rootViewController as? UIHostingController<ContentView> {
+//                    contentView.rootView.accentColor = accentColor
+//                }
+//            }
+//            .onChange(of: quickAmounts) { _ in
+//                // Ensure quick amounts updates immediately
+//                if let contentView = UIApplication.shared.windows.first?.rootViewController as? UIHostingController<ContentView> {
+//                    contentView.rootView.quickAmounts = quickAmounts
+//                }
+//            }
             .navigationBarTitle("Tappayo")
 //            .foregroundColor(accentColor)
             .navigationBarItems(trailing: NavigationLink(destination: SettingsView()) {
-                Text("Settings").foregroundColor(accentColor)
+                Text("Settings").foregroundColor(myAccentColor)
             })
         }
     }

@@ -15,6 +15,11 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     
     func discoverAndConnectReader() {
         guard !isDiscovering else { return } // Prevent multiple discoveries
+        guard !isConnected else {
+            // Skip discovery if already connected (e.g., we click into Settings page, and then come back to main ConentView, triggering viewDidLoad again, but we've remained Connected the whole time
+            self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
+            return
+        }
         isDiscovering = true
         let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
         updateConnectionStatus?("Discovering readers...")
