@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var connectionStatus = "Not connected"
     @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
     @State private var accentColor: Color = UserDefaults.standard.accentColor
+    @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
 
     let readerDiscoveryController = ReaderDiscoveryViewController()
     
@@ -24,51 +25,56 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                VStack {
-                    Text("Item subtotal")
+                HStack{
+                    Text("Add item")
                         .font(.headline)
+                        .fontWeight(.bold)
+                        .multilineTextAlignment(.leading)
                         .padding(.top, 8)
-                    HStack {
-                        Spacer()
-                        
-                        Button(action: {
-                            if amount > 0 {
-                                amount -= 1.00
-                            }
-                        }) {
-                            Text("-$1")
+                    Spacer()
+                }
+                
+                HStack {
+                    Spacer()
+                    
+                    Button(action: {
+                        if amount > 0 {
+                            amount -= 1.00
                         }
-                        .padding(4)
+                    }) {
+                        Text("-$1")
+                    }
+                    .padding(4)
 //                        .background(Color.red)
-                        .foregroundColor(Color.red)
+                    .foregroundColor(Color.red)
 //                        .border(/*@START_MENU_TOKEN@*/Color.black/*@END_MENU_TOKEN@*/)
-                        .buttonStyle(.bordered)
+                    .buttonStyle(.bordered)
 //                        .buttonStyle(.borderedProminent)
 //                        .font(.red)
-                        .cornerRadius(8)
-                        
-                        Spacer()
-                        
-                        Text("$\(String(format: "%.2f", amount))")
-                            .font(.largeTitle)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            amount += 1.00
-                        }) {
-                            Text("+$1")
-                        }
-                        .padding(4)
+                    .cornerRadius(8)
+                    
+                    Spacer()
+                    
+                    Text("$\(String(format: "%.2f", amount))")
+                        .font(.largeTitle)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        amount += 1.00
+                    }) {
+                        Text("+$1")
+                    }
+                    .padding(4)
 //                        .background(Color.green)
 //                        .foregroundColor(.white)
-                        .foregroundColor(.green)
-                        .buttonStyle(.bordered)
-                        .cornerRadius(8)
-                        
-                        Spacer()
-                    }
+                    .foregroundColor(.green)
+                    .buttonStyle(.bordered)
+                    .cornerRadius(8)
+                    
+                    Spacer()
                 }
+                
 //              .padding()
                 
                 HStack {
@@ -86,28 +92,52 @@ struct ContentView: View {
                     }
                 }
                 .padding([.leading, .trailing])
-                .padding([.top], 16)
-//                .padding([.bottom], 0)
+                .padding([.top], 4)
+                .padding([.bottom], 14)
                 
                 if amount > 0 {
-                    Button(action: {
-                        if amount > 0 {
+                
+                    HStack{
+                        Button(action: {
                             basket.append(amount)
                             amount = 0.00
+                        }) {
+                            Text("Add to Cart")
+                                .fontWeight(.medium)
                         }
-                    }) {
-                        Text("Add to Cart")
-                    }
-                    .padding()
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+                        .padding()
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        
+//                        Spacer()
+                        
+                        Button(action: {
+                            amount = 0.00
+                        }) {
+                            Text("Cancel").font(.callout)
+                                .fontWeight(.medium)
+                        }
+                        .padding()
+//                        .background(.blue)
+                        .foregroundColor(.red)
+                        .cornerRadius(8)
+                        .buttonStyle(.bordered)
+                    }.padding([.bottom], 10)
+                    
                 } else {
-                    Spacer().frame(height: 36) // Maintain space when button is hidden
+                    Spacer().frame(height: 34) // Maintain space when button is hidden
                     if(!basket.isEmpty){
-                        Text("Cart").font(.subheadline)
-//                            .foregroundColor(Color.white)
-                            .padding(.bottom, 0)
+                        Divider()
+                        HStack{
+                            Text("Cart").font(.headline)
+        //                            .foregroundColor(Color.white)
+                                .fontWeight(.bold)
+                                .multilineTextAlignment(.leading)
+                                .padding(.bottom, 6)
+                                .padding(.top, 16)
+                            Spacer()
+                        }
                     }
                 }
 
@@ -140,7 +170,7 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
 
-                if totalAmount > 0 {
+                if totalAmount > 0 && !(amount > 0) {
 //                    TODO Text("Total amount: \(totalAmount)")
 //                    TODO Text("Total amount (cents): \(totalAmount)")
                     Button(action: {
@@ -154,7 +184,7 @@ struct ContentView: View {
 //                            wave.3.right.circle.fill or wave.3.right.circle
                             Image(systemName: "wave.3.right.circle.fill")
 //                            Text("\(Image(systemName: "wave.3.right.circle")) Charge Card $\(formattedTotalAmount)")
-                            Text("Charge card $\(formattedTotalAmount)").font(.subheadline).fontWeight(/*@START_MENU_TOKEN@*/.medium/*@END_MENU_TOKEN@*/)
+                            Text("Charge card $\(formattedTotalAmount)").font(.title2).fontWeight(/*@START_MENU_TOKEN@*/.medium/*@END_MENU_TOKEN@*/)
                         }
                         
                     }
@@ -172,7 +202,7 @@ struct ContentView: View {
                     .foregroundColor(.gray)
                     .padding(.top, 10)
                 
-                Spacer()
+//                Spacer()
             }
             .padding()
             .onAppear {
@@ -180,6 +210,10 @@ struct ContentView: View {
                     self.connectionStatus = status
                 }
                 readerDiscoveryController.viewDidLoad()
+                applyDarkModePreference()
+            }
+            .onChange(of: darkModePreference) { _ in
+                applyDarkModePreference()
             }
             .navigationBarTitle("Tappayo")
 //            .foregroundColor(accentColor)
@@ -191,6 +225,20 @@ struct ContentView: View {
     
     private func deleteItem(at offsets: IndexSet) {
         basket.remove(atOffsets: offsets)
+    }
+    
+//    private 
+    func applyDarkModePreference() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        guard let window = windowScene.windows.first else { return }
+        switch darkModePreference {
+        case "on":
+            window.overrideUserInterfaceStyle = .dark
+        case "off":
+            window.overrideUserInterfaceStyle = .light
+        default:
+            window.overrideUserInterfaceStyle = .unspecified
+        }
     }
 }
 

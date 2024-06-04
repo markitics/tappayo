@@ -75,7 +75,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 self.updateConnectionStatus?("Create payment intent failed: \(error.localizedDescription)")
             } else if let paymentIntent = createResult {
                 print("createPaymentIntent succeeded")
-                self.updateConnectionStatus?("Created payment intent with Stripe…")
+                self.updateConnectionStatus?("Success: Created payment intent with Stripe…")
 
                 _ = Terminal.shared.collectPaymentMethod(paymentIntent) { collectResult, collectError in
                     if let error = collectError as NSError?, (error.code == 1 || error.code == 2020) {
