@@ -40,7 +40,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 if let reader = reader {
                     print("Successfully connected to reader: \(reader)")
                     self.isConnected = true
-                    self.updateConnectionStatus?("Ready")
+                    self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
                     
                 } else if let error = error {
                     print("connectLocalMobileReader failed: \(error)")
@@ -65,7 +65,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
             return
         }
 
-        let params = try PaymentIntentParametersBuilder(amount: UInt(amount * 100), currency: "usd")
+        let params = try PaymentIntentParametersBuilder(amount: UInt(amount), currency: "usd") // amount is amount in cents, not dollars
             .setCaptureMethod(.automatic)
             .build()
 
@@ -75,7 +75,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 self.updateConnectionStatus?("Create payment intent failed: \(error.localizedDescription)")
             } else if let paymentIntent = createResult {
                 print("createPaymentIntent succeeded")
-                self.updateConnectionStatus?("Create payment intent succeeded")
+                self.updateConnectionStatus?("Created payment intent with Stripe…")
 
                 _ = Terminal.shared.collectPaymentMethod(paymentIntent) { collectResult, collectError in
                     if let error = collectError as NSError?, (error.code == 1 || error.code == 2020) {

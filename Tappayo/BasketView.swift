@@ -4,15 +4,20 @@
 
 import SwiftUI
 
+enum NavigationDestination: Hashable {
+    case checkout(Double)
+}
+
 struct BasketView: View {
     @Binding var basket: [Double]
     let readerDiscoveryController: ReaderDiscoveryViewController
     @State private var navigateToCheckout = false
-    
+    @State private var navigationDestination: NavigationDestination?
+
     var totalAmount: Double {
         basket.reduce(0, +)
     }
-    
+
     var body: some View {
         VStack {
             List {
@@ -30,13 +35,8 @@ struct BasketView: View {
                 .font(.largeTitle)
                 .padding()
             
-            // Navigate to Checkout
-            NavigationLink(destination: CheckoutView(amount: totalAmount, readerDiscoveryController: readerDiscoveryController), isActive: $navigateToCheckout) {
-                EmptyView()
-            }
-            
             Button("Proceed to Checkout") {
-                navigateToCheckout = true
+                navigationDestination = .checkout(totalAmount)
             }
             .padding()
             .background(Color.blue)
@@ -47,6 +47,12 @@ struct BasketView: View {
             Spacer()
         }
         .padding()
+        .navigationDestination(for: NavigationDestination.self) { destination in
+            switch destination {
+            case .checkout(let amount):
+                CheckoutView(amount: amount, readerDiscoveryController: readerDiscoveryController)
+            }
+        }
     }
     
     private func deleteItem(at offsets: IndexSet) {
