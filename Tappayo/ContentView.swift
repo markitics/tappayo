@@ -1,12 +1,19 @@
+//    ContentView.swift
+
 import SwiftUI
 
+//extension NumberFormatter // no, define in separate file in utils/ folder
+
 struct ContentView: View {
-    @State private var amount: Double = 0.00
-    @State private var basket: [Double] = []
+//    @State private var amount: Double = 0.00
+//    @State private var basket: [Double] = []
+    @State private var amountInCents: Int = 0
+    @State private var basket: [Int] = []
     @State private var connectionStatus = "Not connected"
     
 //    Don't just use @State, because we want the Settings changes to take effect immediately; not just after app is re-launched
-    @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
+//    @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
+    @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts // .map { Int($0 * 100) }
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     // actually, this failed because we ran into "immutable" errors for quickActions and accentColor
@@ -16,15 +23,28 @@ struct ContentView: View {
 
     let readerDiscoveryController = ReaderDiscoveryViewController()
     
-    var totalAmount: Double {
-        basket.reduce(0, +)
-    }
+//    var totalAmount: Double {
+//        basket.reduce(0, +)
+//    }
     
+//    var formattedTotalAmount: String {
+//        if totalAmount.truncatingRemainder(dividingBy: 1) == 0 {
+//            return String(format: "%.0f", totalAmount)
+//        } else {
+//            return String(format: "%.2f", totalAmount)
+//        }
+//    }
+    
+    var totalAmountInCents: Int {
+       basket.reduce(0, +)
+   }
+    
+   
     var formattedTotalAmount: String {
-        if totalAmount.truncatingRemainder(dividingBy: 1) == 0 {
-            return String(format: "%.0f", totalAmount)
+        if totalAmountInCents % 100 == 0 {
+            return String(format: "%.0f", Double(totalAmountInCents) / 100.0)
         } else {
-            return String(format: "%.2f", totalAmount)
+            return String(format: "%.2f", Double(totalAmountInCents) / 100.0)
         }
     }
 
@@ -44,8 +64,8 @@ struct ContentView: View {
                     Spacer()
                     
                     Button(action: {
-                        if amount > 0 {
-                            amount -= 1.00
+                        if amountInCents > 99 {
+                            amountInCents -= 100
                         }
                     }) {
                         Text("-$1")
@@ -61,13 +81,18 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    Text("$\(String(format: "%.2f", amount))")
-                        .font(.largeTitle)
-                    
+                    CurrencyTextField(value: $amountInCents, placeholder: "Enter amount", font: .largeTitle)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .frame(height: 50) // Limit the height
+                        .multilineTextAlignment(.center)
+
                     Spacer()
                     
                     Button(action: {
-                        amount += 1.00
+//                        amount += 1.00
+                        amountInCents += 100
                     }) {
                         Text("+$1")
                     }
@@ -81,17 +106,23 @@ struct ContentView: View {
                     Spacer()
                 }
                 
-//              .padding()
+                .padding(.bottom, 12)
                 
-                HStack {
+                let columns = [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ]
+
+                LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(quickAmounts.filter({ $0 > 0 }), id: \.self) { quickAmount in
                         Button(action: {
-                            amount = quickAmount
+                            amountInCents = quickAmount
                         }) {
-                            Text("$\(String(format: "%.2f", quickAmount))")
+                            Text("$\(String(format: "%.2f", Double(quickAmount) / 100.0))")
+                                .frame(maxWidth: .infinity)
                         }
-                        .padding()
-//                        .background(myAccentColor)
+                        .padding()//.background(myAccentColor)
                         .background(Color.gray)
                         .foregroundColor(.white)
                         .cornerRadius(8)
@@ -101,12 +132,14 @@ struct ContentView: View {
                 .padding([.top], 4)
                 .padding([.bottom], 14)
                 
-                if amount > 0 {
+                if amountInCents > 0 {
                 
                     HStack{
                         Button(action: {
-                            basket.append(amount)
-                            amount = 0.00
+//                            basket.append(amount)
+//                            amount = 0.00
+                            basket.append(amountInCents)
+                            amountInCents = 0
                         }) {
                             Text("Add to Cart")
                                 .fontWeight(.medium)
@@ -119,7 +152,8 @@ struct ContentView: View {
 //                        Spacer()
                         
                         Button(action: {
-                            amount = 0.00
+//                            amount = 0.00
+                            amountInCents = 0
                         }) {
                             Text("Cancel").font(.callout)
                                 .fontWeight(.medium)
@@ -149,13 +183,16 @@ struct ContentView: View {
 
                 List {
                     if(basket.isEmpty){
-                        Text("Cart is empty").font(.subheadline).foregroundColor(Color.gray)
+                        Text("Cart is empty").font(.subheadline)
+                        .foregroundColor(Color.gray)
+                            .foregroundColor(Color(.systemGray2))
                     }
                     ForEach(basket.indices, id: \.self) { index in
                         HStack {
                             Text("Item \(index + 1)")
                             Spacer()
-                            Text("$\(String(format: "%.2f", basket[index]))")
+//                            Text("$\(String(format: "%.2f",  basket[index]))") was when we had USD
+                            Text("$\(String(format: "%.2f", Double(basket[index]) / 100.0))") // Format to display correctly
                         }
                     }
                     .onDelete(perform: deleteItem)
@@ -176,12 +213,14 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
 
-                if totalAmount > 0 && !(amount > 0) {
+                if totalAmountInCents > 0 && amountInCents == 0 {
 //                    TODO Text("Total amount: \(totalAmount)")
 //                    TODO Text("Total amount (cents): \(totalAmount)")
                     Button(action: {
                         do {
-                            try readerDiscoveryController.checkoutAction(amount: Int(totalAmount * 100)) // TODO maybe just convert totalAmount to an integer number of cents
+//                            try readerDiscoveryController.checkoutAction(amount: Int(totalAmount * 100)) // was old
+                            // just convert totalAmount to an integer number of cents:
+                            try readerDiscoveryController.checkoutAction(amount: totalAmountInCents)
                         } catch {
                             print("Error occurred: \(error)")
                         }
@@ -198,8 +237,7 @@ struct ContentView: View {
                     .background(.blue) // or accentColor
                     .foregroundColor(.white)
                     .cornerRadius(8)
-
-                    .disabled(totalAmount == 0)
+                    .disabled(totalAmountInCents == 0)
                 }
                 
                 
@@ -218,7 +256,8 @@ struct ContentView: View {
                 readerDiscoveryController.viewDidLoad()
                 
                 // next four lines so the changes we make in settings are reflected immediately, without needing to restart the app
-                quickAmounts = UserDefaults.standard.quickAmounts
+//                quickAmounts = UserDefaults.standard.quickAmounts
+                quickAmounts = UserDefaults.standard.quickAmounts // .map { Int($0 * 100) }
                 myAccentColor = UserDefaults.standard.myAccentColor
                 darkModePreference = UserDefaults.standard.darkModePreference
                 applyDarkModePreference()
@@ -265,7 +304,9 @@ struct ContentView: View {
             window.overrideUserInterfaceStyle = .unspecified
         }
     }
+    
 }
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

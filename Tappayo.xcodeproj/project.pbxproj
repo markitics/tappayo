@@ -23,6 +23,8 @@
 		4D92B71D2C0EE223005AD949 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B71C2C0EE223005AD949 /* UserDefaultsKeys.swift */; };
 		4D92B71F2C0EE46A005AD949 /* AppStorageArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B71E2C0EE469005AD949 /* AppStorageArray.swift */; };
 		4D92B7212C0EE642005AD949 /* UserDefaultsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B7202C0EE642005AD949 /* UserDefaultsHelper.swift */; };
+		4D92B7232C0FF2DC005AD949 /* NumberFormatterExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B7222C0FF2DC005AD949 /* NumberFormatterExtension.swift */; };
+		4D92B7272C0FF67D005AD949 /* CurrencyTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B7262C0FF67C005AD949 /* CurrencyTextField.swift */; };
 		4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DCA6AFB2BE347AB006220E5 /* APIClient.swift */; };
 /* End PBXBuildFile section */
 
@@ -63,6 +65,8 @@
 		4D92B71C2C0EE223005AD949 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
 		4D92B71E2C0EE469005AD949 /* AppStorageArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageArray.swift; sourceTree = "<group>"; };
 		4D92B7202C0EE642005AD949 /* UserDefaultsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsHelper.swift; sourceTree = "<group>"; };
+		4D92B7222C0FF2DC005AD949 /* NumberFormatterExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberFormatterExtension.swift; sourceTree = "<group>"; };
+		4D92B7262C0FF67C005AD949 /* CurrencyTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyTextField.swift; sourceTree = "<group>"; };
 		4DCA6AFA2BE3386C006220E5 /* Tappayo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tappayo.entitlements; sourceTree = "<group>"; };
 		4DCA6AFB2BE347AB006220E5 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -116,6 +120,8 @@
 		4D08BC752BCE79B4007B1FBA /* Tappayo */ = {
 			isa = PBXGroup;
 			children = (
+				4D92B7252C0FF66D005AD949 /* common */,
+				4D92B7242C0FF2EF005AD949 /* utils */,
 				4DCA6AFB2BE347AB006220E5 /* APIClient.swift */,
 				4D92B71E2C0EE469005AD949 /* AppStorageArray.swift */,
 				4D08BC7A2BCE79C7007B1FBA /* Assets.xcassets */,
@@ -158,6 +164,22 @@
 				4D08BC932BCE79C8007B1FBA /* TappayoUITestsLaunchTests.swift */,
 			);
 			path = TappayoUITests;
+			sourceTree = "<group>";
+		};
+		4D92B7242C0FF2EF005AD949 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				4D92B7222C0FF2DC005AD949 /* NumberFormatterExtension.swift */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
+		4D92B7252C0FF66D005AD949 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				4D92B7262C0FF67C005AD949 /* CurrencyTextField.swift */,
+			);
+			path = common;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -296,6 +318,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D92B7272C0FF67D005AD949 /* CurrencyTextField.swift in Sources */,
+				4D92B7232C0FF2DC005AD949 /* NumberFormatterExtension.swift in Sources */,
 				4D92B7192C0ED822005AD949 /* BasketView.swift in Sources */,
 				4D14B3BF2BE36195009213AC /* ReaderDiscoveryViewController.swift in Sources */,
 				4D92B71B2C0EE143005AD949 /* SettingsView.swift in Sources */,

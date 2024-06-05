@@ -15,26 +15,31 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
+//    @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
+    @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts//.map { Int($0 * 100) }
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
-
-    let numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        return formatter
-    }()
+    
+//    let currencyFormatter: NumberFormatter = {
+//        let formatter = NumberFormatter()
+//        formatter.numberStyle = .currency
+//        formatter.minimumFractionDigits = 2
+//        formatter.maximumFractionDigits = 2
+//        // not formatter.locale = Locale.current
+//        formatter.currencyCode = "USD" // Hardcoding USD
+//        formatter.multiplier = 0.01 // To format integers as currency
+//        return formatter
+//    }()
 
     var body: some View {
         Form {
             Section(header: Text("Quick Amounts")) {
                 ForEach(quickAmounts.indices, id: \.self) { index in
                     HStack {
-                        Text("$")
-                        TextField("Quick Amount \(index + 1)", value: $quickAmounts[index], formatter: numberFormatter)
-                            .keyboardType(.decimalPad)
+//                        Text("$")
+                        CurrencyTextField(value: $quickAmounts[index], placeholder: "Quick amount \(index + 1)", font: .body)
+                            .multilineTextAlignment(.leading)
+//                            .keyboardType(.decimalPad) -> defined in CurrencyTextField.swift
                     }
                 }
                 .onDelete { indexSet in
@@ -42,7 +47,7 @@ struct SettingsView: View {
                 }
                 
                 Button(action: {
-                    quickAmounts.append(0.00)
+                    quickAmounts.append(0)
                 }) {
                     Text("Add Quick Amount")
                 }
@@ -79,9 +84,21 @@ struct SettingsView: View {
             myAccentColor = UserDefaults.standard.myAccentColor
             darkModePreference = UserDefaults.standard.darkModePreference
             applyDarkModePreference()
+            
+//            all this so the font in top left is not green, but reflects our accentColor
+//            let appearance = UINavigationBarAppearance()
+//            appearance.configureWithOpaqueBackground()
+//            appearance.backgroundColor = UIColor(myAccentColor)
+//            appearance.titleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
+//            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
+//            
+//            UINavigationBar.appearance().standardAppearance = appearance
+//            UINavigationBar.appearance().compactAppearance = appearance
+//            UINavigationBar.appearance().scrollEdgeAppearance = appearance
         }
         .onChange(of: quickAmounts) { newValue in
                UserDefaults.standard.quickAmounts = newValue
+//                UserDefaults.standard.quickAmounts = newValue.map { Double($0) / 100.0 }
            }
         .onChange(of: darkModePreference) { _ in
             // Ensure accent dark mode preference, set in the Settings page, updates immediately

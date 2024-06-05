@@ -1,52 +1,15 @@
 // UserDefaultsHelper.swift
 //import Foundation
 //import SwiftUI
-//
-//extension UserDefaults {
-//    var quickAmounts: [Double] {
-//        get {
-//            return array(forKey: UserDefaultsKeys.quickAmounts) as? [Double] ?? [0.99, 5.00, 50.00]
-//        }
-//        set {
-//            set(newValue, forKey: UserDefaultsKeys.quickAmounts)
-//        }
-//    }
-//
-//    var accentColor: Color {
-//        get {
-//            if let colorData = data(forKey: UserDefaultsKeys.accentColor),
-//               let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
-//                return Color(uiColor)
-//            }
-//            return Color.blue
-//        }
-//        set {
-//            let uiColor = UIColor(newValue)
-//            if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: uiColor, requiringSecureCoding: false) {
-//                set(colorData, forKey: UserDefaultsKeys.accentColor)
-//            }
-//        }
-//    }
-//
-//    var darkModePreference: String {
-//        get {
-//            return string(forKey: UserDefaultsKeys.darkModePreference) ?? "system"
-//        }
-//        set {
-//            set(newValue, forKey: UserDefaultsKeys.darkModePreference)
-//        }
-//    }
-//}
-
 
 import Foundation
 import SwiftUI
 
 extension UserDefaults {
-    var quickAmounts: [Double] {
+    var quickAmounts: [Int] {
         get {
-            guard let data = data(forKey: UserDefaultsKeys.quickAmounts.rawValue) else { return [0.99, 10.00, 50.00] }
-            return (try? JSONDecoder().decode([Double].self, from: data)) ?? [0.99,5.00, 20.00]
+            guard let data = data(forKey: UserDefaultsKeys.quickAmounts.rawValue) else { return [99, 1200, 4000] }
+            return (try? JSONDecoder().decode([Int].self, from: data)) ?? [99, 1000, 5000]
         }
         set {
             let data = try? JSONEncoder().encode(newValue)
