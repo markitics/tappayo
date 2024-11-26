@@ -7,7 +7,7 @@ struct AboutView: View {
                 .font(.body)
                 .padding()
             
-            Text("Slack: #simple-mobile-payments app")
+            Text("Slack: #simple-mobile-payments-app")
                 .font(.body)
                 .padding()
             

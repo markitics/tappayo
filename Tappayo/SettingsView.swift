@@ -19,7 +19,7 @@ struct SettingsView: View {
     @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts//.map { Int($0 * 100) }
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
-    @State private var isHappy: Bool = true
+    // @State private var isHappy: Bool = true
     
 //    let currencyFormatter: NumberFormatter = {
 //        let formatter = NumberFormatter()
@@ -37,10 +37,8 @@ struct SettingsView: View {
             Section(header: Text("Quick Amounts")) {
                 ForEach(quickAmounts.indices, id: \.self) { index in
                     HStack {
-//                            Text("$")
                         CurrencyTextField(value: $quickAmounts[index], placeholder: "Quick amount \(index + 1)", font: .body)
                             .multilineTextAlignment(.leading)
-//                        .keyboardType(.decimalPad) -> defined in CurrencyTextField.swift
                     }
                 }
                 .onDelete { indexSet in
@@ -73,11 +71,11 @@ struct SettingsView: View {
 //                .pickerStyle(SegmentedPickerStyle())
             }
 
-            Section(header: Text("Mood")) {
-                Toggle(isOn: $isHappy) {
-                    Text(isHappy ? "Happy" : "Sad")
-                }
-            }
+            // Section(header: Text("Mood")) {
+            //     Toggle(isOn: $isHappy) {
+            //         Text(isHappy ? "Happy" : "Sad")
+            //     }
+            // }
 
             // New About Section
             Section {
@@ -89,7 +87,6 @@ struct SettingsView: View {
         .navigationTitle("Settings")
     }
     
-    //    private
     func applyDarkModePreference() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
         guard let window = windowScene.windows.first else { return }
