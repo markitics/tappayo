@@ -13,7 +13,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         discoverAndConnectReader()
     }
     
-    func discoverAndConnectReader() {
+    func discoverAndConnectReader(retriesRemaining: Int = 3) {
         guard !isDiscovering else { return } // Prevent multiple discoveries
         guard !isConnected else {
             // Skip discovery if already connected (e.g., we click into Settings page, and then come back to main ConentView, triggering viewDidLoad again, but we've remained Connected the whole time
@@ -27,7 +27,14 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
             self.isDiscovering = false
             if let error = error {
                 print("discoverReaders failed: \(error)")
-                self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription)")
+                if retriesRemaining > 0 {
+                    self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription). Will retry...")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // Retry after 2 seconds
+                        self.discoverAndConnectReader(retriesRemaining: retriesRemaining - 1)
+                    }
+                } else {
+                    self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription). Exceeded maximum retries.")
+                }
             } else {
                 print("discoverReaders succeeded")
                 self.updateConnectionStatus?("Discover readers succeeded")
@@ -35,7 +42,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         }
     }
     
-    func connectToReader(reader: Reader) {
+    func connectToReader(reader: Reader, retriesRemaining: Int = 3) {
         do {
             let connectionConfig = try LocalMobileConnectionConfigurationBuilder(locationId: "tml_FhUnQwoWdFn95V")
                 .setAutoReconnectOnUnexpectedDisconnect(true)
@@ -46,10 +53,22 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                     print("Successfully connected to reader: \(reader)")
                     self.isConnected = true
                     self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
-                    
                 } else if let error = error {
                     print("connectLocalMobileReader failed: \(error)")
-                    self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription)")
+                    if retriesRemaining > 0 {
+                        self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription). Will retry...")
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // Retry after 2 seconds
+                            if let reader = reader {    
+                                // This block runs only if 'reader' is not nil
+                                self.connectToReader(reader: reader, retriesRemaining: retriesRemaining - 1)
+                            } else {
+                                // This block runs if 'reader' is nil
+                                self.updateConnectionStatus?("Reader is nil, cannot retry.")
+                            }
+                        }
+                    } else {
+                        self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription). Exceeded maximum retries.")
+                    }
                 }
             }
         } catch {
