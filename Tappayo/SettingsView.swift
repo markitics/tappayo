@@ -19,6 +19,7 @@ struct SettingsView: View {
     @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts//.map { Int($0 * 100) }
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
+    @State private var isHappy: Bool = true
     
 //    let currencyFormatter: NumberFormatter = {
 //        let formatter = NumberFormatter()
@@ -36,10 +37,10 @@ struct SettingsView: View {
             Section(header: Text("Quick Amounts")) {
                 ForEach(quickAmounts.indices, id: \.self) { index in
                     HStack {
-//                        Text("$")
+//                            Text("$")
                         CurrencyTextField(value: $quickAmounts[index], placeholder: "Quick amount \(index + 1)", font: .body)
                             .multilineTextAlignment(.leading)
-//                            .keyboardType(.decimalPad) -> defined in CurrencyTextField.swift
+//                        .keyboardType(.decimalPad) -> defined in CurrencyTextField.swift
                     }
                 }
                 .onDelete { indexSet in
@@ -56,12 +57,11 @@ struct SettingsView: View {
 
             Section(header: Text("Pick Accent Color")) {
                 ColorPicker("Pick a color", selection: $myAccentColor)
-                if(myAccentColor != Color(red: 0.0, green: 214.0 / 255.0, blue: 111.0 / 255.0)){
+                if myAccentColor != Color(red: 0.0, green: 214.0 / 255.0, blue: 111.0 / 255.0) {
                     Button("Restore Default Color") {
                         myAccentColor = Color(red: 0.0, green: 214.0 / 255.0, blue: 111.0 / 255.0)
                     }.foregroundColor(myAccentColor)
                 }
-                
             }
 
             Section(header: Text("Dark Mode")) {
@@ -72,46 +72,21 @@ struct SettingsView: View {
                 }
 //                .pickerStyle(SegmentedPickerStyle())
             }
-        }
-        .navigationBarTitle("Settings")
-        .onDisappear {
-            UserDefaults.standard.quickAmounts = quickAmounts
-            UserDefaults.standard.myAccentColor = myAccentColor
-            UserDefaults.standard.darkModePreference = darkModePreference
-        }
-        .onAppear {
-            quickAmounts = UserDefaults.standard.quickAmounts
-            myAccentColor = UserDefaults.standard.myAccentColor
-            darkModePreference = UserDefaults.standard.darkModePreference
-            applyDarkModePreference()
-            
-//            all this so the font in top left is not green, but reflects our accentColor
-//            let appearance = UINavigationBarAppearance()
-//            appearance.configureWithOpaqueBackground()
-//            appearance.backgroundColor = UIColor(myAccentColor)
-//            appearance.titleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
-//            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
-//            
-//            UINavigationBar.appearance().standardAppearance = appearance
-//            UINavigationBar.appearance().compactAppearance = appearance
-//            UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        }
-        .onChange(of: quickAmounts) { newValue in
-               UserDefaults.standard.quickAmounts = newValue
-//                UserDefaults.standard.quickAmounts = newValue.map { Double($0) / 100.0 }
-           }
-        .onChange(of: darkModePreference) { _ in
-            // Ensure accent dark mode preference, set in the Settings page, updates immediately
-            UserDefaults.standard.darkModePreference = darkModePreference
-            applyDarkModePreference()
-        }
-        .onChange(of: myAccentColor) { newValue in
-            // Ensure accent color updates immediately
-            UserDefaults.standard.myAccentColor = newValue
-            if let contentView = UIApplication.shared.windows.first?.rootViewController as? UIHostingController<SettingsView> {
-                contentView.rootView.myAccentColor = myAccentColor
+
+            Section(header: Text("Mood")) {
+                Toggle(isOn: $isHappy) {
+                    Text(isHappy ? "Happy" : "Sad")
+                }
+            }
+
+            // New About Section
+            Section {
+                NavigationLink(destination: AboutView()) {
+                    Text("About")
+                }
             }
         }
+        .navigationTitle("Settings")
     }
     
     //    private

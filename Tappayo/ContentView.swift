@@ -279,7 +279,7 @@ struct ContentView: View {
 //                    contentView.rootView.quickAmounts = quickAmounts
 //                }
 //            }
-            .navigationBarTitle("Tappayo")
+            .navigationTitle("Tappayo")
 //            .foregroundColor(accentColor)
             .navigationBarItems(trailing: NavigationLink(destination: SettingsView()) {
                 Text("Settings").foregroundColor(myAccentColor)
