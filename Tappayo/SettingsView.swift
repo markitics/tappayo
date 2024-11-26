@@ -4,9 +4,7 @@
 //    @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
 //    @State private var accentColor: Color = UserDefaults.standard.accentColor
 //    @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
-    
 //    ...instead, let's use AppStorage, so hopefully the Settings changes will take place immediately    
-
 
 //    To get around this error: "Cannot use mutating member on immutable value: 'self' is immutable"
 //    , let's try using a @State property for the array and update the @AppStorage property whenever the array changes. This approach will help us handle the mutability correctly. Here’s how you can adjust your SettingsView.swift:
@@ -15,23 +13,11 @@
 import SwiftUI
 
 struct SettingsView: View {
-//    @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
     @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts//.map { Int($0 * 100) }
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     // @State private var isHappy: Bool = true
     
-//    let currencyFormatter: NumberFormatter = {
-//        let formatter = NumberFormatter()
-//        formatter.numberStyle = .currency
-//        formatter.minimumFractionDigits = 2
-//        formatter.maximumFractionDigits = 2
-//        // not formatter.locale = Locale.current
-//        formatter.currencyCode = "USD" // Hardcoding USD
-//        formatter.multiplier = 0.01 // To format integers as currency
-//        return formatter
-//    }()
-
     var body: some View {
         Form {
             Section(header: Text("Quick Amounts")) {
@@ -68,14 +54,7 @@ struct SettingsView: View {
                     Text("Dark").tag("on")
                     Text("Light").tag("off")
                 }
-//                .pickerStyle(SegmentedPickerStyle())
             }
-
-            // Section(header: Text("Mood")) {
-            //     Toggle(isOn: $isHappy) {
-            //         Text(isHappy ? "Happy" : "Sad")
-            //     }
-            // }
 
             // New About Section
             Section {
