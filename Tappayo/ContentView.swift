@@ -213,13 +213,9 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
 
-                if totalAmountInCents > 0 && amountInCents == 0 {
-//                    TODO Text("Total amount: \(totalAmount)")
-//                    TODO Text("Total amount (cents): \(totalAmount)")
+                if totalAmountInCents > 49 && amountInCents == 0 {
                     Button(action: {
                         do {
-//                            try readerDiscoveryController.checkoutAction(amount: Int(totalAmount * 100)) // was old
-                            // just convert totalAmount to an integer number of cents:
                             try readerDiscoveryController.checkoutAction(amount: totalAmountInCents)
                         } catch {
                             print("Error occurred: \(error)")
@@ -228,16 +224,19 @@ struct ContentView: View {
                         HStack{
 //                            wave.3.right.circle.fill or wave.3.right.circle
                             Image(systemName: "wave.3.right.circle.fill")
-//                            Text("\(Image(systemName: "wave.3.right.circle")) Charge Card $\(formattedTotalAmount)")
-                            Text("Charge card $\(formattedTotalAmount)").font(.title2).fontWeight(/*@START_MENU_TOKEN@*/.medium/*@END_MENU_TOKEN@*/)
+                            Text("Charge card $\(formattedTotalAmount)").font(.title2)
+                            .fontWeight(/*@START_MENU_TOKEN@*/.medium/*@END_MENU_TOKEN@*/)
                         }
-                        
                     }
                     .padding()
                     .background(.blue) // or accentColor
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     .disabled(totalAmountInCents == 0)
+                } else if totalAmountInCents > 0 && totalAmountInCents <= 49 {
+                    Text("Total amount must be > $0.49. Add more items to cart.")
+                        .font(.caption)
+                        .foregroundColor(.red)
                 }
                 
                 
