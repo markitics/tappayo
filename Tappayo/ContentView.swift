@@ -18,7 +18,10 @@ struct ContentView: View {
     let readerDiscoveryController = ReaderDiscoveryViewController()
 
     var totalAmountInCents: Int {
-       basket.reduce(0) { $0 + $1.totalPrice }
+       basket.reduce(0) { total, item in
+           let current = getCurrentProduct(for: item)
+           return total + (current.priceInCents * item.quantity)
+       }
     }
 
     // Helper to get next manual item name
@@ -35,6 +38,37 @@ struct ContentView: View {
         } else {
             return String(format: "$%.2f", dollars)
         }
+    }
+
+    // Helper to format cart amounts with consistent decimal places
+    private func formatCartAmount(_ cents: Int, forceDecimals: Bool) -> String {
+        let dollars = Double(cents) / 100.0
+        if forceDecimals || cents % 100 != 0 {
+            return String(format: "$%.2f", dollars)
+        } else {
+            return String(format: "$%.0f", dollars)
+        }
+    }
+
+    // Check if any cart item has cents (for consistent formatting)
+    private var cartHasAnyCents: Bool {
+        basket.contains { item in
+            let current = getCurrentProduct(for: item)
+            let total = current.priceInCents * item.quantity
+            return total % 100 != 0
+        }
+    }
+
+    // Helper to get current product data (live lookup for saved products)
+    private func getCurrentProduct(for item: CartItem) -> (name: String, priceInCents: Int) {
+        // If it's a saved product, look up current data from savedProducts
+        if item.isProduct,
+           let productId = item.productId,
+           let product = savedProducts.first(where: { $0.id == productId }) {
+            return (product.name, product.priceInCents)
+        }
+        // Otherwise use stored values (manual entries or deleted products)
+        return (item.name, item.priceInCents)
     }
 
     var formattedTotalAmount: String {
@@ -209,9 +243,10 @@ struct ContentView: View {
                             .foregroundColor(Color(.systemGray2))
                     }
                     ForEach(basket) { item in
+                        let current = getCurrentProduct(for: item)
                         HStack(spacing: 12) {
-                            // Product name (left-aligned)
-                            Text(item.name)
+                            // Product name (left-aligned, live lookup)
+                            Text(current.name)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             // Quantity (right-aligned, monospace)
@@ -220,8 +255,8 @@ struct ContentView: View {
                                 .foregroundColor(.secondary)
                                 .frame(minWidth: 40, alignment: .trailing)
 
-                            // Total price (right-aligned, monospace)
-                            Text(formatCurrency(item.totalPrice))
+                            // Total price (right-aligned, monospace, live price)
+                            Text(formatCartAmount(current.priceInCents * item.quantity, forceDecimals: cartHasAnyCents))
                                 .font(.system(.body, design: .monospaced))
                                 .frame(minWidth: 60, alignment: .trailing)
                         }
