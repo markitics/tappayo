@@ -12,12 +12,12 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts
+    @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
-    @FocusState private var focusedIndex: Int?
+    @FocusState private var focusedField: UUID?
     
     var body: some View {
         Form {
@@ -25,28 +25,41 @@ struct SettingsView: View {
                 TextField("Business name", text: $businessName)
             }
 
-            Section(header: Text("Quick Amounts")) {
-                ForEach(quickAmounts.indices, id: \.self) { index in
-                    HStack {
-                        CurrencyTextField(value: $quickAmounts[index], placeholder: "Quick amount \(index + 1)", font: .body)
-                            .multilineTextAlignment(.leading)
-                            .focused($focusedIndex, equals: index)
-                            // .keyboardType(.decimalPad) -> defined in CurrencyTextField.swift
+            Section(header: Text("Saved Products")) {
+                ForEach(savedProducts.indices, id: \.self) { index in
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextField("Product name", text: Binding(
+                            get: { savedProducts[index].name },
+                            set: { savedProducts[index].name = $0 }
+                        ))
+                        .focused($focusedField, equals: savedProducts[index].id)
+
+                        CurrencyTextField(
+                            value: Binding(
+                                get: { savedProducts[index].priceInCents },
+                                set: { savedProducts[index].priceInCents = $0 }
+                            ),
+                            placeholder: "Price",
+                            font: .body
+                        )
+                        .multilineTextAlignment(.leading)
                     }
+                    .padding(.vertical, 4)
                 }
                 .onDelete { indexSet in
-                    quickAmounts.remove(atOffsets: indexSet)
+                    savedProducts.remove(atOffsets: indexSet)
                 }
-                
+
                 Button(action: {
-                    quickAmounts.append(0)
-                    focusedIndex = quickAmounts.count - 1
+                    let newProduct = Product(name: "", priceInCents: 0)
+                    savedProducts.append(newProduct)
+                    focusedField = newProduct.id
                 }) {
-                    Text("Add Quick Amount")
+                    Text("Add Product")
                 }
                 .foregroundColor(myAccentColor)
-                
-                Text(quickAmounts.isEmpty ? "Add a shortcut for any common amounts" : "Swipe left to delete any quick amount")
+
+                Text(savedProducts.isEmpty ? "Add products with names and prices for quick checkout" : "Swipe left to delete any product")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
@@ -80,34 +93,34 @@ struct SettingsView: View {
         }
         .navigationTitle("Tappayo Settings")
         .onDisappear {
-            UserDefaults.standard.quickAmounts = quickAmounts
+            UserDefaults.standard.savedProducts = savedProducts
             UserDefaults.standard.myAccentColor = myAccentColor
             UserDefaults.standard.darkModePreference = darkModePreference
             UserDefaults.standard.showPlusMinusButtons = showPlusMinusButtons
             UserDefaults.standard.businessName = businessName
         }
         .onAppear {
-            quickAmounts = UserDefaults.standard.quickAmounts
+            savedProducts = UserDefaults.standard.savedProducts
             myAccentColor = UserDefaults.standard.myAccentColor
             darkModePreference = UserDefaults.standard.darkModePreference
             showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
             businessName = UserDefaults.standard.businessName
             applyDarkModePreference()
-            
+
             // Update navigation bar appearance
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = UIColor(myAccentColor)
             appearance.titleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
             appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
-           
+
             UINavigationBar.appearance().standardAppearance = appearance
             UINavigationBar.appearance().compactAppearance = appearance
             UINavigationBar.appearance().scrollEdgeAppearance = appearance
             UINavigationBar.appearance().tintColor = UIColor(myAccentColor)
         }
-        .onChange(of: quickAmounts) { newValue in
-            UserDefaults.standard.quickAmounts = newValue
+        .onChange(of: savedProducts) { newValue in
+            UserDefaults.standard.savedProducts = newValue
         }
         .onChange(of: darkModePreference) { _ in
             // Ensure accent dark mode preference, set in the Settings page, updates immediately

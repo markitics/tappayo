@@ -28,6 +28,8 @@
 		4DA470922CF60BFE009FAAD9 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA470912CF60BE2009FAAD9 /* AboutView.swift */; };
 		4DA470962CF63B56009FAAD9 /* notes-for-cursor.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */; };
 		4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DCA6AFB2BE347AB006220E5 /* APIClient.swift */; };
+		4D00000012345678001CAF11 /* CartItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D00000012345678001CAF12 /* CartItem.swift */; };
+		4D00000012345678001CAF13 /* Product.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D00000012345678001CAF14 /* Product.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,6 +75,8 @@
 		4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "notes-for-cursor.txt"; sourceTree = "<group>"; };
 		4DCA6AFA2BE3386C006220E5 /* Tappayo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tappayo.entitlements; sourceTree = "<group>"; };
 		4DCA6AFB2BE347AB006220E5 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		4D00000012345678001CAF12 /* CartItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartItem.swift; sourceTree = "<group>"; };
+		4D00000012345678001CAF14 /* Product.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Product.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,10 +136,12 @@
 				4D92B71E2C0EE469005AD949 /* AppStorageArray.swift */,
 				4D08BC7A2BCE79C7007B1FBA /* Assets.xcassets */,
 				4D92B7182C0ED822005AD949 /* BasketView.swift */,
+				4D00000012345678001CAF12 /* CartItem.swift */,
 				4D92B7162C0ED7FE005AD949 /* CheckoutView.swift */,
 				4D92B7142C0EA561005AD949 /* ContentView.swift */,
 				4D08BCA32BCE818F007B1FBA /* Info.plist */,
 				4D08BC7C2BCE79C7007B1FBA /* Preview Content */,
+				4D00000012345678001CAF14 /* Product.swift */,
 				4D14B3BE2BE36195009213AC /* ReaderDiscoveryViewController.swift */,
 				4D92B71A2C0EE143005AD949 /* SettingsView.swift */,
 				4DCA6AFA2BE3386C006220E5 /* Tappayo.entitlements */,
@@ -328,6 +334,8 @@
 				4D92B7272C0FF67D005AD949 /* CurrencyTextField.swift in Sources */,
 				4D92B7232C0FF2DC005AD949 /* NumberFormatterExtension.swift in Sources */,
 				4D92B7192C0ED822005AD949 /* BasketView.swift in Sources */,
+				4D00000012345678001CAF11 /* CartItem.swift in Sources */,
+				4D00000012345678001CAF13 /* Product.swift in Sources */,
 				4D14B3BF2BE36195009213AC /* ReaderDiscoveryViewController.swift in Sources */,
 				4D92B71B2C0EE143005AD949 /* SettingsView.swift in Sources */,
 				4D92B7152C0EA561005AD949 /* ContentView.swift in Sources */,

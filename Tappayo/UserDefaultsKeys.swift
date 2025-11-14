@@ -15,6 +15,7 @@ import Foundation
 
 enum UserDefaultsKeys: String {
     case quickAmounts
+    case savedProducts
     case myAccentColor
     case darkModePreference
     case showPlusMinusButtons

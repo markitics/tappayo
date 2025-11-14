@@ -6,33 +6,54 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var amountInCents: Int = 0
-    @State private var basket: [Int] = []
+    @State private var basket: [CartItem] = []
     @State private var connectionStatus = "Not connected"
-    
-//    Don't just use @State, because we want the Settings changes to take effect immediately; not just after app is re-launched
-//    @State private var quickAmounts: [Double] = UserDefaults.standard.quickAmounts
-    @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts // .map { Int($0 * 100) }
+
+    @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
-    // actually, this failed because we ran into "immutable" errors for quickActions and accentColor
-//    @AppStorageArray(key: "quickAmounts") private var quickAmounts: [Double] = [0.99, 1.00, 5.00, 10.00, 20.00]
-//    @AppStorageColor(key: "accentColor") private var accentColor: Color = Color(red: 0.0, green: 214.0 / 255.0, blue: 111.0 / 255.0)
-//    @AppStorage("darkModePreference") private var darkModePreference: String = "system"
 
     let readerDiscoveryController = ReaderDiscoveryViewController()
-   
+
     var totalAmountInCents: Int {
-       basket.reduce(0, +)
+       basket.reduce(0) { $0 + $1.totalPrice }
     }
-    
-    var formattedTotalAmount: String {
-        if totalAmountInCents % 100 == 0 {
-            return String(format: "%.0f", Double(totalAmountInCents) / 100.0)
+
+    // Helper to get next manual item name
+    private func nextManualItemName() -> String {
+        let manualItemCount = basket.filter { !$0.isProduct }.count
+        return "Item \(manualItemCount + 1)"
+    }
+
+    // Helper to format currency cleanly (no .00 for whole dollars)
+    private func formatCurrency(_ cents: Int) -> String {
+        let dollars = Double(cents) / 100.0
+        if cents % 100 == 0 {
+            return String(format: "$%.0f", dollars)
         } else {
-            return String(format: "%.2f", Double(totalAmountInCents) / 100.0)
+            return String(format: "$%.2f", dollars)
         }
+    }
+
+    var formattedTotalAmount: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        formatter.usesGroupingSeparator = true
+
+        let dollars = Double(totalAmountInCents) / 100.0
+
+        if totalAmountInCents % 100 == 0 {
+            formatter.minimumFractionDigits = 0
+            formatter.maximumFractionDigits = 0
+        } else {
+            formatter.minimumFractionDigits = 2
+            formatter.maximumFractionDigits = 2
+        }
+
+        return formatter.string(from: NSNumber(value: dollars)) ?? String(format: "%.2f", dollars)
     }
 
     var body: some View {
@@ -85,7 +106,13 @@ struct ContentView: View {
                 if amountInCents > 0 {
                     HStack {
                         Button(action: {
-                            basket.append(amountInCents)
+                            let item = CartItem(
+                                name: nextManualItemName(),
+                                priceInCents: amountInCents,
+                                quantity: 1,
+                                isProduct: false
+                            )
+                            basket.append(item)
                             amountInCents = 0
                         }) {
                             Text("Add to Cart")
@@ -126,12 +153,33 @@ struct ContentView: View {
                 ]
 
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(quickAmounts.filter({ $0 > 0 }), id: \.self) { quickAmount in
+                    ForEach(savedProducts.filter({ $0.priceInCents > 0 }), id: \.id) { product in
                         Button(action: {
-                            basket.append(quickAmount)
+                            // Check if this product is already in the cart
+                            if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
+                                // Increment quantity
+                                basket[index].quantity += 1
+                            } else {
+                                // Add new product to cart
+                                let item = CartItem(
+                                    productId: product.id,
+                                    name: product.name,
+                                    priceInCents: product.priceInCents,
+                                    quantity: 1,
+                                    isProduct: true
+                                )
+                                basket.append(item)
+                            }
                         }) {
-                            Text("$\(String(format: "%.2f", Double(quickAmount) / 100.0))")
-                                .frame(maxWidth: .infinity)
+                            VStack(spacing: 4) {
+                                Text(product.name)
+                                    .font(.caption)
+                                    .lineLimit(1)
+                                Text("$\(String(format: "%.2f", Double(product.priceInCents) / 100.0))")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                            }
+                            .frame(maxWidth: .infinity)
                         }
                         .padding()
                         .background(Color.gray)
@@ -160,12 +208,22 @@ struct ContentView: View {
                         Text("Cart is empty").font(.subheadline)
                             .foregroundColor(Color(.systemGray2))
                     }
-                    ForEach(basket.indices, id: \.self) { index in
-                        HStack {
-                            Text("Item \(index + 1)")
-                            Spacer()
-//                            Text("$\(String(format: "%.2f",  basket[index]))") was when we had USD
-                            Text("$\(String(format: "%.2f", Double(basket[index]) / 100.0))") // Format to display correctly
+                    ForEach(basket) { item in
+                        HStack(spacing: 12) {
+                            // Product name (left-aligned)
+                            Text(item.name)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // Quantity (right-aligned, monospace)
+                            Text("×\(item.quantity)")
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.secondary)
+                                .frame(minWidth: 40, alignment: .trailing)
+
+                            // Total price (right-aligned, monospace)
+                            Text(formatCurrency(item.totalPrice))
+                                .font(.system(.body, design: .monospaced))
+                                .frame(minWidth: 60, alignment: .trailing)
                         }
                     }
                     .onDelete(perform: deleteItem)
@@ -221,9 +279,9 @@ struct ContentView: View {
                     self.connectionStatus = status
                 }
                 readerDiscoveryController.viewDidLoad()
-                
+
                 // next lines so the changes we make in settings are reflected immediately, without needing to restart the app
-                quickAmounts = UserDefaults.standard.quickAmounts // .map { Int($0 * 100) }
+                savedProducts = UserDefaults.standard.savedProducts
                 myAccentColor = UserDefaults.standard.myAccentColor
                 darkModePreference = UserDefaults.standard.darkModePreference
                 showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons

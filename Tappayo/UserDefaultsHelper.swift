@@ -17,7 +17,34 @@ extension UserDefaults {
             set(data, forKey: UserDefaultsKeys.quickAmounts.rawValue)
         }
     }
-    
+
+    var savedProducts: [Product] {
+        get {
+            // Check if we have saved products
+            if let data = data(forKey: UserDefaultsKeys.savedProducts.rawValue),
+               let products = try? JSONDecoder().decode([Product].self, from: data) {
+                return products
+            }
+
+            // Migration: Convert existing quickAmounts to Products
+            let amounts = quickAmounts
+            var products: [Product] = []
+            for (index, amount) in amounts.enumerated() {
+                let name = amount > 0 ? "Product \(index + 1)" : ""
+                products.append(Product(name: name, priceInCents: amount))
+            }
+
+            // Save migrated products directly (don't call setter from getter)
+            let data = try? JSONEncoder().encode(products)
+            set(data, forKey: UserDefaultsKeys.savedProducts.rawValue)
+            return products
+        }
+        set {
+            let data = try? JSONEncoder().encode(newValue)
+            set(data, forKey: UserDefaultsKeys.savedProducts.rawValue)
+        }
+    }
+
     var myAccentColor: Color {
         get {
             guard let data = data(forKey: UserDefaultsKeys.myAccentColor.rawValue),
