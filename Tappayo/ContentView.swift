@@ -477,7 +477,6 @@ struct ContentView: View {
                 )
                 .presentationDetents([.height(200), .large])
                 .presentationDragIndicator(.visible)
-                .interactiveDismissDisabled()
             }
         }
         .onChange(of: basket.isEmpty) { (isEmpty: Bool) in
@@ -804,6 +803,11 @@ struct CheckoutSheet: View {
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
+            } else {
+                Text("Minimum charge $0.50")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
             }
 
                     // Connection status (only visible when expanded)
