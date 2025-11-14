@@ -466,6 +466,7 @@ struct ContentView: View {
                     taxAmountInCents: taxAmountInCents,
                     totalAmountInCents: totalAmountInCents,
                     formattedTotalAmount: formattedTotalAmount,
+                    connectionStatus: connectionStatus,
                     onCharge: {
                         do {
                             try readerDiscoveryController.checkoutAction(amount: totalAmountInCents)
@@ -726,6 +727,7 @@ struct CheckoutSheet: View {
     let taxAmountInCents: Int
     let totalAmountInCents: Int
     let formattedTotalAmount: String
+    let connectionStatus: String
     let onCharge: () -> Void
 
     private func formatMoney(_ cents: Int) -> String {
@@ -803,6 +805,12 @@ struct CheckoutSheet: View {
                 }
                 .padding(.horizontal)
             }
+
+                    // Connection status (only visible when expanded)
+                    Text(connectionStatus)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .padding(.top, 16)
                 }
             }
         }
