@@ -21,6 +21,7 @@ struct ContentView: View {
 
     @State private var editingItem: CartItem? = nil
     @State private var showQuantityEditor = false
+    @State private var showCheckoutSheet = false
 
     let readerDiscoveryController = ReaderDiscoveryViewController()
 
@@ -458,6 +459,28 @@ struct ContentView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
             }
+            .sheet(isPresented: $showCheckoutSheet) {
+                CheckoutSheet(
+                    basket: $basket,
+                    subtotalInCents: subtotalInCents,
+                    taxAmountInCents: taxAmountInCents,
+                    totalAmountInCents: totalAmountInCents,
+                    formattedTotalAmount: formattedTotalAmount,
+                    onCharge: {
+                        do {
+                            try readerDiscoveryController.checkoutAction(amount: totalAmountInCents)
+                        } catch {
+                            print("Error occurred: \(error)")
+                        }
+                    }
+                )
+                .presentationDetents([.height(200), .large])
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+            }
+        }
+        .onChange(of: basket.isEmpty) { (isEmpty: Bool) in
+            showCheckoutSheet = !isEmpty
         }
     }
     }
@@ -694,6 +717,72 @@ struct CustomKeypadView: View {
         return String(format: "$%.2f", dollars)
     }
 }
+
+// MARK: - Checkout Sheet
+
+struct CheckoutSheet: View {
+    @Binding var basket: [CartItem]
+    let subtotalInCents: Int
+    let taxAmountInCents: Int
+    let totalAmountInCents: Int
+    let formattedTotalAmount: String
+    let onCharge: () -> Void
+
+    private func formatMoney(_ cents: Int) -> String {
+        String(format: "$%.2f", Double(cents) / 100.0)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Drag handle
+            Capsule()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(width: 40, height: 5)
+                .padding(.top, 8)
+
+            // Subtotal & Tax
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Subtotal")
+                    Spacer()
+                    Text(formatMoney(subtotalInCents))
+                }
+                if taxAmountInCents > 0 {
+                    HStack {
+                        Text("Tax")
+                        Spacer()
+                        Text(formatMoney(taxAmountInCents))
+                    }
+                }
+            }
+            .font(.subheadline)
+            .padding(.horizontal)
+
+            // Charge Button
+            if totalAmountInCents > 49 {
+                Button(action: onCharge) {
+                    HStack {
+                        Image(systemName: "wave.3.right.circle.fill")
+                        Text("Charge card $\(formattedTotalAmount)")
+                            .font(.title2)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+            }
+
+            Spacer()
+        }
+        .background(Color(.systemBackground))
+    }
+}
+
+// MARK: - Item Editor
 
 struct ItemEditorView: View {
     let item: CartItem
