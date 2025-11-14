@@ -250,16 +250,37 @@ struct ContentView: View {
                                     basket[index].quantity += 1
                                 }
                             } label: {
-                                Label("+1", systemImage: "plus")
+                                Label("1", systemImage: "plus")
                             }
                             .tint(.green)
                         }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                if let index = basket.firstIndex(where: { $0.id == item.id }) {
+                                    basket.remove(at: index)
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+
+                            Button {
+                                if let index = basket.firstIndex(where: { $0.id == item.id }) {
+                                    if basket[index].quantity > 1 {
+                                        basket[index].quantity -= 1
+                                    } else {
+                                        basket.remove(at: index)
+                                    }
+                                }
+                            } label: {
+                                Label("1", systemImage: "minus")
+                            }
+                            .tint(.orange)
+                        }
                     }
-                    .onDelete(perform: deleteItem)
                     if !basket.isEmpty {
                         HStack {
                             Spacer()
-                            Text("Swipe left to delete • Swipe right to +1")
+                            Text("Swipe right: +1 • Swipe left: -1 or Delete")
                                 .font(.caption2)
                                 .foregroundColor(Color.gray)
                                 .multilineTextAlignment(.center)
@@ -389,18 +410,7 @@ struct ContentView: View {
                     .presentationDragIndicator(.visible)
                 }
             }
-        }
-
-        // Custom keypad overlay
-        if isKeypadActive {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    // Tapping outside doesn't dismiss - must use Cancel button
-                }
-
-            VStack {
-                Spacer()
+            .sheet(isPresented: $isKeypadActive) {
                 CustomKeypadView(
                     amountInCents: $amountInCents,
                     onAddToCart: {
@@ -426,13 +436,13 @@ struct ContentView: View {
                     showPlusMinusButtons: showPlusMinusButtons,
                     inputMode: inputMode
                 )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
-            .ignoresSafeArea(edges: .bottom)
-        }
         }
     }
-    
+    }
+
     private func deleteItem(at offsets: IndexSet) {
         basket.remove(atOffsets: offsets)
     }
