@@ -4,6 +4,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 
 extension UserDefaults {
     var quickAmounts: [Int] {

@@ -68,7 +68,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .navigationBarTitle("Settings")
+        .navigationTitle("Settings")
         .onDisappear {
             UserDefaults.standard.quickAmounts = quickAmounts
             UserDefaults.standard.myAccentColor = myAccentColor
@@ -80,16 +80,17 @@ struct SettingsView: View {
             darkModePreference = UserDefaults.standard.darkModePreference
             applyDarkModePreference()
             
-            // all this so the font in top left is not green, but reflects our accentColor
-            // let appearance = UINavigationBarAppearance()
-            // appearance.configureWithOpaqueBackground()
-            // appearance.backgroundColor = UIColor(myAccentColor)
-            // appearance.titleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
-            // appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
+            // Update navigation bar appearance
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = UIColor(myAccentColor)
+            appearance.titleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
+            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(myAccentColor)]
            
-            // UINavigationBar.appearance().standardAppearance = appearance
-            // UINavigationBar.appearance().compactAppearance = appearance
-            // UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().compactAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            UINavigationBar.appearance().tintColor = UIColor(myAccentColor)
         }
         .onChange(of: quickAmounts) { newValue in
             UserDefaults.standard.quickAmounts = newValue
@@ -102,9 +103,6 @@ struct SettingsView: View {
         .onChange(of: myAccentColor) { newValue in
             // Ensure accent color updates immediately
             UserDefaults.standard.myAccentColor = newValue
-            if let contentView = UIApplication.shared.windows.first?.rootViewController as? UIHostingController<SettingsView> {
-                contentView.rootView.myAccentColor = myAccentColor
-            }
         }
     }
     
@@ -139,3 +137,4 @@ struct SettingsView_Previews: PreviewProvider {
         SettingsView()
     }
 }
+

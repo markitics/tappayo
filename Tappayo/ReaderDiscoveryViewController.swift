@@ -10,6 +10,10 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Retrieve the saved accent color
+        // if let accentColor = UserDefaults.standard.colorForKey("AccentColor") {
+        //     self.navigationController?.navigationBar.tintColor = accentColor // title color
+        // }
         discoverAndConnectReader()
     }
     
