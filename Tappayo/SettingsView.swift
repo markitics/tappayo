@@ -17,6 +17,7 @@ struct SettingsView: View {
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
+    @State private var taxRate: Double = UserDefaults.standard.taxRate
     @FocusState private var focusedField: UUID?
     
     var body: some View {
@@ -85,6 +86,18 @@ struct SettingsView: View {
                 Toggle("Show +$1/-$1 buttons", isOn: $showPlusMinusButtons)
             }
 
+            Section(header: Text("Tax Rate")) {
+                HStack {
+                    TextField("Tax %", value: $taxRate, format: .number)
+                        .keyboardType(.decimalPad)
+                    Text("%")
+                        .foregroundColor(.secondary)
+                }
+                Text("Enter tax rate as percentage (0 = no tax)")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+
             Section {
                 NavigationLink(destination: AboutView()) {
                     Text("About")
@@ -98,6 +111,7 @@ struct SettingsView: View {
             UserDefaults.standard.darkModePreference = darkModePreference
             UserDefaults.standard.showPlusMinusButtons = showPlusMinusButtons
             UserDefaults.standard.businessName = businessName
+            UserDefaults.standard.taxRate = taxRate
         }
         .onAppear {
             savedProducts = UserDefaults.standard.savedProducts
@@ -105,6 +119,7 @@ struct SettingsView: View {
             darkModePreference = UserDefaults.standard.darkModePreference
             showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
             businessName = UserDefaults.standard.businessName
+            taxRate = UserDefaults.standard.taxRate
             applyDarkModePreference()
 
             // Update navigation bar appearance
@@ -136,6 +151,9 @@ struct SettingsView: View {
         }
         .onChange(of: businessName) { newValue in
             UserDefaults.standard.businessName = newValue
+        }
+        .onChange(of: taxRate) { newValue in
+            UserDefaults.standard.taxRate = newValue
         }
     }
     

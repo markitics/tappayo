@@ -86,5 +86,14 @@ extension UserDefaults {
             set(newValue, forKey: UserDefaultsKeys.businessName.rawValue)
         }
     }
+
+    var taxRate: Double {
+        get {
+            return double(forKey: UserDefaultsKeys.taxRate.rawValue)
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.taxRate.rawValue)
+        }
+    }
 }
 

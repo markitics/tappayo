@@ -20,5 +20,6 @@ enum UserDefaultsKeys: String {
     case darkModePreference
     case showPlusMinusButtons
     case businessName
+    case taxRate
 }
 

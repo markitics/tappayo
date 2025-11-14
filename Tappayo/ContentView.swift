@@ -14,14 +14,26 @@ struct ContentView: View {
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
+    @State private var taxRate: Double = UserDefaults.standard.taxRate
 
     let readerDiscoveryController = ReaderDiscoveryViewController()
 
-    var totalAmountInCents: Int {
+    var subtotalInCents: Int {
        basket.reduce(0) { total, item in
            let current = getCurrentProduct(for: item)
            return total + (current.priceInCents * item.quantity)
        }
+    }
+
+    var taxAmountInCents: Int {
+        if taxRate > 0 {
+            return Int(round(Double(subtotalInCents) * taxRate / 100.0))
+        }
+        return 0
+    }
+
+    var totalAmountInCents: Int {
+        return subtotalInCents + taxAmountInCents
     }
 
     // Helper to get next manual item name
@@ -274,8 +286,35 @@ struct ContentView: View {
                     }
                 }
 //                .frame(maxHeight: 400) // Adjust height to ensure visibility
-                
+
                 Spacer()
+
+                // Tax summary (only if tax > 0 and cart not empty)
+                if taxRate > 0 && !basket.isEmpty {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("Subtotal")
+                                .font(.subheadline)
+                            Spacer()
+                            Text(formatCartAmount(subtotalInCents, forceDecimals: cartHasAnyCents))
+                                .font(.system(.subheadline, design: .monospaced))
+                        }
+                        .padding(.horizontal)
+
+                        HStack {
+                            Text("Tax (\(String(format: "%.1f", taxRate))%)")
+                                .font(.subheadline)
+                            Spacer()
+                            Text(formatCartAmount(taxAmountInCents, forceDecimals: cartHasAnyCents))
+                                .font(.system(.subheadline, design: .monospaced))
+                        }
+                        .padding(.horizontal)
+
+                        Divider()
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom, 8)
+                }
 
                 if totalAmountInCents > 49 && amountInCents == 0 {
                     Button(action: {
@@ -321,6 +360,7 @@ struct ContentView: View {
                 darkModePreference = UserDefaults.standard.darkModePreference
                 showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
                 businessName = UserDefaults.standard.businessName
+                taxRate = UserDefaults.standard.taxRate
                 applyDarkModePreference()
             }
             .navigationTitle(businessName)
