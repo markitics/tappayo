@@ -383,10 +383,18 @@ struct ContentView: View {
                 inputMode = UserDefaults.standard.inputMode
                 applyDarkModePreference()
             }
-            .navigationTitle(businessName)
-            .navigationBarItems(trailing: NavigationLink(destination: SettingsView()) {
-                Text("Settings").foregroundColor(myAccentColor)
-            })
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Text(businessName)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: SettingsView()) {
+                        Text("Settings").foregroundColor(myAccentColor)
+                    }
+                }
+            }
             .background( // this is to dismiss the keyboard when the user taps outside the text field
                 Color.clear
                     .contentShape(Rectangle())
@@ -407,6 +415,18 @@ struct ContentView: View {
                     )
                     .presentationDetents([.height(350), .medium])
                     .presentationDragIndicator(.visible)
+                } else {
+                    // Debug fallback - should never appear
+                    VStack {
+                        Text("Error: Could not find item")
+                            .foregroundColor(.red)
+                        Text("editingItem: \(editingItem?.name ?? "nil")")
+                        Text("basket count: \(basket.count)")
+                        Button("Close") {
+                            showQuantityEditor = false
+                        }
+                    }
+                    .padding()
                 }
             }
             .sheet(isPresented: $isKeypadActive) {
@@ -815,6 +835,7 @@ struct ItemEditorView: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
+        .background(Color(.systemBackground))
     }
 
     private func saveNameChange() {
