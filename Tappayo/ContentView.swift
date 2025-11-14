@@ -39,15 +39,6 @@ struct ContentView: View {
         NavigationView {
             VStack {
                 HStack {
-                    Text("Add item")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .multilineTextAlignment(.leading)
-                        .padding(.top, 8)
-                    Spacer()
-                }
-                
-                HStack {
                     if showPlusMinusButtons {
                         Spacer()
 
@@ -90,31 +81,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.bottom, 12)
-                
-                let columns = [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ]
 
-                LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(quickAmounts.filter({ $0 > 0 }), id: \.self) { quickAmount in
-                        Button(action: {
-                            amountInCents = quickAmount
-                        }) {
-                            Text("$\(String(format: "%.2f", Double(quickAmount) / 100.0))")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .padding()
-                        .background(Color.gray) // or myAccentColor
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                    }
-                }
-                .padding([.leading, .trailing])
-                .padding([.top], 4)
-                .padding([.bottom], 14)
-                
                 if amountInCents > 0 {
                     HStack {
                         Button(action: {
@@ -128,9 +95,7 @@ struct ContentView: View {
                         .background(.blue)
                         .foregroundColor(.white)
                         .cornerRadius(8)
-                        
-//                        Spacer()
-                        
+
                         Button(action: {
                             amountInCents = 0
                         }) {
@@ -138,25 +103,55 @@ struct ContentView: View {
                                 .fontWeight(.medium)
                         }
                         .padding()
-//                        .background(.blue)
                         .foregroundColor(.red)
                         .cornerRadius(8)
                         .buttonStyle(.bordered)
                     }
                     .padding([.bottom], 10)
-                } else {
-                    Spacer().frame(height: 34) // Maintain space when button is hidden
-                    if(!basket.isEmpty){
-                        Divider()
-                        HStack {
-                            Text("Cart").font(.headline)
-        //                            .foregroundColor(Color.white)
-                                .fontWeight(.bold)
-                                .multilineTextAlignment(.leading)
-                                .padding(.bottom, 6)
-                                .padding(.top, 16)
-                            Spacer()
+                }
+
+                HStack {
+                    Text("Quick add items")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.leading)
+                        .padding(.top, 8)
+                    Spacer()
+                }
+
+                let columns = [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ]
+
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(quickAmounts.filter({ $0 > 0 }), id: \.self) { quickAmount in
+                        Button(action: {
+                            basket.append(quickAmount)
+                        }) {
+                            Text("$\(String(format: "%.2f", Double(quickAmount) / 100.0))")
+                                .frame(maxWidth: .infinity)
                         }
+                        .padding()
+                        .background(Color.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+                }
+                .padding([.leading, .trailing])
+                .padding([.top], 4)
+                .padding([.bottom], 14)
+
+                if !basket.isEmpty {
+                    Divider()
+                    HStack {
+                        Text("Cart").font(.headline)
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.leading)
+                            .padding(.bottom, 6)
+                            .padding(.top, 16)
+                        Spacer()
                     }
                 }
 
