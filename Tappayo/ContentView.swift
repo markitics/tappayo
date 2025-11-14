@@ -459,7 +459,14 @@ struct ContentView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented: $showCheckoutSheet) {
+            .sheet(isPresented: $showCheckoutSheet, onDismiss: {
+                // If basket still has items, show sheet again
+                if !basket.isEmpty {
+                    DispatchQueue.main.async {
+                        showCheckoutSheet = true
+                    }
+                }
+            }) {
                 CheckoutSheet(
                     basket: $basket,
                     subtotalInCents: subtotalInCents,
