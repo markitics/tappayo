@@ -21,5 +21,7 @@ enum UserDefaultsKeys: String {
     case showPlusMinusButtons
     case businessName
     case taxRate
+    case dismissKeypadAfterAdd
+    case inputMode  // "cents" or "dollars"
 }
 

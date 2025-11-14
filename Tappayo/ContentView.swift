@@ -15,6 +15,12 @@ struct ContentView: View {
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
     @State private var taxRate: Double = UserDefaults.standard.taxRate
+    @State private var dismissKeypadAfterAdd: String = UserDefaults.standard.dismissKeypadAfterAdd
+    @State private var inputMode: String = UserDefaults.standard.inputMode
+    @State private var isKeypadActive: Bool = false
+
+    @State private var editingItem: CartItem? = nil
+    @State private var showQuantityEditor = false
 
     let readerDiscoveryController = ReaderDiscoveryViewController()
 
@@ -52,6 +58,12 @@ struct ContentView: View {
         }
     }
 
+    // Helper to format amount for display (always with decimals)
+    private func formatAmount(_ cents: Int) -> String {
+        let dollars = Double(cents) / 100.0
+        return String(format: "$%.2f", dollars)
+    }
+
     // Helper to format cart amounts with consistent decimal places
     private func formatCartAmount(_ cents: Int, forceDecimals: Bool) -> String {
         let dollars = Double(cents) / 100.0
@@ -69,6 +81,28 @@ struct ContentView: View {
             let total = current.priceInCents * item.quantity
             return total % 100 != 0
         }
+    }
+
+    // Check if tax summary (subtotal or tax) has cents
+    private var taxSummaryHasCents: Bool {
+        return subtotalInCents % 100 != 0 || taxAmountInCents % 100 != 0
+    }
+
+    // Format tax rate for display (up to 2 decimals, drop trailing zeros)
+    private var formattedTaxRate: String {
+        let rounded = round(taxRate * 100) / 100  // Round to 2 decimals
+        if rounded.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f", rounded)
+        } else if (rounded * 10).truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.1f", rounded)
+        } else {
+            return String(format: "%.2f", rounded)
+        }
+    }
+
+    // Check if all cart items have quantity of 1
+    private var allItemsQuantityOne: Bool {
+        return !basket.isEmpty && basket.allSatisfy { $0.quantity == 1 }
     }
 
     // Helper to get current product data (live lookup for saved products)
@@ -103,85 +137,16 @@ struct ContentView: View {
     }
 
     var body: some View {
+        ZStack {
         NavigationView {
             VStack {
-                HStack {
-                    if showPlusMinusButtons {
-                        Spacer()
-
-                        Button(action: {
-                            if amountInCents > 99 {
-                                amountInCents -= 100
-                            }
-                        }) {
-                            Text("-$1")
-                        }
-                        .padding(4)
-                        .foregroundColor(Color.red)
-                        .buttonStyle(.bordered)
-                        .cornerRadius(8)
-                    }
-
-                    Spacer()
-
-                    CurrencyTextField(value: $amountInCents, placeholder: "Enter amount", font: .largeTitle)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .frame(height: 50) // Limit the height
-                        .multilineTextAlignment(.center)
-
-                    Spacer()
-
-                    if showPlusMinusButtons {
-                        Button(action: {
-                            amountInCents += 100
-                        }) {
-                            Text("+$1")
-                        }
-                        .padding(4)
-                        .foregroundColor(.green)
-                        .buttonStyle(.bordered)
-                        .cornerRadius(8)
-
-                        Spacer()
-                    }
-                }
+                // Tappable amount display (triggers custom keypad)
+                AmountInputButton(
+                    amountInCents: amountInCents,
+                    formatAmount: formatAmount,
+                    onTap: { isKeypadActive = true }
+                )
                 .padding(.bottom, 12)
-
-                if amountInCents > 0 {
-                    HStack {
-                        Button(action: {
-                            let item = CartItem(
-                                name: nextManualItemName(),
-                                priceInCents: amountInCents,
-                                quantity: 1,
-                                isProduct: false
-                            )
-                            basket.append(item)
-                            amountInCents = 0
-                        }) {
-                            Text("Add to Cart")
-                                .fontWeight(.medium)
-                        }
-                        .padding()
-                        .background(.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-
-                        Button(action: {
-                            amountInCents = 0
-                        }) {
-                            Text("Cancel").font(.callout)
-                                .fontWeight(.medium)
-                        }
-                        .padding()
-                        .foregroundColor(.red)
-                        .cornerRadius(8)
-                        .buttonStyle(.bordered)
-                    }
-                    .padding([.bottom], 10)
-                }
 
                 HStack {
                     Text("Quick add items")
@@ -243,7 +208,7 @@ struct ContentView: View {
                         Text("Cart").font(.headline)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.leading)
-                            .padding(.bottom, 6)
+                            .padding(.bottom, 2)
                             .padding(.top, 16)
                         Spacer()
                     }
@@ -261,11 +226,17 @@ struct ContentView: View {
                             Text(current.name)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                            // Quantity (right-aligned, monospace)
-                            Text("×\(item.quantity)")
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundColor(.secondary)
-                                .frame(minWidth: 40, alignment: .trailing)
+                            // Quantity (right-aligned, monospace) - only show if not all items are qty 1
+                            if !allItemsQuantityOne {
+                                Text("×\(item.quantity)")
+                                    .font(.system(.body, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                                    .frame(minWidth: 40, alignment: .trailing)
+                                    .onTapGesture {
+                                        editingItem = item
+                                        showQuantityEditor = true
+                                    }
+                            }
 
                             // Total price (right-aligned, monospace, live price)
                             Text(formatCartAmount(current.priceInCents * item.quantity, forceDecimals: cartHasAnyCents))
@@ -292,26 +263,42 @@ struct ContentView: View {
                 // Tax summary (only if tax > 0 and cart not empty)
                 if taxRate > 0 && !basket.isEmpty {
                     VStack(spacing: 8) {
-                        HStack {
+                        HStack(spacing: 12) {
                             Text("Subtotal")
                                 .font(.subheadline)
-                            Spacer()
-                            Text(formatCartAmount(subtotalInCents, forceDecimals: cartHasAnyCents))
-                                .font(.system(.subheadline, design: .monospaced))
-                        }
-                        .padding(.horizontal)
+                                .frame(maxWidth: .infinity, alignment: .leading)
 
-                        HStack {
-                            Text("Tax (\(String(format: "%.1f", taxRate))%)")
-                                .font(.subheadline)
-                            Spacer()
-                            Text(formatCartAmount(taxAmountInCents, forceDecimals: cartHasAnyCents))
+                            // Empty space matching quantity column width (only if quantity column shown)
+                            if !allItemsQuantityOne {
+                                Text("")
+                                    .frame(minWidth: 40, alignment: .trailing)
+                            }
+
+                            Text(formatCartAmount(subtotalInCents, forceDecimals: taxSummaryHasCents))
                                 .font(.system(.subheadline, design: .monospaced))
+                                .frame(minWidth: 60, alignment: .trailing)
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 20)
+
+                        HStack(spacing: 12) {
+                            Text("Tax (\(formattedTaxRate)%)")
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // Empty space matching quantity column width (only if quantity column shown)
+                            if !allItemsQuantityOne {
+                                Text("")
+                                    .frame(minWidth: 40, alignment: .trailing)
+                            }
+
+                            Text(formatCartAmount(taxAmountInCents, forceDecimals: taxSummaryHasCents))
+                                .font(.system(.subheadline, design: .monospaced))
+                                .frame(minWidth: 60, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 20)
 
                         Divider()
-                            .padding(.horizontal)
+                            .padding(.horizontal, 20)
                     }
                     .padding(.bottom, 8)
                 }
@@ -361,6 +348,8 @@ struct ContentView: View {
                 showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
                 businessName = UserDefaults.standard.businessName
                 taxRate = UserDefaults.standard.taxRate
+                dismissKeypadAfterAdd = UserDefaults.standard.dismissKeypadAfterAdd
+                inputMode = UserDefaults.standard.inputMode
                 applyDarkModePreference()
             }
             .navigationTitle(businessName)
@@ -374,6 +363,57 @@ struct ContentView: View {
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     }
             )
+            .sheet(isPresented: $showQuantityEditor) {
+                if let item = editingItem,
+                   let index = basket.firstIndex(where: { $0.id == item.id }) {
+                    QuantityEditorView(
+                        itemName: getCurrentProduct(for: item).name,
+                        quantity: $basket[index].quantity,
+                        isPresented: $showQuantityEditor
+                    )
+                }
+            }
+        }
+
+        // Custom keypad overlay
+        if isKeypadActive {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    // Tapping outside doesn't dismiss - must use Cancel button
+                }
+
+            VStack {
+                Spacer()
+                CustomKeypadView(
+                    amountInCents: $amountInCents,
+                    onAddToCart: {
+                        // Add to cart action
+                        let item = CartItem(
+                            name: nextManualItemName(),
+                            priceInCents: amountInCents,
+                            quantity: 1,
+                            isProduct: false
+                        )
+                        basket.append(item)
+                        amountInCents = 0
+
+                        // Dismiss keypad if setting is "dismiss"
+                        if dismissKeypadAfterAdd == "dismiss" {
+                            isKeypadActive = false
+                        }
+                    },
+                    onCancel: {
+                        amountInCents = 0
+                        isKeypadActive = false
+                    },
+                    showPlusMinusButtons: showPlusMinusButtons,
+                    inputMode: inputMode
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            .ignoresSafeArea(edges: .bottom)
+        }
         }
     }
     
@@ -399,5 +439,267 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+    }
+}
+
+struct AmountInputButton: View {
+    let amountInCents: Int
+    let formatAmount: (Int) -> String
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            Text(amountInCents > 0 ? formatAmount(amountInCents) : "Enter amount")
+                .font(.largeTitle)
+                .foregroundColor(amountInCents > 0 ? .primary : .secondary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+        }
+    }
+}
+
+struct CustomKeypadView: View {
+    @Binding var amountInCents: Int
+    let onAddToCart: () -> Void
+    let onCancel: () -> Void
+    let showPlusMinusButtons: Bool
+    let inputMode: String
+
+    private let buttonSize: CGFloat = 70
+    private let buttonSpacing: CGFloat = 16
+
+    var body: some View {
+        VStack(spacing: 20) {
+            // Amount display
+            Text(formatAmount(amountInCents))
+                .font(.system(size: 48, weight: .medium, design: .default))
+                .foregroundColor(.white)
+                .frame(height: 60)
+
+            // Plus/Minus buttons (if enabled in settings)
+            if showPlusMinusButtons {
+                HStack(spacing: 16) {
+                    Button(action: {
+                        if amountInCents > 99 {
+                            amountInCents -= 100
+                        }
+                    }) {
+                        Text("-$1")
+                            .font(.body)
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 80, height: 36)
+                    .background(Color.red.opacity(0.8))
+                    .cornerRadius(8)
+
+                    Spacer()
+
+                    Button(action: {
+                        amountInCents += 100
+                    }) {
+                        Text("+$1")
+                            .font(.body)
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 80, height: 36)
+                    .background(Color.green.opacity(0.8))
+                    .cornerRadius(8)
+                }
+                .padding(.horizontal, 40)
+            }
+
+            // Number pad grid
+            VStack(spacing: buttonSpacing) {
+                // Row 1: 1, 2, 3
+                HStack(spacing: buttonSpacing) {
+                    ForEach(1...3, id: \.self) { number in
+                        numberButton(number)
+                    }
+                }
+
+                // Row 2: 4, 5, 6
+                HStack(spacing: buttonSpacing) {
+                    ForEach(4...6, id: \.self) { number in
+                        numberButton(number)
+                    }
+                }
+
+                // Row 3: 7, 8, 9
+                HStack(spacing: buttonSpacing) {
+                    ForEach(7...9, id: \.self) { number in
+                        numberButton(number)
+                    }
+                }
+
+                // Row 4: Add/Empty, 0, Backspace/Empty
+                HStack(spacing: buttonSpacing) {
+                    if amountInCents > 0 {
+                        // Add to cart button (bottom-left when amount > 0)
+                        Button(action: onAddToCart) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 28, weight: .medium))
+                                .foregroundColor(.white)
+                        }
+                        .frame(width: buttonSize, height: buttonSize)
+                        .background(Color.blue)
+                        .clipShape(Circle())
+                    } else {
+                        // Empty space when amount is 0
+                        Color.clear
+                            .frame(width: buttonSize, height: buttonSize)
+                    }
+
+                    // Zero button (always in center)
+                    numberButton(0)
+
+                    if amountInCents > 0 {
+                        // Backspace button (bottom-right when amount > 0)
+                        Button(action: {
+                            if inputMode == "dollars" {
+                                // In dollars mode, remove last dollar digit
+                                let currentDollars = amountInCents / 100
+                                let newDollars = currentDollars / 10
+                                amountInCents = newDollars * 100
+                            } else {
+                                // In cents mode, remove last digit normally
+                                amountInCents = amountInCents / 10
+                            }
+                        }) {
+                            Image(systemName: "delete.left")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(.white)
+                        }
+                        .frame(width: buttonSize, height: buttonSize)
+                        .background(Color.gray.opacity(0.6))
+                        .clipShape(Circle())
+                    } else {
+                        // Empty space when amount is 0
+                        Color.clear
+                            .frame(width: buttonSize, height: buttonSize)
+                    }
+                }
+            }
+            .padding(.vertical, 20)
+
+            // Bottom buttons: Add to Cart and Dismiss
+            HStack(spacing: 12) {
+                // Add to Cart button (2/3 width)
+                Button(action: onAddToCart) {
+                    Text("Add to Cart")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                }
+                .background(amountInCents > 0 ? Color.blue : Color.gray.opacity(0.5))
+                .cornerRadius(10)
+                .disabled(amountInCents == 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Dismiss button (1/3 width)
+                Button(action: onCancel) {
+                    Text("Dismiss")
+                        .font(.callout)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .frame(width: 100, height: 50)
+                }
+                .background(Color.red.opacity(0.8))
+                .cornerRadius(10)
+            }
+            .padding(.horizontal, 20)
+        }
+        .padding(.vertical, 30)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(UIColor.systemGray6).opacity(0.98))
+        )
+        .padding(.horizontal, 20)
+    }
+
+    // Helper to create number buttons
+    private func numberButton(_ number: Int) -> some View {
+        Button(action: {
+            if inputMode == "dollars" {
+                // In dollars mode, build whole dollar amounts (always multiples of 100 cents)
+                let currentDollars = amountInCents / 100
+                let newDollars = currentDollars * 10 + number
+                amountInCents = newDollars * 100
+            } else {
+                // In cents mode, append digit normally
+                amountInCents = amountInCents * 10 + number
+            }
+        }) {
+            Text("\(number)")
+                .font(.system(size: 32, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: buttonSize, height: buttonSize)
+        }
+        .background(Color.gray.opacity(0.8))
+        .clipShape(Circle())
+    }
+
+    // Helper to format the amount display
+    private func formatAmount(_ cents: Int) -> String {
+        let dollars = Double(cents) / 100.0
+        return String(format: "$%.2f", dollars)
+    }
+}
+
+struct QuantityEditorView: View {
+    let itemName: String
+    @Binding var quantity: Int
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 30) {
+                Spacer()
+
+                Text(itemName)
+                    .font(.title2)
+                    .fontWeight(.medium)
+
+                HStack(spacing: 40) {
+                    Button(action: {
+                        if quantity > 1 {
+                            quantity -= 1
+                        }
+                    }) {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.system(size: 44))
+                            .foregroundColor(quantity > 1 ? .blue : .gray)
+                    }
+                    .disabled(quantity <= 1)
+
+                    Text("\(quantity)")
+                        .font(.system(size: 60, weight: .semibold, design: .rounded))
+                        .frame(minWidth: 80)
+
+                    Button(action: {
+                        quantity += 1
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 44))
+                            .foregroundColor(.blue)
+                    }
+                }
+
+                Spacer()
+            }
+            .navigationTitle("Edit Quantity")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        isPresented = false
+                    }
+                }
+            }
+        }
     }
 }

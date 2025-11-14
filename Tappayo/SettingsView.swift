@@ -18,6 +18,8 @@ struct SettingsView: View {
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
     @State private var taxRate: Double = UserDefaults.standard.taxRate
+    @State private var dismissKeypadAfterAdd: String = UserDefaults.standard.dismissKeypadAfterAdd
+    @State private var inputMode: String = UserDefaults.standard.inputMode
     @FocusState private var focusedField: UUID?
     
     var body: some View {
@@ -84,16 +86,26 @@ struct SettingsView: View {
 
             Section(header: Text("Display Options")) {
                 Toggle("Show +$1/-$1 buttons", isOn: $showPlusMinusButtons)
+
+                Picker(inputModeHeader, selection: $inputMode) {
+                    Text("I'll type cents, like $5.99 or $5.00").tag("cents")
+                    Text("Only whole numbers, like $5, $50").tag("dollars")
+                }
+
+                Picker(keypadBehaviorHeader, selection: $dismissKeypadAfterAdd) {
+                    Text("Dismiss keypad after adding a manual price").tag("dismiss")
+                    Text("Stay in keypad mode, for quickly adding multiple custom items").tag("stay")
+                }
             }
 
             Section(header: Text("Tax Rate")) {
                 HStack {
-                    TextField("Tax %", value: $taxRate, format: .number)
+                    TextField("Tax %", value: $taxRate, format: .number.precision(.fractionLength(0...2)))
                         .keyboardType(.decimalPad)
                     Text("%")
                         .foregroundColor(.secondary)
                 }
-                Text("Enter tax rate as percentage (0 = no tax)")
+                Text("Enter tax rate as percentage (0 = no tax, max 2 decimals)")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
@@ -112,6 +124,8 @@ struct SettingsView: View {
             UserDefaults.standard.showPlusMinusButtons = showPlusMinusButtons
             UserDefaults.standard.businessName = businessName
             UserDefaults.standard.taxRate = taxRate
+            UserDefaults.standard.dismissKeypadAfterAdd = dismissKeypadAfterAdd
+            UserDefaults.standard.inputMode = inputMode
         }
         .onAppear {
             savedProducts = UserDefaults.standard.savedProducts
@@ -120,6 +134,8 @@ struct SettingsView: View {
             showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
             businessName = UserDefaults.standard.businessName
             taxRate = UserDefaults.standard.taxRate
+            dismissKeypadAfterAdd = UserDefaults.standard.dismissKeypadAfterAdd
+            inputMode = UserDefaults.standard.inputMode
             applyDarkModePreference()
 
             // Update navigation bar appearance
@@ -155,6 +171,12 @@ struct SettingsView: View {
         .onChange(of: taxRate) { newValue in
             UserDefaults.standard.taxRate = newValue
         }
+        .onChange(of: dismissKeypadAfterAdd) { newValue in
+            UserDefaults.standard.dismissKeypadAfterAdd = newValue
+        }
+        .onChange(of: inputMode) { newValue in
+            UserDefaults.standard.inputMode = newValue
+        }
     }
     
     //    private
@@ -179,6 +201,24 @@ struct SettingsView: View {
             return "Always off"
         default:
             return "System setting"
+        }
+    }
+
+    var inputModeHeader: String {
+        switch inputMode {
+        case "dollars":
+            return "Only whole numbers"
+        default:
+            return "Input mode"
+        }
+    }
+
+    var keypadBehaviorHeader: String {
+        switch dismissKeypadAfterAdd {
+        case "stay":
+            return "Stay in keypad mode"
+        default:
+            return "Dismiss after add"
         }
     }
 }

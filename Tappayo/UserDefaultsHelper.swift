@@ -95,5 +95,23 @@ extension UserDefaults {
             set(newValue, forKey: UserDefaultsKeys.taxRate.rawValue)
         }
     }
+
+    var dismissKeypadAfterAdd: String {
+        get {
+            return string(forKey: UserDefaultsKeys.dismissKeypadAfterAdd.rawValue) ?? "dismiss"
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.dismissKeypadAfterAdd.rawValue)
+        }
+    }
+
+    var inputMode: String {
+        get {
+            return string(forKey: UserDefaultsKeys.inputMode.rawValue) ?? "cents"
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.inputMode.rawValue)
+        }
+    }
 }
 
