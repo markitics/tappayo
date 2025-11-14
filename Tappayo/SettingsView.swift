@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
+    @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @FocusState private var focusedIndex: Int?
     
     var body: some View {
@@ -62,6 +63,10 @@ struct SettingsView: View {
                 }
             }
 
+            Section(header: Text("Display Options")) {
+                Toggle("Show +$1/-$1 buttons", isOn: $showPlusMinusButtons)
+            }
+
             Section {
                 NavigationLink(destination: AboutView()) {
                     Text("About")
@@ -73,11 +78,13 @@ struct SettingsView: View {
             UserDefaults.standard.quickAmounts = quickAmounts
             UserDefaults.standard.myAccentColor = myAccentColor
             UserDefaults.standard.darkModePreference = darkModePreference
+            UserDefaults.standard.showPlusMinusButtons = showPlusMinusButtons
         }
         .onAppear {
             quickAmounts = UserDefaults.standard.quickAmounts
             myAccentColor = UserDefaults.standard.myAccentColor
             darkModePreference = UserDefaults.standard.darkModePreference
+            showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
             applyDarkModePreference()
             
             // Update navigation bar appearance
@@ -103,6 +110,9 @@ struct SettingsView: View {
         .onChange(of: myAccentColor) { newValue in
             // Ensure accent color updates immediately
             UserDefaults.standard.myAccentColor = newValue
+        }
+        .onChange(of: showPlusMinusButtons) { newValue in
+            UserDefaults.standard.showPlusMinusButtons = newValue
         }
     }
     

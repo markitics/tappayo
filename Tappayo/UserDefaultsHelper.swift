@@ -41,5 +41,14 @@ extension UserDefaults {
             set(newValue, forKey: UserDefaultsKeys.darkModePreference.rawValue)
         }
     }
+
+    var showPlusMinusButtons: Bool {
+        get {
+            return bool(forKey: UserDefaultsKeys.showPlusMinusButtons.rawValue)
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.showPlusMinusButtons.rawValue)
+        }
+    }
 }
 

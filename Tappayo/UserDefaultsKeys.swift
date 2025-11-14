@@ -17,5 +17,6 @@ enum UserDefaultsKeys: String {
     case quickAmounts
     case myAccentColor
     case darkModePreference
+    case showPlusMinusButtons
 }
 

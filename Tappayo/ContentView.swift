@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var quickAmounts: [Int] = UserDefaults.standard.quickAmounts // .map { Int($0 * 100) }
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
+    @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     // actually, this failed because we ran into "immutable" errors for quickActions and accentColor
 //    @AppStorageArray(key: "quickAmounts") private var quickAmounts: [Double] = [0.99, 1.00, 5.00, 10.00, 20.00]
 //    @AppStorageColor(key: "accentColor") private var accentColor: Color = Color(red: 0.0, green: 214.0 / 255.0, blue: 111.0 / 255.0)
@@ -46,22 +47,24 @@ struct ContentView: View {
                 }
                 
                 HStack {
-                    Spacer()
-                    
-                    Button(action: {
-                        if amountInCents > 99 {
-                            amountInCents -= 100
+                    if showPlusMinusButtons {
+                        Spacer()
+
+                        Button(action: {
+                            if amountInCents > 99 {
+                                amountInCents -= 100
+                            }
+                        }) {
+                            Text("-$1")
                         }
-                    }) {
-                        Text("-$1")
+                        .padding(4)
+                        .foregroundColor(Color.red)
+                        .buttonStyle(.bordered)
+                        .cornerRadius(8)
                     }
-                    .padding(4)
-                    .foregroundColor(Color.red)
-                    .buttonStyle(.bordered)
-                    .cornerRadius(8)
-                    
+
                     Spacer()
-                    
+
                     CurrencyTextField(value: $amountInCents, placeholder: "Enter amount", font: .largeTitle)
                         .padding()
                         .background(Color(.systemGray6))
@@ -70,18 +73,20 @@ struct ContentView: View {
                         .multilineTextAlignment(.center)
 
                     Spacer()
-                    
-                    Button(action: {
-                        amountInCents += 100
-                    }) {
-                        Text("+$1")
+
+                    if showPlusMinusButtons {
+                        Button(action: {
+                            amountInCents += 100
+                        }) {
+                            Text("+$1")
+                        }
+                        .padding(4)
+                        .foregroundColor(.green)
+                        .buttonStyle(.bordered)
+                        .cornerRadius(8)
+
+                        Spacer()
                     }
-                    .padding(4)
-                    .foregroundColor(.green)
-                    .buttonStyle(.bordered)
-                    .cornerRadius(8)
-                    
-                    Spacer()
                 }
                 .padding(.bottom, 12)
                 
@@ -221,10 +226,11 @@ struct ContentView: View {
                 }
                 readerDiscoveryController.viewDidLoad()
                 
-                // next four lines so the changes we make in settings are reflected immediately, without needing to restart the app
+                // next lines so the changes we make in settings are reflected immediately, without needing to restart the app
                 quickAmounts = UserDefaults.standard.quickAmounts // .map { Int($0 * 100) }
                 myAccentColor = UserDefaults.standard.myAccentColor
                 darkModePreference = UserDefaults.standard.darkModePreference
+                showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
                 applyDarkModePreference()
             }
             .navigationTitle("Tappayo")
