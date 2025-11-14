@@ -740,6 +740,34 @@ struct CheckoutSheet: View {
                 .frame(width: 40, height: 5)
                 .padding(.top, 8)
 
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Cart items (only visible when expanded - cut off when collapsed)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Cart")
+                            .font(.headline)
+                            .fontWeight(.bold)
+
+                        ForEach(basket) { item in
+                            HStack {
+                                Text(item.name)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                if item.quantity > 1 {
+                                    Text("×\(item.quantity)")
+                                        .font(.system(.body, design: .monospaced))
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Text(formatMoney(item.priceInCents * item.quantity))
+                                    .font(.system(.body, design: .monospaced))
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    Divider()
+
             // Subtotal & Tax
             VStack(spacing: 8) {
                 HStack {
@@ -775,8 +803,8 @@ struct CheckoutSheet: View {
                 }
                 .padding(.horizontal)
             }
-
-            Spacer()
+                }
+            }
         }
         .background(Color(.systemBackground))
     }
