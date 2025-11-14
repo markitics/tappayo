@@ -16,10 +16,15 @@ struct SettingsView: View {
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
+    @State private var businessName: String = UserDefaults.standard.businessName
     @FocusState private var focusedIndex: Int?
     
     var body: some View {
         Form {
+            Section(header: Text("Business Name")) {
+                TextField("Business name", text: $businessName)
+            }
+
             Section(header: Text("Quick Amounts")) {
                 ForEach(quickAmounts.indices, id: \.self) { index in
                     HStack {
@@ -73,18 +78,20 @@ struct SettingsView: View {
                 }
             }
         }
-        .navigationTitle("Settings")
+        .navigationTitle("Tappayo Settings")
         .onDisappear {
             UserDefaults.standard.quickAmounts = quickAmounts
             UserDefaults.standard.myAccentColor = myAccentColor
             UserDefaults.standard.darkModePreference = darkModePreference
             UserDefaults.standard.showPlusMinusButtons = showPlusMinusButtons
+            UserDefaults.standard.businessName = businessName
         }
         .onAppear {
             quickAmounts = UserDefaults.standard.quickAmounts
             myAccentColor = UserDefaults.standard.myAccentColor
             darkModePreference = UserDefaults.standard.darkModePreference
             showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
+            businessName = UserDefaults.standard.businessName
             applyDarkModePreference()
             
             // Update navigation bar appearance
@@ -113,6 +120,9 @@ struct SettingsView: View {
         }
         .onChange(of: showPlusMinusButtons) { newValue in
             UserDefaults.standard.showPlusMinusButtons = newValue
+        }
+        .onChange(of: businessName) { newValue in
+            UserDefaults.standard.businessName = newValue
         }
     }
     

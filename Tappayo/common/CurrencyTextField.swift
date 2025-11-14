@@ -39,7 +39,7 @@ struct CurrencyTextField: UIViewRepresentable {
     func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
         textField.placeholder = placeholder
-        textField.keyboardType = .decimalPad
+        textField.keyboardType = .numberPad
         textField.delegate = context.coordinator
         textField.textAlignment = .center // Center align text
 

@@ -3,6 +3,11 @@ import SwiftUI
 struct AboutView: View {
     var body: some View {
         VStack {
+            Text("Tappayo - the simple Tap to Pay app")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .padding(.bottom, 8)
+
             Text("Contact: markmoriarty@stripe.com")
                 .font(.body)
                 .padding()

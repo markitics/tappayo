@@ -50,5 +50,14 @@ extension UserDefaults {
             set(newValue, forKey: UserDefaultsKeys.showPlusMinusButtons.rawValue)
         }
     }
+
+    var businessName: String {
+        get {
+            return string(forKey: UserDefaultsKeys.businessName.rawValue) ?? "Tappayo"
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.businessName.rawValue)
+        }
+    }
 }
 

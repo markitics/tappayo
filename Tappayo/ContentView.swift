@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
+    @State private var businessName: String = UserDefaults.standard.businessName
     // actually, this failed because we ran into "immutable" errors for quickActions and accentColor
 //    @AppStorageArray(key: "quickAmounts") private var quickAmounts: [Double] = [0.99, 1.00, 5.00, 10.00, 20.00]
 //    @AppStorageColor(key: "accentColor") private var accentColor: Color = Color(red: 0.0, green: 214.0 / 255.0, blue: 111.0 / 255.0)
@@ -231,9 +232,10 @@ struct ContentView: View {
                 myAccentColor = UserDefaults.standard.myAccentColor
                 darkModePreference = UserDefaults.standard.darkModePreference
                 showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
+                businessName = UserDefaults.standard.businessName
                 applyDarkModePreference()
             }
-            .navigationTitle("Tappayo")
+            .navigationTitle(businessName)
             .navigationBarItems(trailing: NavigationLink(destination: SettingsView()) {
                 Text("Settings").foregroundColor(myAccentColor)
             })

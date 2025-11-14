@@ -18,5 +18,6 @@ enum UserDefaultsKeys: String {
     case myAccentColor
     case darkModePreference
     case showPlusMinusButtons
+    case businessName
 }
 
