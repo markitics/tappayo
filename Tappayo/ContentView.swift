@@ -255,6 +255,18 @@ struct ContentView: View {
                             .tint(.green)
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            // Only show -1 button if quantity > 1
+                            if item.quantity > 1 {
+                                Button {
+                                    if let index = basket.firstIndex(where: { $0.id == item.id }) {
+                                        basket[index].quantity -= 1
+                                    }
+                                } label: {
+                                    Label("1", systemImage: "minus")
+                                }
+                                .tint(.orange)
+                            }
+
                             Button(role: .destructive) {
                                 if let index = basket.firstIndex(where: { $0.id == item.id }) {
                                     basket.remove(at: index)
@@ -262,19 +274,6 @@ struct ContentView: View {
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
-
-                            Button {
-                                if let index = basket.firstIndex(where: { $0.id == item.id }) {
-                                    if basket[index].quantity > 1 {
-                                        basket[index].quantity -= 1
-                                    } else {
-                                        basket.remove(at: index)
-                                    }
-                                }
-                            } label: {
-                                Label("1", systemImage: "minus")
-                            }
-                            .tint(.orange)
                         }
                     }
                     if !basket.isEmpty {
