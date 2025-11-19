@@ -22,6 +22,7 @@ struct CheckoutSheet: View {
     let formattedTotalAmount: String
     let connectionStatus: String
     let isProcessingPayment: Bool
+    let paymentSucceeded: Bool
     let onCharge: (String?) -> Void
 
     // Helper functions passed from ContentView
@@ -49,7 +50,7 @@ struct CheckoutSheet: View {
                 .fontWeight(.semibold)
                 .padding(.top, 20)
                 .padding(.bottom, 12)
-            Spacer()
+
             // Cart section header
 //            HStack {
 //                Text("Cart")
@@ -74,7 +75,7 @@ struct CheckoutSheet: View {
             )
 //            .frame(maxHeight: .infinity)  // No! don't use maxHeight: .inifinity, because The List needs a height constraint to enable scrolling. we want .scrollIndicators visible.
             .frame(maxHeight: 400)  // Effectively unlimited; search for 99987 to adjust.
-            
+
             // Everything below cart needs horizontal padding
             VStack(spacing: 0) {
                 Divider()
@@ -97,25 +98,57 @@ struct CheckoutSheet: View {
                         }
                     }
                 }
+                
+                Spacer()
+
+                // Email field for receipt (optional) OR receipt confirmation
+                if paymentSucceeded {
+                    // Show receipt confirmation only if email was provided
+                    if !receiptEmail.isEmpty {
+                        Text("Receipt sent to \(receiptEmail)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom, 8)
+                    }
+                    // If no email: hide this section entirely
+                } else {
+                    // Before payment: show email input field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Email for receipt (optional)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        TextField("customer@example.com", text: $receiptEmail)
+                            .textContentType(.emailAddress)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                            .textFieldStyle(.roundedBorder)
+                            .foregroundStyle(.primary, .secondary)
+                    }
+                    .padding(.bottom, 8)
+                }
 
                 Spacer()
 
-                // Email field for receipt (optional)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Email for receipt (optional)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    TextField("customer@example.com", text: $receiptEmail)
-                        .textContentType(.emailAddress)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                        .textFieldStyle(.roundedBorder)
-                }
-                .padding(.bottom, 8)
-
-                // Charge Button
-                if totalAmountInCents > 49 {
+                // Charge Button or Success Message
+                if paymentSucceeded {
+                    // Success UI
+                    VStack(spacing: 12) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.green)
+                        Text("Payment Received!")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Text("Thanks for your payment")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                } else if totalAmountInCents > 49 {
                     Button(action: {
+                        // Dismiss keyboard before processing payment
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         onCharge(receiptEmail.isEmpty ? nil : receiptEmail)
                     }) {
                         HStack {
@@ -174,6 +207,31 @@ struct CheckoutSheet: View {
             .padding(.horizontal, 20)
         }
         .background(Color(.systemBackground))
+        .overlay(
+            GeometryReader { geometry in
+                if paymentSucceeded {
+                    ForEach(0..<50, id: \.self) { index in
+                        Circle()
+                            .fill([Color.red, .blue, .green, .yellow, .orange, .pink, .purple].randomElement() ?? .blue)
+                            .frame(width: CGFloat.random(in: 6...12), height: CGFloat.random(in: 6...12))
+                            .position(
+                                x: CGFloat.random(in: 0...geometry.size.width),
+                                y: paymentSucceeded ? geometry.size.height + 50 : -20
+                            )
+                            .opacity(paymentSucceeded ? 0 : 1)
+                            .animation(.easeOut(duration: 2.5).delay(Double(index) * 0.02), value: paymentSucceeded)
+                    }
+                }
+            }
+            .allowsHitTesting(false)
+        )
+        .onChange(of: paymentSucceeded) { newValue in
+            if newValue {
+                // Play success haptic
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            }
+        }
         .alert("Clear Cart?", isPresented: $showingClearCartAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Clear", role: .destructive) {

@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var connectionStatus = "Not connected"
     @State private var isProcessingPayment = false
     @State private var receiptEmail = ""
+    @State private var paymentSucceeded = false
 
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
@@ -353,6 +354,16 @@ struct ContentView: View {
                 readerDiscoveryController.updatePaymentProcessing = { isProcessing in
                     self.isProcessingPayment = isProcessing
                 }
+                readerDiscoveryController.onPaymentSuccess = {
+                    self.paymentSucceeded = true
+                    // Clear cart and dismiss after showing success animation (30 seconds)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                        self.basket.removeAll()
+                        self.receiptEmail = ""
+                        self.paymentSucceeded = false
+                        self.showCheckoutSheet = false
+                    }
+                }
                 readerDiscoveryController.viewDidLoad()
 
                 // next lines so the changes we make in settings are reflected immediately, without needing to restart the app
@@ -436,6 +447,7 @@ struct ContentView: View {
                     formattedTotalAmount: formattedTotalAmount,
                     connectionStatus: connectionStatus,
                     isProcessingPayment: isProcessingPayment,
+                    paymentSucceeded: paymentSucceeded,
                     onCharge: { email in
                         do {
                             try readerDiscoveryController.checkoutAction(amount: totalAmountInCents, receiptEmail: email)

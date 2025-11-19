@@ -6,6 +6,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     var discoverCancelable: Cancelable?
     var updateConnectionStatus: ((String) -> Void)?
     var updatePaymentProcessing: ((Bool) -> Void)?
+    var onPaymentSuccess: (() -> Void)?
     var isConnected = false
     var isDiscovering = false
     var isProcessingPayment = false
@@ -144,9 +145,10 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                                 self.updatePaymentProcessing?(false)
                             } else if confirmResult != nil {
                                 print("confirmPaymentIntent succeeded")
-                                self.updateConnectionStatus?("Confirm payment intent succeeded")
+                                self.updateConnectionStatus?("Payment successful!")
                                 self.isProcessingPayment = false
                                 self.updatePaymentProcessing?(false)
+                                self.onPaymentSuccess?()
                             }
                         }
                     }

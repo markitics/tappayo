@@ -23,8 +23,8 @@ struct SettingsView: View {
     @State private var inputMode: String = UserDefaults.standard.inputMode
     @FocusState private var focusedField: UUID?
 
-    // Photo picker state
-    @State private var showingPhotoPicker = false
+    // Icon picker state
+    @State private var showingIconPicker = false
     @State private var showingCamera = false
     @State private var showingPhotoLibrary = false
     @State private var selectedImage: UIImage?
@@ -49,78 +49,50 @@ struct SettingsView: View {
                         ))
                         .focused($focusedField, equals: savedProducts[index].id)
 
-                        // Emoji/Photo section
-                        HStack {
-                            // Show current emoji or photo preview
-                            if let photoFilename = savedProducts[index].photoFilename,
-                               let image = PhotoStorageHelper.loadPhoto(photoFilename) {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            } else if let emoji = savedProducts[index].emoji, !emoji.isEmpty {
-                                Text(emoji)
-                                    .font(.system(size: 40))
-                            } else {
-                                Image(systemName: "photo")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.gray)
+                        // Icon picker - unified button for emoji/photo
+                        Button(action: {
+                            editingProductId = savedProducts[index].id
+                            showingIconPicker = true
+                        }) {
+                            HStack(spacing: 12) {
+                                // Show current icon or camera placeholder
+                                if let photoFilename = savedProducts[index].photoFilename,
+                                   let image = PhotoStorageHelper.loadPhoto(photoFilename) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 60, height: 60)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                } else if let emoji = savedProducts[index].emoji, !emoji.isEmpty {
+                                    Text(emoji)
+                                        .font(.system(size: 50))
+                                        .frame(width: 60, height: 60)
+                                } else {
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 30))
+                                        .foregroundColor(.gray)
+                                        .frame(width: 60, height: 60)
+                                        .background(Color.gray.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if savedProducts[index].photoFilename != nil || savedProducts[index].emoji != nil {
+                                        Text("Tap to change icon")
+                                            .font(.body)
+                                            .foregroundColor(.primary)
+                                    } else {
+                                        Text("Tap to add icon")
+                                            .font(.body)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+
+                                Spacer()
                             }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Button(action: {
-                                    editingEmojiForProductId = savedProducts[index].id
-                                    showingEmojiPicker = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "face.smiling")
-                                        Text(savedProducts[index].emoji ?? "Choose emoji")
-                                            .foregroundColor(savedProducts[index].emoji == nil ? .secondary : .primary)
-                                    }
-                                    .font(.body)
-                                }
-                                .emojiPicker(
-                                    isPresented: $showingEmojiPicker,
-                                    selectedEmoji: Binding(
-                                        get: { savedProducts[index].emoji ?? "" },
-                                        set: { newEmoji in
-                                            if let productId = editingEmojiForProductId,
-                                               let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
-                                                savedProducts[idx].emoji = newEmoji.isEmpty ? nil : newEmoji
-                                            }
-                                        }
-                                    )
-                                )
-
-                                Button(action: {
-                                    editingProductId = savedProducts[index].id
-                                    showingPhotoPicker = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "camera.fill")
-                                        Text(savedProducts[index].photoFilename != nil ? "Change Photo" : "Add Photo")
-                                    }
-                                    .font(.caption)
-                                }
-
-                                if savedProducts[index].photoFilename != nil {
-                                    Button(action: {
-                                        if let filename = savedProducts[index].photoFilename {
-                                            PhotoStorageHelper.deletePhoto(filename)
-                                        }
-                                        savedProducts[index].photoFilename = nil
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "trash")
-                                            Text("Remove Photo")
-                                        }
-                                        .font(.caption)
-                                        .foregroundColor(.red)
-                                    }
-                                }
-                            }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
 
                         CurrencyTextField(
                             value: Binding(
@@ -140,6 +112,76 @@ struct SettingsView: View {
                         }
                     }
                     .padding(.vertical, 4)
+                    .confirmationDialog("Choose Icon", isPresented: $showingIconPicker) {
+                        Button("Choose emoji") {
+                            if let productId = editingProductId {
+                                editingEmojiForProductId = productId
+                                showingEmojiPicker = true
+                            }
+                        }
+                        Button("Take Photo") {
+                            showingCamera = true
+                        }
+                        Button("Choose from Library") {
+                            showingPhotoLibrary = true
+                        }
+
+                        // Show remove option only if product has an icon
+                        if let productId = editingProductId,
+                           let idx = savedProducts.firstIndex(where: { $0.id == productId }),
+                           (savedProducts[idx].photoFilename != nil || savedProducts[idx].emoji != nil) {
+                            Button("Remove Icon", role: .destructive) {
+                                // Delete photo file if exists
+                                if let filename = savedProducts[idx].photoFilename {
+                                    PhotoStorageHelper.deletePhoto(filename)
+                                }
+                                // Clear both emoji and photo
+                                savedProducts[idx].photoFilename = nil
+                                savedProducts[idx].emoji = nil
+                            }
+                        }
+
+                        Button("Cancel", role: .cancel) {}
+                    }
+                    .emojiPicker(
+                        isPresented: $showingEmojiPicker,
+                        selectedEmoji: Binding(
+                            get: {
+                                if let productId = editingEmojiForProductId,
+                                   let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
+                                    return savedProducts[idx].emoji ?? ""
+                                }
+                                return ""
+                            },
+                            set: { newEmoji in
+                                if let productId = editingEmojiForProductId,
+                                   let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
+                                    savedProducts[idx].emoji = newEmoji.isEmpty ? nil : newEmoji
+                                }
+                            }
+                        )
+                    )
+                    .sheet(isPresented: $showingCamera) {
+                        ImagePicker(image: $selectedImage, sourceType: .camera)
+                    }
+                    .sheet(isPresented: $showingPhotoLibrary) {
+                        ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
+                    }
+                    .onChange(of: selectedImage) { newImage in
+                        if let image = newImage,
+                           let productId = editingProductId,
+                           let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
+                            if let filename = PhotoStorageHelper.savePhoto(image) {
+                                // Delete old photo if exists
+                                if let oldFilename = savedProducts[idx].photoFilename {
+                                    PhotoStorageHelper.deletePhoto(oldFilename)
+                                }
+                                savedProducts[idx].photoFilename = filename
+                            }
+                            selectedImage = nil
+                            editingProductId = nil
+                        }
+                    }
                 }
                 .onDelete { indexSet in
                     savedProducts.remove(atOffsets: indexSet)
@@ -261,36 +303,6 @@ struct SettingsView: View {
         }
         .onChange(of: inputMode) { newValue in
             UserDefaults.standard.inputMode = newValue
-        }
-        .confirmationDialog("Choose Photo Source", isPresented: $showingPhotoPicker) {
-            Button("Take Photo") {
-                showingCamera = true
-            }
-            Button("Choose from Library") {
-                showingPhotoLibrary = true
-            }
-            Button("Cancel", role: .cancel) {}
-        }
-        .sheet(isPresented: $showingCamera) {
-            ImagePicker(image: $selectedImage, sourceType: .camera)
-        }
-        .sheet(isPresented: $showingPhotoLibrary) {
-            ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
-        }
-        .onChange(of: selectedImage) { newImage in
-            if let image = newImage,
-               let productId = editingProductId,
-               let index = savedProducts.firstIndex(where: { $0.id == productId }) {
-                if let filename = PhotoStorageHelper.savePhoto(image) {
-                    // Delete old photo if exists
-                    if let oldFilename = savedProducts[index].photoFilename {
-                        PhotoStorageHelper.deletePhoto(oldFilename)
-                    }
-                    savedProducts[index].photoFilename = filename
-                }
-                selectedImage = nil
-                editingProductId = nil
-            }
         }
     }
     
