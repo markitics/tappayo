@@ -280,6 +280,12 @@ let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
 - [ ] Add receipt generation
 - [ ] Add tip support
 - [ ] Improve cart item naming/editing
+- [ ] **Saved Baskets** (Nov 2025: "Save Cart" button placeholder added to CheckoutSheet)
+  - Serialize/stringify basket state (all line items with names, prices, quantities)
+  - Store ~3 pre-saved baskets for quick loading
+  - When cart is empty, show option to load a saved basket
+  - Include stringified basket data in Stripe PaymentIntent metadata for record-keeping
+  - Use cases: Recurring orders, common product bundles, testing scenarios
 
 #### Phase 6: Developer Experience (Optional)
 - [ ] Add SwiftUI Previews to main views (ContentView, CheckoutSheet, SettingsView)

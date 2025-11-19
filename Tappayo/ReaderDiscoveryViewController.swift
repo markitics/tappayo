@@ -83,7 +83,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         }
     }
 
-    func checkoutAction(amount: Int) throws {
+    func checkoutAction(amount: Int, receiptEmail: String? = nil) throws {
         guard !isProcessingPayment else { return } // Prevent duplicate payment attempts
 
         guard !isDiscovering else {
@@ -101,9 +101,14 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         updatePaymentProcessing?(true)
         updateConnectionStatus?("Processing payment...")
 
-        let params = try PaymentIntentParametersBuilder(amount: UInt(amount), currency: "usd") // amount is amount in cents, not dollars
+        let builder = PaymentIntentParametersBuilder(amount: UInt(amount), currency: "usd") // amount is amount in cents, not dollars
             .setCaptureMethod(.automatic)
-            .build()
+
+        if let email = receiptEmail {
+            builder.setReceiptEmail(email)
+        }
+
+        let params = try builder.build()
 
         Terminal.shared.createPaymentIntent(params) { createResult, createError in
             if let error = createError {

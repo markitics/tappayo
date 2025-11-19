@@ -12,6 +12,7 @@ struct CheckoutSheet: View {
     @Binding var lastChangedItemId: UUID?
     @Binding var isAnimatingQuantity: Bool
     @State private var showingClearCartAlert = false
+    @Binding var receiptEmail: String
     @Environment(\.dismiss) private var dismiss
 
     let businessName: String
@@ -21,7 +22,7 @@ struct CheckoutSheet: View {
     let formattedTotalAmount: String
     let connectionStatus: String
     let isProcessingPayment: Bool
-    let onCharge: () -> Void
+    let onCharge: (String?) -> Void
 
     // Helper functions passed from ContentView
     let getCurrentProduct: (CartItem) -> (name: String, priceInCents: Int)
@@ -99,9 +100,24 @@ struct CheckoutSheet: View {
 
                 Spacer()
 
+                // Email field for receipt (optional)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Email for receipt (optional)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    TextField("customer@example.com", text: $receiptEmail)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .textFieldStyle(.roundedBorder)
+                }
+                .padding(.bottom, 8)
+
                 // Charge Button
                 if totalAmountInCents > 49 {
-                    Button(action: onCharge) {
+                    Button(action: {
+                        onCharge(receiptEmail.isEmpty ? nil : receiptEmail)
+                    }) {
                         HStack {
                             Image(systemName: "wave.3.right.circle.fill")
                             Text("Pay $\(formattedTotalAmount)")
@@ -162,6 +178,7 @@ struct CheckoutSheet: View {
             Button("Cancel", role: .cancel) { }
             Button("Clear", role: .destructive) {
                 basket.removeAll()
+                receiptEmail = ""
                 // Auto-dismiss sheet after 3 seconds
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                     dismiss()

@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var basket: [CartItem] = []
     @State private var connectionStatus = "Not connected"
     @State private var isProcessingPayment = false
+    @State private var receiptEmail = ""
 
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
@@ -427,6 +428,7 @@ struct ContentView: View {
                     savedProducts: $savedProducts,
                     lastChangedItemId: $lastChangedItemId,
                     isAnimatingQuantity: $isAnimatingQuantity,
+                    receiptEmail: $receiptEmail,
                     businessName: businessName,
                     subtotalInCents: subtotalInCents,
                     taxAmountInCents: taxAmountInCents,
@@ -434,9 +436,9 @@ struct ContentView: View {
                     formattedTotalAmount: formattedTotalAmount,
                     connectionStatus: connectionStatus,
                     isProcessingPayment: isProcessingPayment,
-                    onCharge: {
+                    onCharge: { email in
                         do {
-                            try readerDiscoveryController.checkoutAction(amount: totalAmountInCents)
+                            try readerDiscoveryController.checkoutAction(amount: totalAmountInCents, receiptEmail: email)
                         } catch {
                             print("Error occurred: \(error)")
                         }
