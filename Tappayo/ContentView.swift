@@ -332,7 +332,7 @@ struct ContentView: View {
                     .padding(.bottom, 8)
                 }
 
-                if totalAmountInCents > 49 && amountInCents == 0 {
+                if totalAmountInCents > 49 {
                     Button(action: {
                         showCheckoutSheet = true
                     }) {
@@ -647,7 +647,7 @@ struct CustomKeypadView: View {
 
                 // Dismiss button (1/3 width)
                 Button(action: onCancel) {
-                    Text("Dismiss")
+                    Text("Done")
                         .font(.callout)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
