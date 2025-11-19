@@ -99,6 +99,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
 
         isProcessingPayment = true
         updatePaymentProcessing?(true)
+        updateConnectionStatus?("Processing payment...")
 
         let params = try PaymentIntentParametersBuilder(amount: UInt(amount), currency: "usd") // amount is amount in cents, not dollars
             .setCaptureMethod(.automatic)

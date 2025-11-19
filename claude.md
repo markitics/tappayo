@@ -268,6 +268,12 @@ let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
 - [ ] Add tip support
 - [ ] Improve cart item naming/editing
 
+#### Phase 6: Developer Experience (Optional)
+- [ ] Add SwiftUI Previews to main views (ContentView, CheckoutSheet, SettingsView)
+  - Enables near-instant UI iteration in Xcode Canvas (Cmd+Option+Enter)
+  - Useful for quick padding/color/layout adjustments without full rebuild
+  - Current workflow (Cmd-R to physical device) works fine, but previews could speed up UI tweaks
+
 ---
 
 ## Learning Notes

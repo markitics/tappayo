@@ -101,7 +101,7 @@ struct CheckoutSheet: View {
                 Button(action: onCharge) {
                     HStack {
                         Image(systemName: "wave.3.right.circle.fill")
-                        Text("Charge card $\(formattedTotalAmount)")
+                        Text("Pay $\(formattedTotalAmount)")
                             .font(.title2)
                             .fontWeight(.medium)
                     }
@@ -129,8 +129,11 @@ struct CheckoutSheet: View {
                 .foregroundColor(.gray)
                 .padding(.top, 16)
                 .padding(.bottom, 8)
+            
+            Spacer()
         }
         .background(Color(.systemBackground))
+//        .background(Color(.red)) // only while debugging
         .sheet(item: $editingItem) { item in
             // Nested sheet for editing cart items
             if let index = basket.firstIndex(where: { $0.id == item.id }) {
