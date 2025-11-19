@@ -49,30 +49,19 @@ struct ContentView: View {
         return "Item \(manualItemCount + 1)"
     }
 
-    // Helper to format currency cleanly (no .00 for whole dollars)
-    private func formatCurrency(_ cents: Int) -> String {
-        let dollars = Double(cents) / 100.0
-        if cents % 100 == 0 {
-            return String(format: "$%.0f", dollars)
-        } else {
-            return String(format: "$%.2f", dollars)
-        }
-    }
+    // Unified currency formatter with smart decimals and comma separators
+    private func formatCurrency(_ cents: Int, forceDecimals: Bool = false) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencySymbol = "$"
+        formatter.usesGroupingSeparator = true
 
-    // Helper to format amount for display (always with decimals)
-    private func formatAmount(_ cents: Int) -> String {
-        let dollars = Double(cents) / 100.0
-        return String(format: "$%.2f", dollars)
-    }
+        // Smart decimal logic: show .00 only when needed
+        let shouldShowDecimals = forceDecimals || (cents % 100 != 0)
+        formatter.minimumFractionDigits = shouldShowDecimals ? 2 : 0
+        formatter.maximumFractionDigits = shouldShowDecimals ? 2 : 0
 
-    // Helper to format cart amounts with consistent decimal places
-    private func formatCartAmount(_ cents: Int, forceDecimals: Bool) -> String {
-        let dollars = Double(cents) / 100.0
-        if forceDecimals || cents % 100 != 0 {
-            return String(format: "$%.2f", dollars)
-        } else {
-            return String(format: "$%.0f", dollars)
-        }
+        return formatter.string(from: NSNumber(value: Double(cents) / 100)) ?? "$0.00"
     }
 
     // Check if any cart item has cents (for consistent formatting)
@@ -119,22 +108,9 @@ struct ContentView: View {
     }
 
     var formattedTotalAmount: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = ","
-        formatter.usesGroupingSeparator = true
-
-        let dollars = Double(totalAmountInCents) / 100.0
-
-        if totalAmountInCents % 100 == 0 {
-            formatter.minimumFractionDigits = 0
-            formatter.maximumFractionDigits = 0
-        } else {
-            formatter.minimumFractionDigits = 2
-            formatter.maximumFractionDigits = 2
-        }
-
-        return formatter.string(from: NSNumber(value: dollars)) ?? String(format: "%.2f", dollars)
+        // Remove $ prefix since it's added in the UI context
+        let formatted = formatCurrency(totalAmountInCents)
+        return formatted.replacingOccurrences(of: "$", with: "")
     }
 
     var body: some View {
@@ -144,7 +120,7 @@ struct ContentView: View {
                 // Tappable amount display (triggers custom keypad)
                 AmountInputButton(
                     amountInCents: amountInCents,
-                    formatAmount: formatAmount,
+                    formatAmount: { formatCurrency($0, forceDecimals: true) },
                     onTap: { isKeypadActive = true }
                 )
                 .padding(.bottom, 12)
@@ -202,7 +178,7 @@ struct ContentView: View {
                                 Text(product.name)
                                     .font(.caption)
                                     .lineLimit(1)
-                                Text("$\(String(format: "%.2f", Double(product.priceInCents) / 100.0))")
+                                Text(formatCurrency(product.priceInCents))
                                     .font(.body)
                                     .fontWeight(.medium)
                             }
@@ -283,7 +259,7 @@ struct ContentView: View {
                                 }
 
                                 // Total price (right-aligned, monospace, live price)
-                                Text(formatCartAmount(current.priceInCents * item.quantity, forceDecimals: cartHasAnyCents))
+                                Text(formatCurrency(current.priceInCents * item.quantity, forceDecimals: cartHasAnyCents))
                                     .font(.system(.body, design: .monospaced))
                                     .frame(minWidth: 60, alignment: .trailing)
                             }
@@ -350,7 +326,7 @@ struct ContentView: View {
                                     .frame(minWidth: 40, alignment: .trailing)
                             }
 
-                            Text(formatCartAmount(subtotalInCents, forceDecimals: taxSummaryHasCents))
+                            Text(formatCurrency(subtotalInCents, forceDecimals: taxSummaryHasCents))
                                 .font(.system(.subheadline, design: .monospaced))
                                 .frame(minWidth: 60, alignment: .trailing)
                         }
@@ -367,7 +343,7 @@ struct ContentView: View {
                                     .frame(minWidth: 40, alignment: .trailing)
                             }
 
-                            Text(formatCartAmount(taxAmountInCents, forceDecimals: taxSummaryHasCents))
+                            Text(formatCurrency(taxAmountInCents, forceDecimals: taxSummaryHasCents))
                                 .font(.system(.subheadline, design: .monospaced))
                                 .frame(minWidth: 60, alignment: .trailing)
                         }
@@ -451,7 +427,7 @@ struct ContentView: View {
                         basket: $basket,
                         savedProducts: $savedProducts,
                         isPresented: .constant(true),
-                        formatAmount: formatCartAmount
+                        formatAmount: formatCurrency
                     )
                     .presentationDetents([.height(350), .medium])
                     .presentationDragIndicator(.visible)
@@ -737,8 +713,13 @@ struct CustomKeypadView: View {
 
     // Helper to format the amount display
     private func formatAmount(_ cents: Int) -> String {
-        let dollars = Double(cents) / 100.0
-        return String(format: "$%.2f", dollars)
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencySymbol = "$"
+        formatter.usesGroupingSeparator = true
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: Double(cents) / 100)) ?? "$0.00"
     }
 }
 
@@ -754,7 +735,13 @@ struct CheckoutSheet: View {
     let onCharge: () -> Void
 
     private func formatMoney(_ cents: Int) -> String {
-        String(format: "$%.2f", Double(cents) / 100.0)
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencySymbol = "$"
+        formatter.usesGroupingSeparator = true
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: Double(cents) / 100)) ?? "$0.00"
     }
 
     var body: some View {
@@ -886,6 +873,8 @@ struct ItemEditorView: View {
 
     var body: some View {
         VStack(spacing: 24) {
+            Spacer()
+            
             // Drag indicator
             Capsule()
                 .fill(Color.secondary.opacity(0.3))
@@ -907,6 +896,26 @@ struct ItemEditorView: View {
             }
             .padding(.horizontal)
 
+            // Price/Subtotal section
+            VStack(spacing: 8) {
+                Text("Price")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                if currentQuantity > 1 {
+                    // Show calculation
+                    Text("\(formatAmount(item.priceInCents, true)) × \(currentQuantity) = \(formatAmount(item.priceInCents * currentQuantity, true))")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                } else {
+                    // Show just the price
+                    Text(formatAmount(item.priceInCents, true))
+                        .font(.title2)
+                        .fontWeight(.medium)
+                }
+            }
+
+            
             // Quantity section
             VStack(spacing: 16) {
                 Text("Quantity")
@@ -952,24 +961,6 @@ struct ItemEditorView: View {
                 }
             }
 
-            // Price/Subtotal section
-            VStack(spacing: 8) {
-                Text("Price")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                if currentQuantity > 1 {
-                    // Show calculation
-                    Text("\(formatAmount(item.priceInCents, true)) × \(currentQuantity) = \(formatAmount(item.priceInCents * currentQuantity, true))")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                } else {
-                    // Show just the price
-                    Text(formatAmount(item.priceInCents, true))
-                        .font(.title2)
-                        .fontWeight(.medium)
-                }
-            }
 
             Spacer()
 

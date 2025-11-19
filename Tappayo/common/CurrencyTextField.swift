@@ -66,10 +66,10 @@ struct CurrencyTextField: UIViewRepresentable {
     private func format(cents: Int) -> String? {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
+        formatter.currencySymbol = "$"
+        formatter.usesGroupingSeparator = true
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
-//        formatter.currencyCode = "USD"
-        formatter.currencySymbol = "$" // Remove "US"
         return formatter.string(from: NSNumber(value: Double(cents) / 100))
     }
 }
