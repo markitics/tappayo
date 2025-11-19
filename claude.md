@@ -59,6 +59,19 @@ The app provides a simple, streamlined interface for in-person payment processin
 
 **File**: `CartListView.swift:149` and `FlashScrollIndicatorsModifier` (lines 172-181)
 
+### Emoji Picker Positioning (Nov 2025)
+**Context**: Redesigned product icon picker in SettingsView to use unified button with confirmationDialog for choosing emoji/photo/camera options.
+
+**Issue**: MCEmojiPicker (external library) has wonky positioning behavior. Even after moving `.emojiPicker()` modifier outside the ForEach to eliminate competing instances, the picker doesn't anchor consistently to the tapped product.
+
+**Current Status**: Functional but not ideal. The emoji picker appears in unpredictable locations rather than anchoring near the icon you tapped. Consider alternative approaches:
+- Different emoji picker library with better anchor support
+- Custom emoji picker implementation
+- Sheet-based modal for product editing (similar to ItemEditorView) that could contain emoji selection
+- Accept the current behavior as "good enough" for a learning project
+
+**File**: `SettingsView.swift:52-184` (unified icon button), `SettingsView.swift:185-202` (emoji picker modifier)
+
 ---
 
 ## Nov 2025: Claude Code Initial Observations and Possible Improvements
