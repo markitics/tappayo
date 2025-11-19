@@ -23,7 +23,8 @@ struct CartListView: View {
     let cartHasAnyCents: Bool
 
     var body: some View {
-        List {
+        ZStack(alignment: .bottom) {
+            List {
             Section {
                 if basket.isEmpty {
                     Text("Cart is empty").font(.subheadline)
@@ -145,5 +146,36 @@ struct CartListView: View {
         }
         .listStyle(.plain)
         .scrollIndicators(.visible)
+        .modifier(FlashScrollIndicatorsModifier())
+
+            // Gradient fade overlay at bottom to indicate more content
+            if !basket.isEmpty {
+                VStack {
+                    Spacer()
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(.systemBackground).opacity(0),
+                            Color(.systemBackground).opacity(0.7),
+                            Color(.systemBackground)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 80)
+                    .allowsHitTesting(false)
+                }
+            }
+        }
+    }
+}
+
+// ViewModifier to apply scrollIndicatorsFlash only on iOS 17+
+struct FlashScrollIndicatorsModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.scrollIndicatorsFlash(onAppear: true)
+        } else {
+            content
+        }
     }
 }

@@ -176,6 +176,6 @@ struct CustomKeypadView_Previews: PreviewProvider {
             onCancel: {},
             inputMode: "cents"
         )
-        .presentationDetents([.fraction(0.8), .large])
+        .presentationDetents([.fraction(0.8), .large]) // just the preview; what matters is contentview where this is called
     }
 }

@@ -257,7 +257,7 @@ struct ContentView: View {
                         Text("Cart").font(.headline)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.leading)
-                            .padding(.bottom, 2)
+                            .padding(.bottom, 8)
                             .padding(.top, 2) // was .top, 16
                             .padding(.horizontal, 16) // 4pt outer + 12pt to match cart row content
                         Spacer()
@@ -284,7 +284,7 @@ struct ContentView: View {
                     VStack(spacing: 8) {
                         HStack(spacing: 12) {
                             Text("Subtotal")
-                                .font(.subheadline)
+                                .font(.body)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             // Empty space matching quantity column width (only if quantity column shown)
@@ -294,14 +294,14 @@ struct ContentView: View {
                             }
 
                             Text(formatCurrency(subtotalInCents, forceDecimals: taxSummaryHasCents))
-                                .font(.system(.subheadline, design: .monospaced))
+                                .font(.system(.body, design: .monospaced))
                                 .frame(minWidth: 60, alignment: .trailing)
                         }
                         .padding(.horizontal, 20)
 
                         HStack(spacing: 12) {
                             Text("Tax (\(formattedTaxRate)%)")
-                                .font(.subheadline)
+                                .font(.body)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
                             // Empty space matching quantity column width (only if quantity column shown)
@@ -311,7 +311,7 @@ struct ContentView: View {
                             }
 
                             Text(formatCurrency(taxAmountInCents, forceDecimals: taxSummaryHasCents))
-                                .font(.system(.subheadline, design: .monospaced))
+                                .font(.system(.body, design: .monospaced))
                                 .frame(minWidth: 60, alignment: .trailing)
                         }
                         .padding(.horizontal, 20)
@@ -389,7 +389,7 @@ struct ContentView: View {
                         savedProducts: $savedProducts,
                         formatAmount: formatCurrency
                     )
-                    .presentationDetents([.fraction(0.7), .large])
+                    .presentationDetents([.fraction(0.89), .large])
                     .presentationDragIndicator(.visible)
                 }
             }
@@ -418,7 +418,7 @@ struct ContentView: View {
                     },
                     inputMode: inputMode
                 )
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.fraction(0.8), .large])
                 .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showCheckoutSheet) {

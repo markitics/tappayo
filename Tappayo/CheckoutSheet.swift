@@ -11,6 +11,8 @@ struct CheckoutSheet: View {
     @State private var editingItem: CartItem? = nil
     @Binding var lastChangedItemId: UUID?
     @Binding var isAnimatingQuantity: Bool
+    @State private var showingClearCartAlert = false
+    @Environment(\.dismiss) private var dismiss
 
     let businessName: String
     let subtotalInCents: Int
@@ -130,10 +132,44 @@ struct CheckoutSheet: View {
                     .padding(.bottom, 8)
 
                 Spacer()
+
+                // Clear cart and Save cart buttons
+                HStack {
+                    Button(action: {
+                        showingClearCartAlert = true
+                    }) {
+                        Text("Clear Cart")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+
+                    Spacer()
+
+                    Button(action: {
+                        // TODO: Implement save cart functionality
+                    }) {
+                        Text("Save Cart")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding(.bottom, 8)
             }
             .padding(.horizontal, 20)
         }
         .background(Color(.systemBackground))
+        .alert("Clear Cart?", isPresented: $showingClearCartAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                basket.removeAll()
+                // Auto-dismiss sheet after 3 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    dismiss()
+                }
+            }
+        } message: {
+            Text("This will remove all items from your cart.")
+        }
 //        .background(Color(.red)) // only while debugging
         .sheet(item: $editingItem) { item in
             // Nested sheet for editing cart items
