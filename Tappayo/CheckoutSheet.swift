@@ -12,6 +12,7 @@ struct CheckoutSheet: View {
     @Binding var lastChangedItemId: UUID?
     @Binding var isAnimatingQuantity: Bool
     @State private var showingClearCartAlert = false
+    @State private var isKeyboardVisible = false
     @Binding var receiptEmail: String
     @Environment(\.dismiss) private var dismiss
 
@@ -74,12 +75,14 @@ struct CheckoutSheet: View {
                 cartHasAnyCents: cartHasAnyCents
             )
 //            .frame(maxHeight: .infinity)  // No! don't use maxHeight: .inifinity, because The List needs a height constraint to enable scrolling. we want .scrollIndicators visible.
-            .frame(maxHeight: 400)  // Effectively unlimited; search for 99987 to adjust.
+            .frame(maxHeight: 300)  // 99987 would be effectively unlimited; search for 99987 to adjust.
 
             // Everything below cart needs horizontal padding
             VStack(spacing: 0) {
-                Divider()
-                    .padding(.vertical, 8)
+                if !isKeyboardVisible {
+                    Divider()
+                        .padding(.vertical, 8)
+                }
 
                 // Subtotal & Tax
                 VStack(spacing: 8) {
@@ -123,6 +126,14 @@ struct CheckoutSheet: View {
                             .autocapitalization(.none)
                             .textFieldStyle(.roundedBorder)
                             .foregroundStyle(.primary, .secondary)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button("Done") {
+                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                    }
+                                }
+                            }
                     }
                     .padding(.bottom, 8)
                 }
@@ -145,7 +156,7 @@ struct CheckoutSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
-                } else if totalAmountInCents > 49 {
+                } else if totalAmountInCents > 49 && !isKeyboardVisible {
                     Button(action: {
                         // Dismiss keyboard before processing payment
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -166,7 +177,7 @@ struct CheckoutSheet: View {
                     .disabled(isProcessingPayment)
                     .opacity(isProcessingPayment ? 0.6 : 1.0)
                     .padding(.top, 16)
-                } else {
+                } else if !isKeyboardVisible {
                     Text("Minimum charge $0.50")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -174,16 +185,19 @@ struct CheckoutSheet: View {
                 }
 
                 // Connection status
-                Text(connectionStatus)
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .padding(.top, 16)
-                    .padding(.bottom, 8)
+                if !isKeyboardVisible {
+                    Text(connectionStatus)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .padding(.top, 16)
+                        .padding(.bottom, 8)
+                }
 
                 Spacer()
 
                 // Clear cart and Save cart buttons
-                HStack {
+                if !isKeyboardVisible {
+                    HStack {
                     Button(action: {
                         showingClearCartAlert = true
                     }) {
@@ -201,8 +215,9 @@ struct CheckoutSheet: View {
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
+                    }
+                    .padding(.bottom, 8)
                 }
-                .padding(.bottom, 8)
             }
             .padding(.horizontal, 20)
         }
@@ -259,6 +274,12 @@ struct CheckoutSheet: View {
                 .presentationDetents([.fraction(0.7), .fraction(0.9)])
                 .presentationDragIndicator(.visible)
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            isKeyboardVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardVisible = false
         }
     }
 }

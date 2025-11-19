@@ -143,24 +143,6 @@ struct SettingsView: View {
 
                         Button("Cancel", role: .cancel) {}
                     }
-                    .emojiPicker(
-                        isPresented: $showingEmojiPicker,
-                        selectedEmoji: Binding(
-                            get: {
-                                if let productId = editingEmojiForProductId,
-                                   let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
-                                    return savedProducts[idx].emoji ?? ""
-                                }
-                                return ""
-                            },
-                            set: { newEmoji in
-                                if let productId = editingEmojiForProductId,
-                                   let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
-                                    savedProducts[idx].emoji = newEmoji.isEmpty ? nil : newEmoji
-                                }
-                            }
-                        )
-                    )
                     .sheet(isPresented: $showingCamera) {
                         ImagePicker(image: $selectedImage, sourceType: .camera)
                     }
@@ -200,6 +182,24 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundColor(.gray)
             }
+            .emojiPicker(
+                isPresented: $showingEmojiPicker,
+                selectedEmoji: Binding(
+                    get: {
+                        if let productId = editingEmojiForProductId,
+                           let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
+                            return savedProducts[idx].emoji ?? ""
+                        }
+                        return ""
+                    },
+                    set: { newEmoji in
+                        if let productId = editingEmojiForProductId,
+                           let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
+                            savedProducts[idx].emoji = newEmoji.isEmpty ? nil : newEmoji
+                        }
+                    }
+                )
+            )
 
             Section(header: Text("Pick Accent Color")) {
                 ColorPicker("Pick a color", selection: $myAccentColor)
