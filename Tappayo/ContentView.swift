@@ -27,6 +27,9 @@ struct ContentView: View {
     @State private var lastChangedItemId: UUID? = nil
     @State private var isAnimatingQuantity: Bool = false
 
+    // Image cache to prevent repeated file I/O during animations
+    @State private var imageCache: [String: UIImage] = [:]
+
     // Product icon sizing constant
     private let productIconSize: CGFloat = 40
 
@@ -54,6 +57,18 @@ struct ContentView: View {
     private func nextManualItemName() -> String {
         let manualItemCount = basket.filter { !$0.isProduct }.count
         return "Item \(manualItemCount + 1)"
+    }
+
+    // Helper to get cached image (loads from disk only once per photo)
+    private func getCachedImage(for filename: String) -> UIImage? {
+        if let cached = imageCache[filename] {
+            return cached
+        }
+        if let loaded = PhotoStorageHelper.loadPhoto(filename) {
+            imageCache[filename] = loaded
+            return loaded
+        }
+        return nil
     }
 
     // Unified currency formatter with smart decimals and comma separators
@@ -182,7 +197,7 @@ struct ContentView: View {
                             VStack(spacing: 4) {
                                 // Show photo or emoji
                                 if let photoFilename = product.photoFilename,
-                                   let image = PhotoStorageHelper.loadPhoto(photoFilename) {
+                                   let image = getCachedImage(for: photoFilename) {
                                     Image(uiImage: image)
                                         .resizable()
                                         .scaledToFill()
@@ -258,7 +273,7 @@ struct ContentView: View {
                                 // Show emoji or photo for products
                                 if item.isProduct, let product = savedProducts.first(where: { $0.id == item.productId }) {
                                     if let photoFilename = product.photoFilename,
-                                       let image = PhotoStorageHelper.loadPhoto(photoFilename) {
+                                       let image = getCachedImage(for: photoFilename) {
                                         Image(uiImage: image)
                                             .resizable()
                                             .scaledToFill()
