@@ -243,7 +243,6 @@ struct ContentView: View {
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 editingItem = item
-                                showQuantityEditor = true
                             }
                             .swipeActions(edge: .leading) {
                                 Button {
@@ -279,7 +278,7 @@ struct ContentView: View {
                         }
                     } footer: {
                         if !basket.isEmpty {
-                            Text("Swipe right: +1 • Swipe left: -1 or Delete")
+                            Text("Swipe any row right or left to add or remove")
                                 .font(.caption2)
                                 .foregroundColor(.gray)
                         }
@@ -397,31 +396,18 @@ struct ContentView: View {
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     }
             )
-            .sheet(isPresented: $showQuantityEditor) {
-                if let item = editingItem,
-                   let index = basket.firstIndex(where: { $0.id == item.id }) {
+            .sheet(item: $editingItem) { item in
+                if let index = basket.firstIndex(where: { $0.id == item.id }) {
                     ItemEditorView(
                         item: item,
                         basketIndex: index,
                         basket: $basket,
                         savedProducts: $savedProducts,
-                        isPresented: $showQuantityEditor,
+                        isPresented: .constant(true),
                         formatAmount: formatCartAmount
                     )
                     .presentationDetents([.height(350), .medium])
                     .presentationDragIndicator(.visible)
-                } else {
-                    // Debug fallback - should never appear
-                    VStack {
-                        Text("Error: Could not find item")
-                            .foregroundColor(.red)
-                        Text("editingItem: \(editingItem?.name ?? "nil")")
-                        Text("basket count: \(basket.count)")
-                        Button("Close") {
-                            showQuantityEditor = false
-                        }
-                    }
-                    .padding()
                 }
             }
             .sheet(isPresented: $isKeypadActive) {
