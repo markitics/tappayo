@@ -31,6 +31,7 @@
 		4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */; };
 		4DD86DD02ECD795000332F37 /* MCEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 4DD86DCF2ECD794000332F37 /* MCEmojiPicker */; };
 		4DD86DD02ECD85FD00332F37 /* ItemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCF2ECD85FD00332F37 /* ItemEditorView.swift */; };
+		4DD86DD22ECD9BC800332F37 /* CustomKeypadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DD12ECD9BC800332F37 /* CustomKeypadView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +79,7 @@
 		4DD86DCA2ECD6B5100332F37 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoStorageHelper.swift; sourceTree = "<group>"; };
 		4DD86DCF2ECD85FD00332F37 /* ItemEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemEditorView.swift; sourceTree = "<group>"; };
+		4DD86DD12ECD9BC800332F37 /* CustomKeypadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomKeypadView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 		4D08BC752BCE79B4007B1FBA /* Tappayo */ = {
 			isa = PBXGroup;
 			children = (
+				4DD86DD12ECD9BC800332F37 /* CustomKeypadView.swift */,
 				4DA470912CF60BE2009FAAD9 /* AboutView.swift */,
 				4DCA6AFB2BE347AB006220E5 /* APIClient.swift */,
 				4D08BC7A2BCE79C7007B1FBA /* Assets.xcassets */,
@@ -339,6 +342,7 @@
 				4D92B7272C0FF67D005AD949 /* CurrencyTextField.swift in Sources */,
 				4D92B7232C0FF2DC005AD949 /* NumberFormatterExtension.swift in Sources */,
 				4D00000012345678001CAF11 /* CartItem.swift in Sources */,
+				4DD86DD22ECD9BC800332F37 /* CustomKeypadView.swift in Sources */,
 				4D00000012345678001CAF13 /* Product.swift in Sources */,
 				4D14B3BF2BE36195009213AC /* ReaderDiscoveryViewController.swift in Sources */,
 				4D92B71B2C0EE143005AD949 /* SettingsView.swift in Sources */,

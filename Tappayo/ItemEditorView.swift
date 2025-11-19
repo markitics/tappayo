@@ -74,7 +74,6 @@ struct ItemEditorView: View {
                     font: .title3
                 )
                 .frame(height: 40)
-                .textFieldStyle(.roundedBorder)
                 .focused($isPriceFieldFocused)
             }
             .padding(.horizontal)
