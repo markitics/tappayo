@@ -214,83 +214,81 @@ struct ContentView: View {
                         Spacer()
                     }
                 }
-
                 List {
-                    if basket.isEmpty {
-                        Text("Cart is empty").font(.subheadline)
-                            .foregroundColor(Color(.systemGray2))
-                    }
-                    ForEach(basket) { item in
-                        let current = getCurrentProduct(for: item)
-                        HStack(spacing: 12) {
-                            // Product name (left-aligned, live lookup)
-                            Text(current.name)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            // Quantity (right-aligned, monospace) - only show if not all items are qty 1
-                            if !allItemsQuantityOne {
-                                Text("×\(item.quantity)")
-                                    .font(.system(.body, design: .monospaced))
-                                    .foregroundColor(.secondary)
-                                    .frame(minWidth: 40, alignment: .trailing)
-                            }
-
-                            // Total price (right-aligned, monospace, live price)
-                            Text(formatCartAmount(current.priceInCents * item.quantity, forceDecimals: cartHasAnyCents))
-                                .font(.system(.body, design: .monospaced))
-                                .frame(minWidth: 60, alignment: .trailing)
+                    Section {
+                        if basket.isEmpty {
+                            Text("Cart is empty").font(.subheadline)
+                                .foregroundColor(Color(.systemGray2))
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            editingItem = item
-                            showQuantityEditor = true
-                        }
-                        .swipeActions(edge: .leading) {
-                            Button {
-                                if let index = basket.firstIndex(where: { $0.id == item.id }) {
-                                    basket[index].quantity += 1
+                        ForEach(basket) { item in
+                            let current = getCurrentProduct(for: item)
+                            HStack(spacing: 12) {
+                                // Product name (left-aligned, live lookup)
+                                Text(current.name)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                // Quantity (right-aligned, monospace) - only show if not all items are qty 1
+                                if !allItemsQuantityOne {
+                                    Text("×\(item.quantity)")
+                                        .font(.system(.body, design: .monospaced))
+                                        .foregroundColor(.secondary)
+                                        .frame(minWidth: 40, alignment: .trailing)
                                 }
-                            } label: {
-                                Label("1", systemImage: "plus")
+
+                                // Total price (right-aligned, monospace, live price)
+                                Text(formatCartAmount(current.priceInCents * item.quantity, forceDecimals: cartHasAnyCents))
+                                    .font(.system(.body, design: .monospaced))
+                                    .frame(minWidth: 60, alignment: .trailing)
                             }
-                            .tint(.green)
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            // Only show -1 button if quantity > 1
-                            if item.quantity > 1 {
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                editingItem = item
+                                showQuantityEditor = true
+                            }
+                            .swipeActions(edge: .leading) {
                                 Button {
                                     if let index = basket.firstIndex(where: { $0.id == item.id }) {
-                                        basket[index].quantity -= 1
+                                        basket[index].quantity += 1
                                     }
                                 } label: {
-                                    Label("1", systemImage: "minus")
+                                    Label("1", systemImage: "plus")
                                 }
-                                .tint(.orange)
+                                .tint(.green)
                             }
-
-                            Button(role: .destructive) {
-                                if let index = basket.firstIndex(where: { $0.id == item.id }) {
-                                    basket.remove(at: index)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                // Only show -1 button if quantity > 1
+                                if item.quantity > 1 {
+                                    Button {
+                                        if let index = basket.firstIndex(where: { $0.id == item.id }) {
+                                            basket[index].quantity -= 1
+                                        }
+                                    } label: {
+                                        Label("1", systemImage: "minus")
+                                    }
+                                    .tint(.orange)
                                 }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+
+                                Button(role: .destructive) {
+                                    if let index = basket.firstIndex(where: { $0.id == item.id }) {
+                                        basket.remove(at: index)
+                                    }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
                             }
                         }
-                    }
-                    if !basket.isEmpty {
-                        HStack {
-                            Spacer()
+                    } footer: {
+                        if !basket.isEmpty {
                             Text("Swipe right: +1 • Swipe left: -1 or Delete")
                                 .font(.caption2)
-                                .foregroundColor(Color.gray)
-                                .multilineTextAlignment(.center)
-                            Spacer()
+                                .foregroundColor(.gray)
                         }
                     }
                 }
-//                .frame(maxHeight: 400) // Adjust height to ensure visibility
+//                .listStyle(.plain)
+                
 
-                Spacer()
+//                Spacer()
 
                 // Tax summary (only if tax > 0 and cart not empty)
                 if taxRate > 0 && !basket.isEmpty {
@@ -337,16 +335,12 @@ struct ContentView: View {
 
                 if totalAmountInCents > 49 && amountInCents == 0 {
                     Button(action: {
-                        do {
-                            try readerDiscoveryController.checkoutAction(amount: totalAmountInCents)
-                        } catch {
-                            print("Error occurred: \(error)")
-                        }
+                        showCheckoutSheet = true
                     }) {
                         HStack{
 //                            wave.3.right.circle.fill or wave.3.right.circle
-                            Image(systemName: "wave.3.right.circle.fill")
-                            Text("Charge card $\(formattedTotalAmount)").font(.title2)
+//                            Image(systemName: "wave.3.right.circle.fill")
+                            Text("Review $\(formattedTotalAmount)").font(.title2)
                             .fontWeight(/*@START_MENU_TOKEN@*/.medium/*@END_MENU_TOKEN@*/)
                         }
                     }
@@ -459,14 +453,7 @@ struct ContentView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented: $showCheckoutSheet, onDismiss: {
-                // If basket still has items, show sheet again
-                if !basket.isEmpty {
-                    DispatchQueue.main.async {
-                        showCheckoutSheet = true
-                    }
-                }
-            }) {
+            .sheet(isPresented: $showCheckoutSheet) {
                 CheckoutSheet(
                     basket: $basket,
                     subtotalInCents: subtotalInCents,
@@ -482,12 +469,9 @@ struct ContentView: View {
                         }
                     }
                 )
-                .presentationDetents([.height(200), .large])
+                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
             }
-        }
-        .onChange(of: basket.isEmpty) { (isEmpty: Bool) in
-            showCheckoutSheet = !isEmpty
         }
     }
     }
@@ -826,6 +810,7 @@ struct CheckoutSheet: View {
             }
         }
         .background(Color(.systemBackground))
+        .padding(.bottom, 8)
     }
 }
 
