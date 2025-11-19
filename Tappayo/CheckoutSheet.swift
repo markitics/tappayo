@@ -69,68 +69,69 @@ struct CheckoutSheet: View {
                 allItemsQuantityOne: allItemsQuantityOne,
                 cartHasAnyCents: cartHasAnyCents
             )
-            .frame(maxHeight: 250)
+//            .frame(maxHeight: .infinity)  // No! don't use maxHeight: .inifinity, because The List needs a height constraint to enable scrolling. we want .scrollIndicators visible.
+            .frame(maxHeight: 400)  // Effectively unlimited; search for 99987 to adjust.
+            
+            // Everything below cart needs horizontal padding
+            VStack(spacing: 0) {
+                Divider()
+                    .padding(.vertical, 8)
 
-            Divider()
-                .padding(.vertical, 8)
-                .padding(.horizontal, 20)
-
-            // Subtotal & Tax
-            VStack(spacing: 8) {
-                HStack {
-                    Text("Subtotal")
-                    Spacer()
-                    Text(formatMoney(subtotalInCents))
-                        .font(.system(.body, design: .monospaced))
-                }
-                if taxAmountInCents > 0 {
+                // Subtotal & Tax
+                VStack(spacing: 8) {
                     HStack {
-                        Text("Tax")
+                        Text("Subtotal")
                         Spacer()
-                        Text(formatMoney(taxAmountInCents))
+                        Text(formatMoney(subtotalInCents))
                             .font(.system(.body, design: .monospaced))
                     }
+                    if taxAmountInCents > 0 {
+                        HStack {
+                            Text("Tax")
+                            Spacer()
+                            Text(formatMoney(taxAmountInCents))
+                                .font(.system(.body, design: .monospaced))
+                        }
+                    }
                 }
+
+                Spacer()
+
+                // Charge Button
+                if totalAmountInCents > 49 {
+                    Button(action: onCharge) {
+                        HStack {
+                            Image(systemName: "wave.3.right.circle.fill")
+                            Text("Pay $\(formattedTotalAmount)")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(isProcessingPayment)
+                    .opacity(isProcessingPayment ? 0.6 : 1.0)
+                    .padding(.top, 16)
+                } else {
+                    Text("Minimum charge $0.50")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 16)
+                }
+
+                // Connection status
+                Text(connectionStatus)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
+
+                Spacer()
             }
             .padding(.horizontal, 20)
-            
-            Spacer()
-            
-            // Charge Button
-            if totalAmountInCents > 49 {
-                Button(action: onCharge) {
-                    HStack {
-                        Image(systemName: "wave.3.right.circle.fill")
-                        Text("Pay $\(formattedTotalAmount)")
-                            .font(.title2)
-                            .fontWeight(.medium)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                }
-                .disabled(isProcessingPayment)
-                .opacity(isProcessingPayment ? 0.6 : 1.0)
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-            } else {
-                Text("Minimum charge $0.50")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-            }
-
-            // Connection status
-            Text(connectionStatus)
-                .font(.caption)
-                .foregroundColor(.gray)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
-            
-            Spacer()
         }
         .background(Color(.systemBackground))
 //        .background(Color(.red)) // only while debugging

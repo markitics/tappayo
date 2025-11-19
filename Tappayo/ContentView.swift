@@ -215,8 +215,10 @@ struct ContentView: View {
                                 Text(formatCurrency(product.priceInCents))
                                     .font(.body)
                                     .fontWeight(.medium)
+                                    .minimumScaleFactor(0.7)
+                                    .lineLimit(1)
                             }
-                            .frame(maxWidth: .infinity)
+                            .frame(maxWidth: .infinity, minHeight: 90)
                         }
                         .padding()
                         .background(Color.clear)
@@ -367,7 +369,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: SettingsView()) {
-                        Text("Admin").foregroundColor(myAccentColor)
+                        Text("Admin").font(.body).foregroundColor(myAccentColor)
                     }
                 }
             }

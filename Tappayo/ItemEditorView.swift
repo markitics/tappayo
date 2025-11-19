@@ -135,10 +135,9 @@ struct ItemEditorView: View {
 
             Spacer()
 
-            // Done button
+            // Done button (auto-save happens in .onDisappear, so just dismiss here)
             Button(action: {
-                saveChanges()
-                dismiss()
+                dismiss() // no saveChanges, since we get that upon .onDisappear for all modal dismisses now
             }) {
                 Text("Done")
                     .font(.headline)
@@ -152,6 +151,11 @@ struct ItemEditorView: View {
             .padding(.bottom)
         }
         .background(Color(.systemBackground))
+        .onDisappear {
+            // Auto-save changes when sheet is dismissed (swipe, Done button, or any dismissal method)
+            // This prevents data loss if user swipes down without tapping Done
+            saveChanges()
+        }
     }
 
     private func saveChanges() {
@@ -160,8 +164,8 @@ struct ItemEditorView: View {
 
         guard nameChanged || priceChanged else { return }
 
+        // If this is a saved product, update the global product library
         if item.isProduct, let productId = item.productId {
-            // Update global product name and/or price
             if let productIndex = savedProducts.firstIndex(where: { $0.id == productId }) {
                 if nameChanged {
                     savedProducts[productIndex].name = editedName
@@ -171,18 +175,18 @@ struct ItemEditorView: View {
                 }
                 UserDefaults.standard.savedProducts = savedProducts
             }
-        } else {
-            // Update cart item (need to recreate CartItem since fields are immutable)
-            let updatedItem = CartItem(
-                id: item.id,
-                productId: item.productId,
-                name: editedName,
-                priceInCents: editedPriceInCents,
-                quantity: currentQuantity,
-                isProduct: item.isProduct
-            )
-            basket[basketIndex] = updatedItem
         }
+
+        // Always update the cart item (whether saved product or free-form item)
+        let updatedItem = CartItem(
+            id: item.id,
+            productId: item.productId,
+            name: editedName,
+            priceInCents: editedPriceInCents,
+            quantity: currentQuantity,
+            isProduct: item.isProduct
+        )
+        basket[basketIndex] = updatedItem
     }
 }
 

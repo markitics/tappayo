@@ -144,5 +144,6 @@ struct CartListView: View {
             }
         }
         .listStyle(.plain)
+        .scrollIndicators(.visible)
     }
 }
