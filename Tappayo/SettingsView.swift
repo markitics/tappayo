@@ -17,7 +17,6 @@ struct SettingsView: View {
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
-    @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
     @State private var taxRate: Double = UserDefaults.standard.taxRate
     @State private var dismissKeypadAfterAdd: String = UserDefaults.standard.dismissKeypadAfterAdd
@@ -178,8 +177,6 @@ struct SettingsView: View {
             }
 
             Section(header: Text("Display Options")) {
-                Toggle("Show +$1/-$1 buttons", isOn: $showPlusMinusButtons)
-
                 Picker(inputModeHeader, selection: $inputMode) {
                     Text("I'll type cents, like $5.99 or $5.00").tag("cents")
                     Text("Only whole numbers, like $5, $50").tag("dollars")
@@ -214,7 +211,6 @@ struct SettingsView: View {
             UserDefaults.standard.savedProducts = savedProducts
             UserDefaults.standard.myAccentColor = myAccentColor
             UserDefaults.standard.darkModePreference = darkModePreference
-            UserDefaults.standard.showPlusMinusButtons = showPlusMinusButtons
             UserDefaults.standard.businessName = businessName
             UserDefaults.standard.taxRate = taxRate
             UserDefaults.standard.dismissKeypadAfterAdd = dismissKeypadAfterAdd
@@ -224,7 +220,6 @@ struct SettingsView: View {
             savedProducts = UserDefaults.standard.savedProducts
             myAccentColor = UserDefaults.standard.myAccentColor
             darkModePreference = UserDefaults.standard.darkModePreference
-            showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
             businessName = UserDefaults.standard.businessName
             taxRate = UserDefaults.standard.taxRate
             dismissKeypadAfterAdd = UserDefaults.standard.dismissKeypadAfterAdd
@@ -254,9 +249,6 @@ struct SettingsView: View {
         .onChange(of: myAccentColor) { newValue in
             // Ensure accent color updates immediately
             UserDefaults.standard.myAccentColor = newValue
-        }
-        .onChange(of: showPlusMinusButtons) { newValue in
-            UserDefaults.standard.showPlusMinusButtons = newValue
         }
         .onChange(of: businessName) { newValue in
             UserDefaults.standard.businessName = newValue

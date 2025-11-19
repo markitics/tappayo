@@ -69,15 +69,6 @@ extension UserDefaults {
         }
     }
 
-    var showPlusMinusButtons: Bool {
-        get {
-            return bool(forKey: UserDefaultsKeys.showPlusMinusButtons.rawValue)
-        }
-        set {
-            set(newValue, forKey: UserDefaultsKeys.showPlusMinusButtons.rawValue)
-        }
-    }
-
     var businessName: String {
         get {
             return string(forKey: UserDefaultsKeys.businessName.rawValue) ?? "Tappayo"

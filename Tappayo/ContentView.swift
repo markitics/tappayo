@@ -12,7 +12,6 @@ struct ContentView: View {
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
-    @State private var showPlusMinusButtons: Bool = UserDefaults.standard.showPlusMinusButtons
     @State private var businessName: String = UserDefaults.standard.businessName
     @State private var taxRate: Double = UserDefaults.standard.taxRate
     @State private var dismissKeypadAfterAdd: String = UserDefaults.standard.dismissKeypadAfterAdd
@@ -460,7 +459,6 @@ struct ContentView: View {
                 savedProducts = UserDefaults.standard.savedProducts
                 myAccentColor = UserDefaults.standard.myAccentColor
                 darkModePreference = UserDefaults.standard.darkModePreference
-                showPlusMinusButtons = UserDefaults.standard.showPlusMinusButtons
                 businessName = UserDefaults.standard.businessName
                 taxRate = UserDefaults.standard.taxRate
                 dismissKeypadAfterAdd = UserDefaults.standard.dismissKeypadAfterAdd
@@ -519,7 +517,6 @@ struct ContentView: View {
                         amountInCents = 0
                         isKeypadActive = false
                     },
-                    showPlusMinusButtons: showPlusMinusButtons,
                     inputMode: inputMode
                 )
                 .presentationDetents([.medium, .large])
@@ -596,7 +593,6 @@ struct CustomKeypadView: View {
     @Binding var amountInCents: Int
     let onAddToCart: () -> Void
     let onCancel: () -> Void
-    let showPlusMinusButtons: Bool
     let inputMode: String
 
     private let buttonSize: CGFloat = 70
@@ -609,38 +605,6 @@ struct CustomKeypadView: View {
                 .font(.system(size: 48, weight: .medium, design: .default))
                 .foregroundColor(.white)
                 .frame(height: 60)
-
-            // Plus/Minus buttons (if enabled in settings)
-            if showPlusMinusButtons {
-                HStack(spacing: 16) {
-                    Button(action: {
-                        if amountInCents > 99 {
-                            amountInCents -= 100
-                        }
-                    }) {
-                        Text("-$1")
-                            .font(.body)
-                            .foregroundColor(.white)
-                    }
-                    .frame(width: 80, height: 36)
-                    .background(Color.red.opacity(0.8))
-                    .cornerRadius(8)
-
-                    Spacer()
-
-                    Button(action: {
-                        amountInCents += 100
-                    }) {
-                        Text("+$1")
-                            .font(.body)
-                            .foregroundColor(.white)
-                    }
-                    .frame(width: 80, height: 36)
-                    .background(Color.green.opacity(0.8))
-                    .cornerRadius(8)
-                }
-                .padding(.horizontal, 40)
-            }
 
             // Number pad grid
             VStack(spacing: buttonSpacing) {

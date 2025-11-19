@@ -9,7 +9,6 @@ enum UserDefaultsKeys: String {
     case savedProducts
     case myAccentColor
     case darkModePreference
-    case showPlusMinusButtons
     case businessName
     case taxRate
     case dismissKeypadAfterAdd
