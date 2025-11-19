@@ -23,6 +23,13 @@ struct ContentView: View {
     @State private var showQuantityEditor = false
     @State private var showCheckoutSheet = false
 
+    // Animation state for cart row updates
+    @State private var lastChangedItemId: UUID? = nil
+    @State private var isAnimatingQuantity: Bool = false
+
+    // Product icon sizing constant
+    private let productIconSize: CGFloat = 40
+
     let readerDiscoveryController = ReaderDiscoveryViewController()
 
     var subtotalInCents: Int {
@@ -141,14 +148,25 @@ struct ContentView: View {
                 ]
 
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(savedProducts.filter({ $0.priceInCents > 0 }), id: \.id) { product in
+                    ForEach(savedProducts.filter({ $0.priceInCents > 0 && ($0.emoji != nil || $0.photoFilename != nil) }), id: \.id) { product in
                         let quantityInCart = basket.first(where: { $0.productId == product.id && $0.isProduct })?.quantity ?? 0
 
                         Button(action: {
                             // Check if this product is already in the cart
                             if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
-                                // Increment quantity
-                                basket[index].quantity += 1
+                                // Increment quantity with animation
+                                let itemId = basket[index].id
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    basket[index].quantity += 1
+                                }
+                                lastChangedItemId = itemId
+                                isAnimatingQuantity = true
+
+                                // Reset animation state
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    lastChangedItemId = nil
+                                    isAnimatingQuantity = false
+                                }
                             } else {
                                 // Add new product to cart
                                 let item = CartItem(
@@ -168,11 +186,12 @@ struct ContentView: View {
                                     Image(uiImage: image)
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: 50, height: 50)
-                                        .clipShape(Circle())
+                                        .frame(width: productIconSize, height: productIconSize)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
                                 } else if let emoji = product.emoji {
                                     Text(emoji)
-                                        .font(.system(size: 32))
+                                        .font(.system(size: productIconSize - 4))
+                                        .frame(width: productIconSize, height: productIconSize)
                                 }
 
                                 Text(product.name)
@@ -185,9 +204,13 @@ struct ContentView: View {
                             .frame(maxWidth: .infinity)
                         }
                         .padding()
-                        .background(Color.gray)
-                        .foregroundColor(.white)
+                        .background(Color.clear)
+                        .foregroundColor(.primary)
                         .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(quantityInCart > 0 ? Color.blue : Color.gray, lineWidth: 1)
+                        )
                         .overlay(alignment: .topLeading) {
                             // Quantity badge in top-left corner
                             if quantityInCart > 0 {
@@ -202,7 +225,7 @@ struct ContentView: View {
                                             .fill(Color.blue)
                                             .frame(minWidth: 22, minHeight: 22)
                                     )
-                                    .offset(x: -6, y: -6)
+                                    .offset(x: -1, y: -6)
                             }
                         }
                     }
@@ -226,11 +249,11 @@ struct ContentView: View {
                     Section {
                         if basket.isEmpty {
                             Text("Cart is empty").font(.subheadline)
-                                .foregroundColor(Color(.systemGray2))
+//                                .foregroundColor(Color(.systemGray2))
                         }
                         ForEach(basket) { item in
                             let current = getCurrentProduct(for: item)
-                            HStack(spacing: 12) {
+                            HStack(spacing: 2) {
                                 // Show emoji or photo for products
                                 if item.isProduct, let product = savedProducts.first(where: { $0.id == item.productId }) {
                                     if let photoFilename = product.photoFilename,
@@ -256,6 +279,7 @@ struct ContentView: View {
                                         .font(.system(.body, design: .monospaced))
                                         .foregroundColor(.secondary)
                                         .frame(minWidth: 40, alignment: .trailing)
+                                        .scaleEffect(lastChangedItemId == item.id && isAnimatingQuantity ? 1.1 : 1.0)
                                 }
 
                                 // Total price (right-aligned, monospace, live price)
@@ -263,6 +287,16 @@ struct ContentView: View {
                                     .font(.system(.body, design: .monospaced))
                                     .frame(minWidth: 60, alignment: .trailing)
                             }
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(
+                                        lastChangedItemId == item.id && isAnimatingQuantity
+                                            ? Color.blue.opacity(0.15)
+                                            : Color.clear
+                                    )
+                            )
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 editingItem = item
@@ -270,7 +304,17 @@ struct ContentView: View {
                             .swipeActions(edge: .leading) {
                                 Button {
                                     if let index = basket.firstIndex(where: { $0.id == item.id }) {
-                                        basket[index].quantity += 1
+                                        let itemId = basket[index].id
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                            basket[index].quantity += 1
+                                        }
+                                        lastChangedItemId = itemId
+                                        isAnimatingQuantity = true
+
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            lastChangedItemId = nil
+                                            isAnimatingQuantity = false
+                                        }
                                     }
                                 } label: {
                                     Label("1", systemImage: "plus")
@@ -282,7 +326,17 @@ struct ContentView: View {
                                 if item.quantity > 1 {
                                     Button {
                                         if let index = basket.firstIndex(where: { $0.id == item.id }) {
-                                            basket[index].quantity -= 1
+                                            let itemId = basket[index].id
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                                basket[index].quantity -= 1
+                                            }
+                                            lastChangedItemId = itemId
+                                            isAnimatingQuantity = true
+
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                lastChangedItemId = nil
+                                                isAnimatingQuantity = false
+                                            }
                                         }
                                     } label: {
                                         Label("1", systemImage: "minus")
@@ -298,6 +352,7 @@ struct ContentView: View {
                                     Label("Delete", systemImage: "trash")
                                 }
                             }
+                            .listRowInsets(EdgeInsets())
                         }
                     } footer: {
                         if !basket.isEmpty {
@@ -376,11 +431,6 @@ struct ContentView: View {
                         .font(.caption)
                         .foregroundColor(.red)
                 }
-
-                Text(connectionStatus)
-                    .font(.caption) // Add this line to make the text smaller
-                    .foregroundColor(.gray)
-                    .padding(.top, 10)
             }
             .padding()
             .onAppear {
@@ -831,178 +881,5 @@ struct CheckoutSheet: View {
         }
         .background(Color(.systemBackground))
         .padding(.bottom, 8)
-    }
-}
-
-// MARK: - Item Editor
-
-struct ItemEditorView: View {
-    let item: CartItem
-    let basketIndex: Int
-    @Binding var basket: [CartItem]
-    @Binding var savedProducts: [Product]
-    @Binding var isPresented: Bool
-    let formatAmount: (Int, Bool) -> String
-
-    @State private var editedName: String = ""
-    @State private var currentQuantity: Int
-    @FocusState private var isNameFieldFocused: Bool
-
-    init(item: CartItem, basketIndex: Int, basket: Binding<[CartItem]>, savedProducts: Binding<[Product]>, isPresented: Binding<Bool>, formatAmount: @escaping (Int, Bool) -> String) {
-        self.item = item
-        self.basketIndex = basketIndex
-        self._basket = basket
-        self._savedProducts = savedProducts
-        self._isPresented = isPresented
-        self.formatAmount = formatAmount
-
-        // Initialize quantity from current item
-        _currentQuantity = State(initialValue: item.quantity)
-
-        // Initialize name from current item
-        if item.isProduct, let productId = item.productId {
-            if let product = savedProducts.wrappedValue.first(where: { $0.id == productId }) {
-                _editedName = State(initialValue: product.name)
-            } else {
-                _editedName = State(initialValue: item.name)
-            }
-        } else {
-            _editedName = State(initialValue: item.name)
-        }
-    }
-
-    var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            
-            // Drag indicator
-            Capsule()
-                .fill(Color.secondary.opacity(0.3))
-                .frame(width: 40, height: 5)
-                .padding(.top, 8)
-
-            // Name editing section
-            VStack(alignment: .leading, spacing: 8) {
-                Text(item.isProduct ? "Product Name" : "Item Name")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                TextField("Enter name", text: $editedName)
-                    .font(.title3)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isNameFieldFocused)
-                    .onSubmit {
-                        saveNameChange()
-                    }
-            }
-            .padding(.horizontal)
-
-            // Price/Subtotal section
-            VStack(spacing: 8) {
-                Text("Price")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                if currentQuantity > 1 {
-                    // Show calculation
-                    Text("\(formatAmount(item.priceInCents, true)) × \(currentQuantity) = \(formatAmount(item.priceInCents * currentQuantity, true))")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                } else {
-                    // Show just the price
-                    Text(formatAmount(item.priceInCents, true))
-                        .font(.title2)
-                        .fontWeight(.medium)
-                }
-            }
-
-            
-            // Quantity section
-            VStack(spacing: 16) {
-                Text("Quantity")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                HStack(spacing: 40) {
-                    // Delete/Minus button
-                    Button(action: {
-                        if currentQuantity == 1 {
-                            // Delete item
-                            basket.remove(at: basketIndex)
-                            isPresented = false
-                        } else {
-                            currentQuantity -= 1
-                            basket[basketIndex].quantity = currentQuantity
-                        }
-                    }) {
-                        if currentQuantity == 1 {
-                            Text("Delete")
-                                .font(.headline)
-                                .foregroundColor(.red)
-                                .frame(width: 80)
-                        } else {
-                            Image(systemName: "minus.circle.fill")
-                                .font(.system(size: 44))
-                                .foregroundColor(.blue)
-                        }
-                    }
-
-                    Text("\(currentQuantity)")
-                        .font(.system(size: 50, weight: .semibold, design: .rounded))
-                        .frame(minWidth: 70)
-
-                    Button(action: {
-                        currentQuantity += 1
-                        basket[basketIndex].quantity = currentQuantity
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-
-
-            Spacer()
-
-            // Done button
-            Button(action: {
-                saveNameChange()
-                isPresented = false
-            }) {
-                Text("Done")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(12)
-            }
-            .padding(.horizontal)
-            .padding(.bottom)
-        }
-        .background(Color(.systemBackground))
-    }
-
-    private func saveNameChange() {
-        guard editedName != item.name else { return }
-
-        if item.isProduct, let productId = item.productId {
-            // Update global product name
-            if let productIndex = savedProducts.firstIndex(where: { $0.id == productId }) {
-                savedProducts[productIndex].name = editedName
-                UserDefaults.standard.savedProducts = savedProducts
-            }
-        } else {
-            // Update cart item name (need to recreate CartItem since name is immutable)
-            let updatedItem = CartItem(
-                id: item.id,
-                productId: item.productId,
-                name: editedName,
-                priceInCents: item.priceInCents,
-                quantity: currentQuantity,
-                isProduct: item.isProduct
-            )
-            basket[basketIndex] = updatedItem
-        }
     }
 }
