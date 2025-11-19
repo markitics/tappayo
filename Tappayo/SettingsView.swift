@@ -11,6 +11,7 @@
 
 import SwiftUI
 import PhotosUI
+import MCEmojiPicker
 
 struct SettingsView: View {
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
@@ -29,6 +30,10 @@ struct SettingsView: View {
     @State private var showingPhotoLibrary = false
     @State private var selectedImage: UIImage?
     @State private var editingProductId: UUID?
+
+    // Emoji picker state
+    @State private var showingEmojiPicker = false
+    @State private var editingEmojiForProductId: UUID?
     
     var body: some View {
         Form {
@@ -65,11 +70,29 @@ struct SettingsView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 4) {
-                                TextField("Emoji (optional)", text: Binding(
-                                    get: { savedProducts[index].emoji ?? "" },
-                                    set: { savedProducts[index].emoji = $0.isEmpty ? nil : $0 }
-                                ))
-                                .font(.body)
+                                Button(action: {
+                                    editingEmojiForProductId = savedProducts[index].id
+                                    showingEmojiPicker = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "face.smiling")
+                                        Text(savedProducts[index].emoji ?? "Choose emoji")
+                                            .foregroundColor(savedProducts[index].emoji == nil ? .secondary : .primary)
+                                    }
+                                    .font(.body)
+                                }
+                                .emojiPicker(
+                                    isPresented: $showingEmojiPicker,
+                                    selectedEmoji: Binding(
+                                        get: { savedProducts[index].emoji ?? "" },
+                                        set: { newEmoji in
+                                            if let productId = editingEmojiForProductId,
+                                               let idx = savedProducts.firstIndex(where: { $0.id == productId }) {
+                                                savedProducts[idx].emoji = newEmoji.isEmpty ? nil : newEmoji
+                                            }
+                                        }
+                                    )
+                                )
 
                                 Button(action: {
                                     editingProductId = savedProducts[index].id

@@ -284,6 +284,7 @@
 			mainGroup = 4D08BC6A2BCE79B4007B1FBA;
 			packageReferences = (
 				4D08BCA02BCE7E18007B1FBA /* XCRemoteSwiftPackageReference "stripe-terminal-ios" */,
+				4DD86DCE2ECD790F00332F37 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */,
 			);
 			productRefGroup = 4D08BC742BCE79B4007B1FBA /* Products */;
 			projectDirPath = "";
@@ -685,6 +686,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 3.0.0;
+			};
+		};
+		4DD86DCE2ECD790F00332F37 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/izyumkin/MCEmojiPicker";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.5;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

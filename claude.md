@@ -244,7 +244,8 @@ let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
 - [ ] Fix navigation bar color bug
 
 #### Phase 2: Code Cleanup
-- [ ] Remove all dead/unused files
+- [x] Remove all dead/unused files (Nov 2025: Removed BasketView.swift, CheckoutView.swift, AppStorageArray.swift)
+- [x] Consolidate currency formatting (Nov 2025: Unified 8 duplicate formatters into single implementation)
 - [ ] Remove commented-out code
 - [ ] Extract duplicated dark mode logic
 - [ ] Replace print() with OSLog
@@ -271,9 +272,117 @@ let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
 
 ## Learning Notes
 
-This section can be used to document insights and learnings as development continues:
+### November 2025: Currency Formatting Consolidation
 
-- *To be added as development progresses...*
+#### Problem Identified
+The app had **8 different currency formatting implementations** scattered across the codebase:
+1. `CurrencyTextField.format()` - Settings product input
+2. `formatCurrency()` - ContentView (smart decimals)
+3. `formatAmount()` - ContentView (always 2 decimals)
+4. `formatCartAmount()` - ContentView (conditional decimals)
+5. `formattedTotalAmount` - ContentView (with commas)
+6. `CustomKeypadView.formatAmount()` - Keypad display
+7. `CheckoutSheet.formatMoney()` - Checkout sheet
+8. Inline formatting at ContentView:190 - Product grid
+
+**Issues:**
+- **Inconsistent comma usage**: Settings showed commas (`$1,234.56`), but main keypad didn't (`$1234.56`)
+- **Code duplication**: Same logic repeated 8 times
+- **Maintenance burden**: Changes required updating multiple locations
+- **Performance**: Creating new NumberFormatter instances repeatedly
+
+#### Solution Implemented
+**Consolidated to unified approach using `NumberFormatter` with smart decimal logic:**
+
+**Core Implementation (ContentView.swift:52-65):**
+```swift
+private func formatCurrency(_ cents: Int, forceDecimals: Bool = false) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.currencySymbol = "$"
+    formatter.usesGroupingSeparator = true  // ← Key addition for commas
+
+    // Smart decimal logic: show .00 only when needed
+    let shouldShowDecimals = forceDecimals || (cents % 100 != 0)
+    formatter.minimumFractionDigits = shouldShowDecimals ? 2 : 0
+    formatter.maximumFractionDigits = shouldShowDecimals ? 2 : 0
+
+    return formatter.string(from: NSNumber(value: Double(cents) / 100)) ?? "$0.00"
+}
+```
+
+**Key Design Decisions:**
+
+1. **Smart Decimal Logic Preserved**
+   - Whole dollar amounts display clean: `$5`, `$20`, `$1,234`
+   - Amounts with cents show decimals: `$5.50`, `$1,234.56`
+   - `forceDecimals` parameter for contexts requiring alignment
+
+2. **Comma Separators Always Enabled**
+   - `usesGroupingSeparator = true` ensures readability for large amounts
+   - Follows iOS best practices using `NumberFormatter.currency`
+
+3. **Consistency Within Context**
+   - Cart uses `cartHasAnyCents` check to force decimals if ANY item has cents
+   - Tax summary uses `taxSummaryHasCents` for subtotal/tax alignment
+   - Ensures visual consistency within a single transaction
+
+#### The "Farmers Market Scenario"
+
+**Design Goal:** Prices should display in the cleanest, most natural format.
+
+**All whole dollars (common at farmers markets):**
+```
+Grip    $3   ×2    $6
+Coffee             $5
+Bag                $1
+─────────────────────
+Subtotal          $12
+```
+
+**Mixed pricing (consistency trumps brevity):**
+```
+Grip    $3.00 ×2   $6.00
+Coffee             $5.50  ← This item has cents
+Bag                $1.00
+─────────────────────────
+Subtotal          $11.50
+```
+
+**Large amounts (commas for readability):**
+```
+Equipment  $1,234 ×2  $2,468
+Services              $3,500
+─────────────────────────────
+Total              $5,968
+```
+
+#### Implementation Details
+
+**Files Modified:**
+1. `ContentView.swift`:
+   - Created unified `formatCurrency(cents, forceDecimals)`
+   - Replaced 6 duplicate functions
+   - Updated 11+ call sites
+   - Enhanced `CustomKeypadView.formatAmount()` and `CheckoutSheet.formatMoney()`
+
+2. `CurrencyTextField.swift`:
+   - Added `usesGroupingSeparator = true` to ensure Settings input has commas
+
+**Result:**
+- ✅ Comma separators appear everywhere (including main keypad where previously missing)
+- ✅ Smart decimal logic preserved (no unnecessary `.00` for whole dollars)
+- ✅ Consistent formatting across entire app
+- ✅ Single source of truth for currency display
+- ✅ Better performance (fewer formatter instantiations)
+- ✅ Build succeeds with no errors
+
+**Lessons Learned:**
+- `NumberFormatter` is the iOS-standard way to format currency
+- Smart decimal logic improves UX for common use cases (farmers markets, retail)
+- Context-aware formatting (checking if cart has cents) provides better consistency
+- Consolidating duplicate code reduces maintenance and improves reliability
+- User-facing clarity matters: commas make large amounts readable
 
 ---
 
