@@ -10,23 +10,27 @@ struct ItemEditorView: View {
     let basketIndex: Int
     @Binding var basket: [CartItem]
     @Binding var savedProducts: [Product]
-    @Binding var isPresented: Bool
     let formatAmount: (Int, Bool) -> String
 
+    @Environment(\.dismiss) private var dismiss
     @State private var editedName: String = ""
+    @State private var editedPriceInCents: Int
     @State private var currentQuantity: Int
     @FocusState private var isNameFieldFocused: Bool
+    @FocusState private var isPriceFieldFocused: Bool
 
-    init(item: CartItem, basketIndex: Int, basket: Binding<[CartItem]>, savedProducts: Binding<[Product]>, isPresented: Binding<Bool>, formatAmount: @escaping (Int, Bool) -> String) {
+    init(item: CartItem, basketIndex: Int, basket: Binding<[CartItem]>, savedProducts: Binding<[Product]>, formatAmount: @escaping (Int, Bool) -> String) {
         self.item = item
         self.basketIndex = basketIndex
         self._basket = basket
         self._savedProducts = savedProducts
-        self._isPresented = isPresented
         self.formatAmount = formatAmount
 
         // Initialize quantity from current item
         _currentQuantity = State(initialValue: item.quantity)
+
+        // Initialize price from current item
+        _editedPriceInCents = State(initialValue: item.priceInCents)
 
         // Initialize name from current item
         if item.isProduct, let productId = item.productId {
@@ -44,12 +48,6 @@ struct ItemEditorView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            // Drag indicator
-            Capsule()
-                .fill(Color.secondary.opacity(0.3))
-                .frame(width: 40, height: 5)
-                .padding(.top, 8)
-
             // Name editing section
             VStack(alignment: .leading, spacing: 8) {
                 Text(item.isProduct ? "Product Name" : "Item Name")
@@ -60,28 +58,33 @@ struct ItemEditorView: View {
                     .textFieldStyle(.roundedBorder)
                     .focused($isNameFieldFocused)
                     .onSubmit {
-                        saveNameChange()
+                        saveChanges()
                     }
             }
             .padding(.horizontal)
 
-            // Price/Subtotal section
-            VStack(spacing: 8) {
+            // Price editing section
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Price")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                CurrencyTextField(
+                    value: $editedPriceInCents,
+                    placeholder: "$0.00",
+                    font: .title3
+                )
+                .frame(height: 40)
+                .textFieldStyle(.roundedBorder)
+                .focused($isPriceFieldFocused)
+            }
+            .padding(.horizontal)
 
-                if currentQuantity > 1 {
-                    // Show calculation
-                    Text("\(formatAmount(item.priceInCents, true)) × \(currentQuantity) = \(formatAmount(item.priceInCents * currentQuantity, true))")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                } else {
-                    // Show just the price
-                    Text(formatAmount(item.priceInCents, true))
-                        .font(.title2)
-                        .fontWeight(.medium)
-                }
+            // Calculation row (only if quantity > 1)
+            if currentQuantity > 1 {
+                Text("\(formatAmount(editedPriceInCents, true)) × \(currentQuantity) = \(formatAmount(editedPriceInCents * currentQuantity, true))")
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
             }
 
 
@@ -97,7 +100,7 @@ struct ItemEditorView: View {
                         if currentQuantity == 1 {
                             // Delete item
                             basket.remove(at: basketIndex)
-                            isPresented = false
+                            dismiss()
                         } else {
                             currentQuantity -= 1
                             basket[basketIndex].quantity = currentQuantity
@@ -135,8 +138,8 @@ struct ItemEditorView: View {
 
             // Done button
             Button(action: {
-                saveNameChange()
-                isPresented = false
+                saveChanges()
+                dismiss()
             }) {
                 Text("Done")
                     .font(.headline)
@@ -152,22 +155,30 @@ struct ItemEditorView: View {
         .background(Color(.systemBackground))
     }
 
-    private func saveNameChange() {
-        guard editedName != item.name else { return }
+    private func saveChanges() {
+        let nameChanged = editedName != item.name
+        let priceChanged = editedPriceInCents != item.priceInCents
+
+        guard nameChanged || priceChanged else { return }
 
         if item.isProduct, let productId = item.productId {
-            // Update global product name
+            // Update global product name and/or price
             if let productIndex = savedProducts.firstIndex(where: { $0.id == productId }) {
-                savedProducts[productIndex].name = editedName
+                if nameChanged {
+                    savedProducts[productIndex].name = editedName
+                }
+                if priceChanged {
+                    savedProducts[productIndex].priceInCents = editedPriceInCents
+                }
                 UserDefaults.standard.savedProducts = savedProducts
             }
         } else {
-            // Update cart item name (need to recreate CartItem since name is immutable)
+            // Update cart item (need to recreate CartItem since fields are immutable)
             let updatedItem = CartItem(
                 id: item.id,
                 productId: item.productId,
                 name: editedName,
-                priceInCents: item.priceInCents,
+                priceInCents: editedPriceInCents,
                 quantity: currentQuantity,
                 isProduct: item.isProduct
             )
@@ -193,7 +204,6 @@ struct ItemEditorView_Previews: PreviewProvider {
             basketIndex: 0,
             basket: .constant([sampleItem]),
             savedProducts: .constant([]),
-            isPresented: .constant(true),
             formatAmount: { cents, forceDecimals in
                 let formatter = NumberFormatter()
                 formatter.numberStyle = .currency
@@ -201,6 +211,5 @@ struct ItemEditorView_Previews: PreviewProvider {
                 return formatter.string(from: NSNumber(value: Double(cents) / 100)) ?? "$0.00"
             }
         )
-        .presentationDetents([.height(350), .medium])
     }
 }

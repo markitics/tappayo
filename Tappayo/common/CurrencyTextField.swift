@@ -41,7 +41,7 @@ struct CurrencyTextField: UIViewRepresentable {
         textField.placeholder = placeholder
         textField.keyboardType = .numberPad
         textField.delegate = context.coordinator
-        textField.textAlignment = .center // Center align text
+        textField.textAlignment = .left // Left align text
 
         // Convert SwiftUI Font to UIFont and apply
         let uiFont = UIFont.preferredFont(from: font)
@@ -60,7 +60,7 @@ struct CurrencyTextField: UIViewRepresentable {
     func updateUIView(_ uiView: UITextField, context: Context) {
         uiView.text = format(cents: value)
         uiView.font = UIFont.preferredFont(from: font)
-        uiView.textAlignment = .center // Ensure text remains centered on update
+        uiView.textAlignment = .left // Ensure text remains left-aligned on update
     }
 
     private func format(cents: Int) -> String? {

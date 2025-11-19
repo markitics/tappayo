@@ -132,14 +132,14 @@ struct ContentView: View {
                 )
                 .padding(.bottom, 12)
 
-                HStack {
-                    Text("Quick add items")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.leading)
-                        .padding(.top, 8)
-                    Spacer()
-                }
+//                HStack {
+//                    Text("Quick add items")
+//                        .font(.caption)
+//                        .foregroundColor(.gray)
+//                        .multilineTextAlignment(.leading)
+//                        .padding(.top, 8)
+//                    Spacer()
+//                }
 
                 let columns = [
                     GridItem(.flexible()),
@@ -235,13 +235,14 @@ struct ContentView: View {
                 .padding([.bottom], 14)
 
                 if !basket.isEmpty {
-                    Divider()
+//                    Divider() // divider above Cart
                     HStack {
                         Text("Cart").font(.headline)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.leading)
                             .padding(.bottom, 2)
-                            .padding(.top, 16)
+                            .padding(.top, 2) // was .top, 16
+                            .padding(.horizontal, 16) // 4pt outer + 12pt to match cart row content
                         Spacer()
                     }
                 }
@@ -288,7 +289,7 @@ struct ContentView: View {
                                     .frame(minWidth: 60, alignment: .trailing)
                             }
                             .padding(.vertical, 6)
-                            .padding(.horizontal, 4)
+                            .padding(.horizontal, 12)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(
@@ -297,6 +298,7 @@ struct ContentView: View {
                                             : Color.clear
                                     )
                             )
+                            .padding(.horizontal, 4)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 editingItem = item
@@ -362,7 +364,7 @@ struct ContentView: View {
                         }
                     }
                 }
-//                .listStyle(.plain)
+                .listStyle(.plain) // this removes the systemGray6 background; without style plain, the rows have rounded corners
                 
 
 //                Spacer()
@@ -450,12 +452,9 @@ struct ContentView: View {
                 inputMode = UserDefaults.standard.inputMode
                 applyDarkModePreference()
             }
+            .navigationTitle(businessName)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Text(businessName)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: SettingsView()) {
                         Text("Settings").foregroundColor(myAccentColor)
@@ -476,10 +475,9 @@ struct ContentView: View {
                         basketIndex: index,
                         basket: $basket,
                         savedProducts: $savedProducts,
-                        isPresented: .constant(true),
                         formatAmount: formatCurrency
                     )
-                    .presentationDetents([.height(350), .medium])
+                    .presentationDetents([.fraction(0.7)])
                     .presentationDragIndicator(.visible)
                 }
             }
@@ -568,7 +566,7 @@ struct AmountInputButton: View {
     var body: some View {
         Button(action: onTap) {
             Text(amountInCents > 0 ? formatAmount(amountInCents) : "Enter amount")
-                .font(.largeTitle)
+                .font(.title)
                 .foregroundColor(amountInCents > 0 ? .primary : .secondary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
@@ -796,12 +794,6 @@ struct CheckoutSheet: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Drag handle
-            Capsule()
-                .fill(Color.secondary.opacity(0.3))
-                .frame(width: 40, height: 5)
-                .padding(.top, 8)
-
             ScrollView {
                 VStack(spacing: 16) {
                     // Cart items (only visible when expanded - cut off when collapsed)

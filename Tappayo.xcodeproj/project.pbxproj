@@ -130,18 +130,17 @@
 		4D08BC752BCE79B4007B1FBA /* Tappayo */ = {
 			isa = PBXGroup;
 			children = (
-				4DD86DCF2ECD85FD00332F37 /* ItemEditorView.swift */,
-				4DD86DCA2ECD6B5100332F37 /* ImagePicker.swift */,
-				4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */,
-				4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */,
 				4DA470912CF60BE2009FAAD9 /* AboutView.swift */,
-				4D92B7252C0FF66D005AD949 /* common */,
-				4D92B7242C0FF2EF005AD949 /* utils */,
 				4DCA6AFB2BE347AB006220E5 /* APIClient.swift */,
 				4D08BC7A2BCE79C7007B1FBA /* Assets.xcassets */,
 				4D00000012345678001CAF12 /* CartItem.swift */,
+				4D92B7252C0FF66D005AD949 /* common */,
 				4D92B7142C0EA561005AD949 /* ContentView.swift */,
+				4DD86DCA2ECD6B5100332F37 /* ImagePicker.swift */,
 				4D08BCA32BCE818F007B1FBA /* Info.plist */,
+				4DD86DCF2ECD85FD00332F37 /* ItemEditorView.swift */,
+				4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */,
+				4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */,
 				4D08BC7C2BCE79C7007B1FBA /* Preview Content */,
 				4D00000012345678001CAF14 /* Product.swift */,
 				4D14B3BE2BE36195009213AC /* ReaderDiscoveryViewController.swift */,
@@ -151,6 +150,7 @@
 				4D14B3C42BE37E49009213AC /* TerminalConnectionView.swift */,
 				4D92B7202C0EE642005AD949 /* UserDefaultsHelper.swift */,
 				4D92B71C2C0EE223005AD949 /* UserDefaultsKeys.swift */,
+				4D92B7242C0FF2EF005AD949 /* utils */,
 			);
 			path = Tappayo;
 			sourceTree = "<group>";
