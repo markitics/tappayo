@@ -35,6 +35,13 @@ The app provides a simple, streamlined interface for in-person payment processin
 
 ## Development Guidelines
 
+**CRITICAL - Always Use Current APIs**:
+- **NEVER recommend or use deprecated APIs**
+- Always check Apple Developer Documentation for deprecation warnings
+- Use the latest iOS/Swift versions (iOS 26.1+ as of November 2025)
+- When searching for APIs, verify they are NOT marked "Deprecated"
+- If unsure, search for "site:developer.apple.com/documentation/swiftui [api-name] NOT deprecated"
+
 **Note on Commented-Out Code**: Inline comments are welcome and encouraged. Commented-out code often exists as a valuable papertrail showing earlier versions or alternative approaches. Keep inline comments in the code rather than just documenting separately in files like this one.
 
 **Note on Observations Below**: The observations and suggestions listed below are Claude's initial analysis. They are noted for consideration but are not necessarily agreed upon or prioritized for action. Treat them as food for thought rather than a mandate.

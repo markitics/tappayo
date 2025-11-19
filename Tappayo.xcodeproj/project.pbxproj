@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4D00000012345678001CAF11 /* CartItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D00000012345678001CAF12 /* CartItem.swift */; };
+		4D00000012345678001CAF13 /* Product.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D00000012345678001CAF14 /* Product.swift */; };
 		4D08BC772BCE79B4007B1FBA /* TappayoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D08BC762BCE79B4007B1FBA /* TappayoApp.swift */; };
 		4D08BC7B2BCE79C7007B1FBA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D08BC7A2BCE79C7007B1FBA /* Assets.xcassets */; };
 		4D08BC7E2BCE79C7007B1FBA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D08BC7D2BCE79C7007B1FBA /* Preview Assets.xcassets */; };
@@ -28,8 +30,8 @@
 		4DA470922CF60BFE009FAAD9 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA470912CF60BE2009FAAD9 /* AboutView.swift */; };
 		4DA470962CF63B56009FAAD9 /* notes-for-cursor.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */; };
 		4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DCA6AFB2BE347AB006220E5 /* APIClient.swift */; };
-		4D00000012345678001CAF11 /* CartItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D00000012345678001CAF12 /* CartItem.swift */; };
-		4D00000012345678001CAF13 /* Product.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D00000012345678001CAF14 /* Product.swift */; };
+		4DD86DCC2ECD6B5100332F37 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCA2ECD6B5100332F37 /* ImagePicker.swift */; };
+		4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +52,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4D00000012345678001CAF12 /* CartItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartItem.swift; sourceTree = "<group>"; };
+		4D00000012345678001CAF14 /* Product.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Product.swift; sourceTree = "<group>"; };
 		4D08BC732BCE79B4007B1FBA /* Tappayo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tappayo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D08BC762BCE79B4007B1FBA /* TappayoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TappayoApp.swift; sourceTree = "<group>"; };
 		4D08BC7A2BCE79C7007B1FBA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -75,8 +79,8 @@
 		4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "notes-for-cursor.txt"; sourceTree = "<group>"; };
 		4DCA6AFA2BE3386C006220E5 /* Tappayo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tappayo.entitlements; sourceTree = "<group>"; };
 		4DCA6AFB2BE347AB006220E5 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
-		4D00000012345678001CAF12 /* CartItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartItem.swift; sourceTree = "<group>"; };
-		4D00000012345678001CAF14 /* Product.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Product.swift; sourceTree = "<group>"; };
+		4DD86DCA2ECD6B5100332F37 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoStorageHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +132,8 @@
 		4D08BC752BCE79B4007B1FBA /* Tappayo */ = {
 			isa = PBXGroup;
 			children = (
+				4DD86DCA2ECD6B5100332F37 /* ImagePicker.swift */,
+				4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */,
 				4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */,
 				4DA470912CF60BE2009FAAD9 /* AboutView.swift */,
 				4D92B7252C0FF66D005AD949 /* common */,
@@ -346,6 +352,8 @@
 				4D92B7212C0EE642005AD949 /* UserDefaultsHelper.swift in Sources */,
 				4D92B71F2C0EE46A005AD949 /* AppStorageArray.swift in Sources */,
 				4D14B3C52BE37E49009213AC /* TerminalConnectionView.swift in Sources */,
+				4DD86DCC2ECD6B5100332F37 /* ImagePicker.swift in Sources */,
+				4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */,
 				4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

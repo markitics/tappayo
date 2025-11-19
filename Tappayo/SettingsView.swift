@@ -10,6 +10,7 @@
 //    @State private var quickAmountsState: [Double] = []
 
 import SwiftUI
+import PhotosUI
 
 struct SettingsView: View {
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
@@ -21,6 +22,13 @@ struct SettingsView: View {
     @State private var dismissKeypadAfterAdd: String = UserDefaults.standard.dismissKeypadAfterAdd
     @State private var inputMode: String = UserDefaults.standard.inputMode
     @FocusState private var focusedField: UUID?
+
+    // Photo picker state
+    @State private var showingPhotoPicker = false
+    @State private var showingCamera = false
+    @State private var showingPhotoLibrary = false
+    @State private var selectedImage: UIImage?
+    @State private var editingProductId: UUID?
     
     var body: some View {
         Form {
@@ -37,6 +45,61 @@ struct SettingsView: View {
                         ))
                         .focused($focusedField, equals: savedProducts[index].id)
 
+                        // Emoji/Photo section
+                        HStack {
+                            // Show current emoji or photo preview
+                            if let photoFilename = savedProducts[index].photoFilename,
+                               let image = PhotoStorageHelper.loadPhoto(photoFilename) {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            } else if let emoji = savedProducts[index].emoji, !emoji.isEmpty {
+                                Text(emoji)
+                                    .font(.system(size: 40))
+                            } else {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                TextField("Emoji (optional)", text: Binding(
+                                    get: { savedProducts[index].emoji ?? "" },
+                                    set: { savedProducts[index].emoji = $0.isEmpty ? nil : $0 }
+                                ))
+                                .font(.body)
+
+                                Button(action: {
+                                    editingProductId = savedProducts[index].id
+                                    showingPhotoPicker = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "camera.fill")
+                                        Text(savedProducts[index].photoFilename != nil ? "Change Photo" : "Add Photo")
+                                    }
+                                    .font(.caption)
+                                }
+
+                                if savedProducts[index].photoFilename != nil {
+                                    Button(action: {
+                                        if let filename = savedProducts[index].photoFilename {
+                                            PhotoStorageHelper.deletePhoto(filename)
+                                        }
+                                        savedProducts[index].photoFilename = nil
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "trash")
+                                            Text("Remove Photo")
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                    }
+                                }
+                            }
+                        }
+
                         CurrencyTextField(
                             value: Binding(
                                 get: { savedProducts[index].priceInCents },
@@ -46,6 +109,13 @@ struct SettingsView: View {
                             font: .body
                         )
                         .multilineTextAlignment(.leading)
+
+                        // Validation message
+                        if savedProducts[index].emoji == nil && savedProducts[index].photoFilename == nil {
+                            Text("⚠️ Add an emoji or photo")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
                     }
                     .padding(.vertical, 4)
                 }
@@ -94,7 +164,7 @@ struct SettingsView: View {
 
                 Picker(keypadBehaviorHeader, selection: $dismissKeypadAfterAdd) {
                     Text("Dismiss keypad after adding a manual price").tag("dismiss")
-                    Text("Stay in keypad mode, for quickly adding multiple custom items").tag("stay")
+                    Text("Quickly adding multiple custom items").tag("stay")
                 }
             }
 
@@ -177,6 +247,36 @@ struct SettingsView: View {
         .onChange(of: inputMode) { newValue in
             UserDefaults.standard.inputMode = newValue
         }
+        .confirmationDialog("Choose Photo Source", isPresented: $showingPhotoPicker) {
+            Button("Take Photo") {
+                showingCamera = true
+            }
+            Button("Choose from Library") {
+                showingPhotoLibrary = true
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .sheet(isPresented: $showingCamera) {
+            ImagePicker(image: $selectedImage, sourceType: .camera)
+        }
+        .sheet(isPresented: $showingPhotoLibrary) {
+            ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
+        }
+        .onChange(of: selectedImage) { newImage in
+            if let image = newImage,
+               let productId = editingProductId,
+               let index = savedProducts.firstIndex(where: { $0.id == productId }) {
+                if let filename = PhotoStorageHelper.savePhoto(image) {
+                    // Delete old photo if exists
+                    if let oldFilename = savedProducts[index].photoFilename {
+                        PhotoStorageHelper.deletePhoto(oldFilename)
+                    }
+                    savedProducts[index].photoFilename = filename
+                }
+                selectedImage = nil
+                editingProductId = nil
+            }
+        }
     }
     
     //    private
@@ -218,7 +318,7 @@ struct SettingsView: View {
         case "stay":
             return "Stay in keypad mode"
         default:
-            return "Dismiss after add"
+            return "Dismiss keypad after adding to cart"
         }
     }
 }

@@ -166,6 +166,8 @@ struct ContentView: View {
 
                 LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(savedProducts.filter({ $0.priceInCents > 0 }), id: \.id) { product in
+                        let quantityInCart = basket.first(where: { $0.productId == product.id && $0.isProduct })?.quantity ?? 0
+
                         Button(action: {
                             // Check if this product is already in the cart
                             if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
@@ -184,6 +186,19 @@ struct ContentView: View {
                             }
                         }) {
                             VStack(spacing: 4) {
+                                // Show photo or emoji
+                                if let photoFilename = product.photoFilename,
+                                   let image = PhotoStorageHelper.loadPhoto(photoFilename) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 50, height: 50)
+                                        .clipShape(Circle())
+                                } else if let emoji = product.emoji {
+                                    Text(emoji)
+                                        .font(.system(size: 32))
+                                }
+
                                 Text(product.name)
                                     .font(.caption)
                                     .lineLimit(1)
@@ -197,6 +212,23 @@ struct ContentView: View {
                         .background(Color.gray)
                         .foregroundColor(.white)
                         .cornerRadius(8)
+                        .overlay(alignment: .topLeading) {
+                            // Quantity badge in top-left corner
+                            if quantityInCart > 0 {
+                                Text("\(quantityInCart)")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.blue)
+                                            .frame(minWidth: 22, minHeight: 22)
+                                    )
+                                    .offset(x: -6, y: -6)
+                            }
+                        }
                     }
                 }
                 .padding([.leading, .trailing])
@@ -223,6 +255,21 @@ struct ContentView: View {
                         ForEach(basket) { item in
                             let current = getCurrentProduct(for: item)
                             HStack(spacing: 12) {
+                                // Show emoji or photo for products
+                                if item.isProduct, let product = savedProducts.first(where: { $0.id == item.productId }) {
+                                    if let photoFilename = product.photoFilename,
+                                       let image = PhotoStorageHelper.loadPhoto(photoFilename) {
+                                        Image(uiImage: image)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 30, height: 30)
+                                            .clipShape(Circle())
+                                    } else if let emoji = product.emoji {
+                                        Text(emoji)
+                                            .font(.title3)
+                                    }
+                                }
+
                                 // Product name (left-aligned, live lookup)
                                 Text(current.name)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -455,7 +502,7 @@ struct ContentView: View {
                         }
                     }
                 )
-                .presentationDetents([.medium, .large])
+                .presentationDetents([/*.medium, */.large])
                 .presentationDragIndicator(.visible)
             }
         }
@@ -647,7 +694,7 @@ struct CustomKeypadView: View {
 
                 // Dismiss button (1/3 width)
                 Button(action: onCancel) {
-                    Text("Done")
+                    Text("Cancel")
                         .font(.callout)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
