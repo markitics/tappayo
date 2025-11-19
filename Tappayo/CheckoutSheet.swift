@@ -7,12 +7,26 @@ import SwiftUI
 
 struct CheckoutSheet: View {
     @Binding var basket: [CartItem]
+    @Binding var savedProducts: [Product]
+    @State private var editingItem: CartItem? = nil
+    @Binding var lastChangedItemId: UUID?
+    @Binding var isAnimatingQuantity: Bool
+
+    let businessName: String
     let subtotalInCents: Int
     let taxAmountInCents: Int
     let totalAmountInCents: Int
     let formattedTotalAmount: String
     let connectionStatus: String
+    let isProcessingPayment: Bool
     let onCharge: () -> Void
+
+    // Helper functions passed from ContentView
+    let getCurrentProduct: (CartItem) -> (name: String, priceInCents: Int)
+    let formatCurrency: (Int, Bool) -> String
+    let getCachedImage: (String) -> UIImage?
+    let allItemsQuantityOne: Bool
+    let cartHasAnyCents: Bool
 
     private func formatMoney(_ cents: Int) -> String {
         let formatter = NumberFormatter()
@@ -25,34 +39,41 @@ struct CheckoutSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Cart items (only visible when expanded - cut off when collapsed)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Cart")
-                            .font(.headline)
-                            .fontWeight(.bold)
+        VStack(spacing: 0) {
+            // Business name header
+            Text(businessName)
+                .font(.title2)
+                .fontWeight(.semibold)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+            Spacer()
+            // Cart section header
+//            HStack {
+//                Text("Cart")
+//                    .font(.headline)
+//                    .fontWeight(.bold)
+//                    .padding(.horizontal, 20)
+////                Spacer()
+//            }
 
-                        ForEach(basket) { item in
-                            HStack {
-                                Text(item.name)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+            // Interactive cart list (with swipe actions and tap to edit)
+            CartListView(
+                basket: $basket,
+                savedProducts: $savedProducts,
+                editingItem: $editingItem,
+                lastChangedItemId: $lastChangedItemId,
+                isAnimatingQuantity: $isAnimatingQuantity,
+                getCurrentProduct: getCurrentProduct,
+                formatCurrency: formatCurrency,
+                getCachedImage: getCachedImage,
+                allItemsQuantityOne: allItemsQuantityOne,
+                cartHasAnyCents: cartHasAnyCents
+            )
+            .frame(maxHeight: 250)
 
-                                if item.quantity > 1 {
-                                    Text("×\(item.quantity)")
-                                        .font(.system(.body, design: .monospaced))
-                                        .foregroundColor(.secondary)
-                                }
-
-                                Text(formatMoney(item.priceInCents * item.quantity))
-                                    .font(.system(.body, design: .monospaced))
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-
-                    Divider()
+            Divider()
+                .padding(.vertical, 8)
+                .padding(.horizontal, 20)
 
             // Subtotal & Tax
             VStack(spacing: 8) {
@@ -60,18 +81,21 @@ struct CheckoutSheet: View {
                     Text("Subtotal")
                     Spacer()
                     Text(formatMoney(subtotalInCents))
+                        .font(.system(.body, design: .monospaced))
                 }
                 if taxAmountInCents > 0 {
                     HStack {
                         Text("Tax")
                         Spacer()
                         Text(formatMoney(taxAmountInCents))
+                            .font(.system(.body, design: .monospaced))
                     }
                 }
             }
-            .font(.subheadline)
-            .padding(.horizontal)
-
+            .padding(.horizontal, 20)
+            
+            Spacer()
+            
             // Charge Button
             if totalAmountInCents > 49 {
                 Button(action: onCharge) {
@@ -87,23 +111,39 @@ struct CheckoutSheet: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
-                .padding(.horizontal)
+                .disabled(isProcessingPayment)
+                .opacity(isProcessingPayment ? 0.6 : 1.0)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
             } else {
                 Text("Minimum charge $0.50")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
             }
 
-                    // Connection status (only visible when expanded)
-                    Text(connectionStatus)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        .padding(.top, 16)
-                }
-            }
+            // Connection status
+            Text(connectionStatus)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
         }
         .background(Color(.systemBackground))
-        .padding(.bottom, 8)
+        .sheet(item: $editingItem) { item in
+            // Nested sheet for editing cart items
+            if let index = basket.firstIndex(where: { $0.id == item.id }) {
+                ItemEditorView(
+                    item: item,
+                    basketIndex: index,
+                    basket: $basket,
+                    savedProducts: $savedProducts,
+                    formatAmount: formatCurrency
+                )
+                .presentationDetents([.fraction(0.7), .fraction(0.9)])
+                .presentationDragIndicator(.visible)
+            }
+        }
     }
 }

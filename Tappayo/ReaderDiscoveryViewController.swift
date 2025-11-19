@@ -5,8 +5,10 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
 
     var discoverCancelable: Cancelable?
     var updateConnectionStatus: ((String) -> Void)?
+    var updatePaymentProcessing: ((Bool) -> Void)?
     var isConnected = false
     var isDiscovering = false
+    var isProcessingPayment = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -82,6 +84,8 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     }
 
     func checkoutAction(amount: Int) throws {
+        guard !isProcessingPayment else { return } // Prevent duplicate payment attempts
+
         guard !isDiscovering else {
             updateConnectionStatus?("Discovering readers, please wait...")
             return
@@ -93,6 +97,9 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
             return
         }
 
+        isProcessingPayment = true
+        updatePaymentProcessing?(true)
+
         let params = try PaymentIntentParametersBuilder(amount: UInt(amount), currency: "usd") // amount is amount in cents, not dollars
             .setCaptureMethod(.automatic)
             .build()
@@ -101,6 +108,8 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
             if let error = createError {
                 print("createPaymentIntent failed: \(error)")
                 self.updateConnectionStatus?("Create payment intent failed: \(error.localizedDescription)")
+                self.isProcessingPayment = false
+                self.updatePaymentProcessing?(false)
             } else if let paymentIntent = createResult {
                 print("createPaymentIntent succeeded")
                 self.updateConnectionStatus?("Success: Created payment intent with Stripe…")
@@ -109,9 +118,13 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                     if let error = collectError as NSError?, (error.code == 1 || error.code == 2020) {
                         print("collectPaymentMethod was canceled: \(error)")
                         self.updateConnectionStatus?("Ready")
+                        self.isProcessingPayment = false
+                        self.updatePaymentProcessing?(false)
                     } else if let error = collectError {
                         print("collectPaymentMethod failed: \(error)")
                         self.updateConnectionStatus?("Collect payment method failed: \(error.localizedDescription)")
+                        self.isProcessingPayment = false
+                        self.updatePaymentProcessing?(false)
                     }  else if let paymentIntent = collectResult {
                         print("collectPaymentMethod succeeded")
                         self.updateConnectionStatus?("Collect payment method succeeded")
@@ -121,9 +134,13 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                             if let error = confirmError {
                                 print("confirmPaymentIntent failed: \(error)")
                                 self.updateConnectionStatus?("Confirm payment intent failed: \(error.localizedDescription)")
+                                self.isProcessingPayment = false
+                                self.updatePaymentProcessing?(false)
                             } else if confirmResult != nil {
                                 print("confirmPaymentIntent succeeded")
                                 self.updateConnectionStatus?("Confirm payment intent succeeded")
+                                self.isProcessingPayment = false
+                                self.updatePaymentProcessing?(false)
                             }
                         }
                     }
@@ -137,6 +154,9 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         if let firstReader = readers.first {
             print("didUpdateDiscoveredReaders / connectReader")
             connectToReader(reader: firstReader)
+        } else {
+            print("No readers discovered (may require physical device with Tap to Pay support)")
+            updateConnectionStatus?("No compatible readers found. Tap to Pay requires iPhone XS or newer.")
         }
     }
 

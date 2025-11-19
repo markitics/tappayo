@@ -45,7 +45,6 @@ struct CurrencyTextField: UIViewRepresentable {
 
         // Apply rounded border style to match SwiftUI's .roundedBorder
         textField.borderStyle = .roundedRect
-        textField.backgroundColor = UIColor.systemGray6
 
         // Convert SwiftUI Font to UIFont and apply
         let uiFont = UIFont.preferredFont(from: font)

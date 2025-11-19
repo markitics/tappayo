@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var amountInCents: Int = 0
     @State private var basket: [CartItem] = []
     @State private var connectionStatus = "Not connected"
+    @State private var isProcessingPayment = false
 
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
@@ -346,6 +347,9 @@ struct ContentView: View {
                 readerDiscoveryController.updateConnectionStatus = { status in
                     self.connectionStatus = status
                 }
+                readerDiscoveryController.updatePaymentProcessing = { isProcessing in
+                    self.isProcessingPayment = isProcessing
+                }
                 readerDiscoveryController.viewDidLoad()
 
                 // next lines so the changes we make in settings are reflected immediately, without needing to restart the app
@@ -418,18 +422,28 @@ struct ContentView: View {
             .sheet(isPresented: $showCheckoutSheet) {
                 CheckoutSheet(
                     basket: $basket,
+                    savedProducts: $savedProducts,
+                    lastChangedItemId: $lastChangedItemId,
+                    isAnimatingQuantity: $isAnimatingQuantity,
+                    businessName: businessName,
                     subtotalInCents: subtotalInCents,
                     taxAmountInCents: taxAmountInCents,
                     totalAmountInCents: totalAmountInCents,
                     formattedTotalAmount: formattedTotalAmount,
                     connectionStatus: connectionStatus,
+                    isProcessingPayment: isProcessingPayment,
                     onCharge: {
                         do {
                             try readerDiscoveryController.checkoutAction(amount: totalAmountInCents)
                         } catch {
                             print("Error occurred: \(error)")
                         }
-                    }
+                    },
+                    getCurrentProduct: getCurrentProduct,
+                    formatCurrency: formatCurrency,
+                    getCachedImage: getCachedImage,
+                    allItemsQuantityOne: allItemsQuantityOne,
+                    cartHasAnyCents: cartHasAnyCents
                 )
                 .presentationDetents([/*.medium, */.large])
                 .presentationDragIndicator(.visible)
