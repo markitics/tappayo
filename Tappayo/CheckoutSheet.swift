@@ -13,6 +13,12 @@ struct CheckoutSheet: View {
     @Binding var isAnimatingQuantity: Bool
     @State private var showingClearCartAlert = false
     @State private var isKeyboardVisible = false
+    @State private var dismissCountdown: Int = 30
+    @State private var dismissTimer: Timer? = nil
+    @State private var clearCartCountdown: Int = 5
+    @State private var clearCartTimer: Timer? = nil
+    @State private var showingClearCartCountdown = false
+    @FocusState private var isEmailFieldFocused: Bool
     @Binding var receiptEmail: String
     @Environment(\.dismiss) private var dismiss
 
@@ -25,6 +31,7 @@ struct CheckoutSheet: View {
     let isProcessingPayment: Bool
     let paymentSucceeded: Bool
     let onCharge: (String?) -> Void
+    let onDismiss: () -> Void
 
     // Helper functions passed from ContentView
     let getCurrentProduct: (CartItem) -> (name: String, priceInCents: Int)
@@ -49,8 +56,9 @@ struct CheckoutSheet: View {
             Text(businessName)
                 .font(.title2)
                 .fontWeight(.semibold)
-                .padding(.top, 20)
-                .padding(.bottom, 12)
+                .padding(.top, 28)
+                .padding(.bottom, 16)
+                .padding(.horizontal, 24)
 
             // Cart section header
 //            HStack {
@@ -62,20 +70,59 @@ struct CheckoutSheet: View {
 //            }
 
             // Interactive cart list (with swipe actions and tap to edit)
-            CartListView(
-                basket: $basket,
-                savedProducts: $savedProducts,
-                editingItem: $editingItem,
-                lastChangedItemId: $lastChangedItemId,
-                isAnimatingQuantity: $isAnimatingQuantity,
-                getCurrentProduct: getCurrentProduct,
-                formatCurrency: formatCurrency,
-                getCachedImage: getCachedImage,
-                allItemsQuantityOne: allItemsQuantityOne,
-                cartHasAnyCents: cartHasAnyCents
-            )
-//            .frame(maxHeight: .infinity)  // No! don't use maxHeight: .inifinity, because The List needs a height constraint to enable scrolling. we want .scrollIndicators visible.
-            .frame(maxHeight: 300)  // 99987 would be effectively unlimited; search for 99987 to adjust.
+            if showingClearCartCountdown && basket.isEmpty {
+                // Empty cart countdown state
+                VStack(spacing: 16) {
+                    Text("Cart is empty")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 40)
+
+                    Spacer()
+
+                    Text("Returning to shop in \(clearCartCountdown) seconds...")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    // Green progress bar
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            // Background
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 8)
+                                .cornerRadius(4)
+
+                            // Progress
+                            Rectangle()
+                                .fill(Color.green)
+                                .frame(width: geometry.size.width * CGFloat(6 - clearCartCountdown) / 5.0, height: 8)
+                                .cornerRadius(4)
+                                .animation(.linear(duration: 1.0), value: clearCartCountdown)
+                        }
+                    }
+                    .frame(height: 8)
+
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .frame(maxHeight: 300)
+            } else {
+                CartListView(
+                    basket: $basket,
+                    savedProducts: $savedProducts,
+                    editingItem: $editingItem,
+                    lastChangedItemId: $lastChangedItemId,
+                    isAnimatingQuantity: $isAnimatingQuantity,
+                    getCurrentProduct: getCurrentProduct,
+                    formatCurrency: formatCurrency,
+                    getCachedImage: getCachedImage,
+                    allItemsQuantityOne: allItemsQuantityOne,
+                    cartHasAnyCents: cartHasAnyCents
+                )
+                .padding(.horizontal, 24)
+                .frame(maxHeight: 300)
+            }
 
             // Everything below cart needs horizontal padding
             VStack(spacing: 0) {
@@ -126,6 +173,7 @@ struct CheckoutSheet: View {
                             .autocapitalization(.none)
                             .textFieldStyle(.roundedBorder)
                             .foregroundStyle(.primary, .secondary)
+                            .focused($isEmailFieldFocused)
                             .toolbar {
                                 ToolbarItemGroup(placement: .keyboard) {
                                     Spacer()
@@ -153,6 +201,10 @@ struct CheckoutSheet: View {
                         Text("Thanks for your payment")
                             .font(.body)
                             .foregroundColor(.secondary)
+                        Text("Dismissing in \(dismissCountdown)s")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 4)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
@@ -216,11 +268,12 @@ struct CheckoutSheet: View {
                             .foregroundColor(.gray)
                     }
                     }
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 20)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 24)
         }
+        .padding(.bottom, 20)
         .background(Color(.systemBackground))
         .overlay(
             GeometryReader { geometry in
@@ -245,6 +298,26 @@ struct CheckoutSheet: View {
                 // Play success haptic
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
+
+                // Start countdown timer
+                dismissCountdown = 30
+                dismissTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                    if dismissCountdown > 0 {
+                        dismissCountdown -= 1
+                    } else {
+                        timer.invalidate()
+                        dismissTimer = nil
+                        onDismiss()
+                    }
+                }
+            }
+        }
+        .onChange(of: isEmailFieldFocused) { isFocused in
+            if isFocused && showingClearCartCountdown {
+                // User tapped email field during countdown - abort timer
+                clearCartTimer?.invalidate()
+                clearCartTimer = nil
+                showingClearCartCountdown = false
             }
         }
         .alert("Clear Cart?", isPresented: $showingClearCartAlert) {
@@ -252,9 +325,19 @@ struct CheckoutSheet: View {
             Button("Clear", role: .destructive) {
                 basket.removeAll()
                 receiptEmail = ""
-                // Auto-dismiss sheet after 3 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    dismiss()
+                showingClearCartCountdown = true
+                clearCartCountdown = 5
+
+                // Start countdown timer
+                clearCartTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                    if clearCartCountdown > 0 {
+                        clearCartCountdown -= 1
+                    } else {
+                        timer.invalidate()
+                        clearCartTimer = nil
+                        showingClearCartCountdown = false
+                        dismiss()
+                    }
                 }
             }
         } message: {
@@ -280,6 +363,17 @@ struct CheckoutSheet: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             isKeyboardVisible = false
+        }
+        .onDisappear {
+            // Cancel timers if sheet dismissed
+            dismissTimer?.invalidate()
+            dismissTimer = nil
+            clearCartTimer?.invalidate()
+            clearCartTimer = nil
+            // If payment succeeded and user manually dismissed, trigger cleanup
+            if paymentSucceeded {
+                onDismiss()
+            }
         }
     }
 }

@@ -356,13 +356,7 @@ struct ContentView: View {
                 }
                 readerDiscoveryController.onPaymentSuccess = {
                     self.paymentSucceeded = true
-                    // Clear cart and dismiss after showing success animation (30 seconds)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
-                        self.basket.removeAll()
-                        self.receiptEmail = ""
-                        self.paymentSucceeded = false
-                        self.showCheckoutSheet = false
-                    }
+                    // Timer and cleanup now managed by CheckoutSheet
                 }
                 readerDiscoveryController.viewDidLoad()
 
@@ -454,6 +448,12 @@ struct ContentView: View {
                         } catch {
                             print("Error occurred: \(error)")
                         }
+                    },
+                    onDismiss: {
+                        self.basket.removeAll()
+                        self.receiptEmail = ""
+                        self.paymentSucceeded = false
+                        self.showCheckoutSheet = false
                     },
                     getCurrentProduct: getCurrentProduct,
                     formatCurrency: formatCurrency,
