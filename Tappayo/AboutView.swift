@@ -25,7 +25,7 @@ struct AboutView: View {
         }
         .padding()
         .navigationTitle("About")
-        // .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

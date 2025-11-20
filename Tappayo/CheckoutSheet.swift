@@ -108,7 +108,7 @@ struct CheckoutSheet: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
-                .frame(maxHeight: 300)
+                .frame(maxHeight: min(300, CGFloat(100 + 50 * basket.count)))
             } else {
                 CartListView(
                     basket: $basket,
@@ -122,9 +122,10 @@ struct CheckoutSheet: View {
                     allItemsQuantityOne: allItemsQuantityOne,
                     cartHasAnyCents: cartHasAnyCents
                 )
+                .background(Color.red.opacity(0.3))  // DEBUG: CartListView bounds
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
-                .frame(maxHeight: 300)
+                .frame(maxHeight: min(300, CGFloat(100 + 50 * basket.count)))
             }
 
             // Everything below cart needs horizontal padding
@@ -136,6 +137,7 @@ struct CheckoutSheet: View {
                     if basket.count != 1 || taxAmountInCents > 0 {
                         if !isKeyboardVisible {
                             Divider()
+                                .background(Color.green)  // DEBUG: Divider visibility
                                 .padding(.bottom, 8)
                         }
                         if basket.count != 1 {
@@ -158,6 +160,7 @@ struct CheckoutSheet: View {
                         .padding(.horizontal, 12)
                     }
                 }
+                .background(Color.blue.opacity(0.3))  // DEBUG: Subtotal VStack bounds
                 
                 Spacer()
 

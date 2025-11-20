@@ -48,6 +48,22 @@ The app provides a simple, streamlined interface for in-person payment processin
 
 ---
 
+## Claude Self-Reflection: Avoiding Cargo-Cult Recommendations
+
+**Context:** November 2025 - During folder organization discussion, I recommended "New Group" (Xcode visual-only organization) over "New Folder" (physical folders) based on "common convention" rather than thinking critically about what's actually better for git cleanliness and maintainability.
+
+**Notes to Self - Before recommending patterns, self-check:**
+
+1. **Ask "Why?"** - Don't just cite conventions. Justify WHY this approach is better for THIS project
+2. **Challenge with first principles** - Does this actually solve the user's problem, or is it just "how it's always been done"?
+3. **Call out "conventional" vs "correct"** - If recommending based on common practice, explicitly state tradeoffs and let user decide
+4. **Present tradeoffs** - What are the downsides of each approach? Don't default to one answer
+5. **Question timestamps** - When did this pattern become common? Is it still relevant in 2025? (Especially for iOS where conventions can be decades old)
+
+**Key lesson:** User's reasoning (git cleanliness, matching disk structure) was obviously correct. I should have presented both options with honest tradeoffs instead of defaulting to legacy convention.
+
+---
+
 ## Known Issues & Quirks
 
 ### Scroll Indicator Flash Not Visible
