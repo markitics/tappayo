@@ -81,7 +81,7 @@ struct ProductEditorView: View {
                 }
             }
         }
-        .presentationDetents([.fraction(0.85)])
+        .presentationDetents([.fraction(0.9)])
         .onDisappear {
             saveChanges()
         }
