@@ -66,9 +66,10 @@ struct CheckoutSheet: View {
 //                    .font(.headline)
 //                    .fontWeight(.bold)
 //                    .padding(.horizontal, 20)
-////                Spacer()
+                Spacer()
 //            }
 
+            Spacer() // spacer between business name and cart items
             // Interactive cart list (with swipe actions and tap to edit)
             if showingClearCartCountdown && basket.isEmpty {
                 // Empty cart countdown state
