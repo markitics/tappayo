@@ -57,7 +57,7 @@ struct CheckoutSheet: View {
                 .font(.title2)
                 .fontWeight(.semibold)
                 .padding(.top, 28)
-                .padding(.bottom, 16)
+                .padding(.bottom, 8)
                 .padding(.horizontal, 24)
 
             // Cart section header
@@ -106,6 +106,7 @@ struct CheckoutSheet: View {
                     Spacer()
                 }
                 .padding(.horizontal, 24)
+                .padding(.top, 12)
                 .frame(maxHeight: 300)
             } else {
                 CartListView(
@@ -121,23 +122,30 @@ struct CheckoutSheet: View {
                     cartHasAnyCents: cartHasAnyCents
                 )
                 .padding(.horizontal, 24)
+                .padding(.top, 12)
                 .frame(maxHeight: 300)
             }
 
             // Everything below cart needs horizontal padding
             VStack(spacing: 0) {
-                if !isKeyboardVisible {
-                    Divider()
-                        .padding(.vertical, 8)
-                }
-
-                // Subtotal & Tax
+                // Subtotal & Tax (only show Subtotal line if multiple items or if it's just visual separation)
                 VStack(spacing: 8) {
-                    HStack {
-                        Text("Subtotal")
-                        Spacer()
-                        Text(formatMoney(subtotalInCents))
-                            .font(.system(.body, design: .monospaced))
+                    // Only show subtotal line if there are multiple items OR no items
+                    // Skip it if exactly 1 item (unless there's tax, then we need the breakdown)
+                    if basket.count != 1 || taxAmountInCents > 0 {
+                        if !isKeyboardVisible {
+                            Divider()
+                                .padding(.bottom, 8)
+                        }
+                        if basket.count != 1 {
+                            HStack {
+                                Text("Subtotal")
+                                Spacer()
+                                Text(formatMoney(subtotalInCents))
+                                    .font(.system(.body, design: .monospaced))
+                            }
+                            .padding(.horizontal, 12)
+                        }
                     }
                     if taxAmountInCents > 0 {
                         HStack {
@@ -146,6 +154,7 @@ struct CheckoutSheet: View {
                             Text(formatMoney(taxAmountInCents))
                                 .font(.system(.body, design: .monospaced))
                         }
+                        .padding(.horizontal, 12)
                     }
                 }
                 
@@ -205,6 +214,26 @@ struct CheckoutSheet: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.top, 4)
+
+                        // Green progress bar
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                // Background
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(height: 8)
+                                    .cornerRadius(4)
+
+                                // Progress
+                                Rectangle()
+                                    .fill(Color.green)
+                                    .frame(width: geometry.size.width * CGFloat(31 - dismissCountdown) / 30.0, height: 8)
+                                    .cornerRadius(4)
+                                    .animation(.linear(duration: 1.0), value: dismissCountdown)
+                            }
+                        }
+                        .frame(height: 8)
+                        .padding(.horizontal, 40)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
@@ -248,7 +277,7 @@ struct CheckoutSheet: View {
                 Spacer()
 
                 // Clear cart and Save cart buttons
-                if !isKeyboardVisible {
+                if !isKeyboardVisible && !showingClearCartCountdown {
                     HStack {
                     Button(action: {
                         showingClearCartAlert = true

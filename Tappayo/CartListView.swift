@@ -41,7 +41,7 @@ struct CartListView: View {
                                         .resizable()
                                         .scaledToFill()
                                         .frame(width: 30, height: 30)
-                                        .clipShape(Circle())
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
                                 } else if let emoji = product.emoji {
                                     Text(emoji)
                                         .font(.title3)
@@ -138,7 +138,7 @@ struct CartListView: View {
                 }
             } footer: {
                 if !basket.isEmpty {
-                    Text("Swipe any row right or left to add or remove")
+                    Text(basket.count == 1 ? "👆 Swipe row right or left to add or remove" : "Swipe any row right or left to add or remove")
                         .font(.caption2)
                         .foregroundColor(.gray)
                 }
