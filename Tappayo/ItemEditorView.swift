@@ -49,8 +49,9 @@ struct ItemEditorView: View {
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        NavigationView {
+            VStack(spacing: 24) {
+                Spacer()
 
             // Product icon editing (only for saved products)
             if let product = currentProduct,
@@ -125,23 +126,18 @@ struct ItemEditorView: View {
 
 
             Spacer()
-
-            // Done button (auto-save happens in .onDisappear, so just dismiss here)
-            Button(action: {
-                dismiss() // no saveChanges, since we get that upon .onDisappear for all modal dismisses now
-            }) {
-                Text("Done")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(12)
             }
-            .padding(.horizontal)
-            .padding(.bottom)
+            .background(Color(.systemBackground))
+            .navigationTitle(item.isProduct ? "Edit Product" : "Edit Item")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
-        .background(Color(.systemBackground))
         .onDisappear {
             // Auto-save changes when sheet is dismissed (swipe, Done button, or any dismissal method)
             // This prevents data loss if user swipes down without tapping Done

@@ -18,6 +18,7 @@ struct CheckoutSheet: View {
     @State private var clearCartCountdown: Int = 5
     @State private var clearCartTimer: Timer? = nil
     @State private var showingClearCartCountdown = false
+    @State private var showEmailField = false
     @FocusState private var isEmailFieldFocused: Bool
     @Binding var receiptEmail: String
     @Environment(\.dismiss) private var dismiss
@@ -108,7 +109,7 @@ struct CheckoutSheet: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
-                .frame(maxHeight: min(300, CGFloat(100 + 50 * basket.count)))
+                .frame(maxHeight: min(300, CGFloat(150 + 40 * basket.count)))
             } else {
                 CartListView(
                     basket: $basket,
@@ -158,17 +159,19 @@ struct CheckoutSheet: View {
                         .padding(.horizontal, 12)
                     }
 
-                    // Total line (always show)
-                    HStack {
-                        Text("Total")
-                            .fontWeight(.semibold)
-                        Spacer()
-                        Text(formatMoney(totalAmountInCents))
-                            .font(.system(.body, design: .monospaced))
-                            .fontWeight(.semibold)
+                    // Total line (only show if multiple items OR tax exists - otherwise item price = total)
+                    if basket.count != 1 || taxAmountInCents > 0 {
+                        HStack {
+                            Text("Total")
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Text(formatMoney(totalAmountInCents))
+                                .font(.system(.body, design: .monospaced))
+                                .fontWeight(.semibold)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.top, 8)  // Extra space above total for visual separation
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)  // Extra space above total for visual separation
                 }
 
                 Spacer()
@@ -184,28 +187,54 @@ struct CheckoutSheet: View {
                     }
                     // If no email: hide this section entirely
                 } else {
-                    // Before payment: show email input field
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Email for receipt (optional)")
+                    // Before payment: progressive disclosure for email
+                    if !showEmailField && receiptEmail.isEmpty {
+                        // Button to reveal email field (only show if email is empty)
+                        Button(action: {
+                            showEmailField = true
+                            isEmailFieldFocused = true
+                        }) {
+                            HStack {
+                                Image(systemName: "envelope")
+                                Text("Email me a receipt")
+                            }
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        TextField("customer@example.com", text: $receiptEmail)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .textFieldStyle(.roundedBorder)
-                            .foregroundStyle(.primary, .secondary)
-                            .focused($isEmailFieldFocused)
-                            .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
-                                    Spacer()
-                                    Button("Done") {
-                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            .foregroundColor(.blue)
+                        }
+                        .padding(.bottom, 8)
+                    } else if showEmailField || !receiptEmail.isEmpty {
+                        // Email field with remove option
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Email for receipt")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Button("Remove") {
+                                    showEmailField = false
+                                    receiptEmail = ""
+                                    isEmailFieldFocused = false
+                                }
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
+                            TextField("your@email.com", text: $receiptEmail)
+                                .textContentType(.emailAddress)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                                .textFieldStyle(.roundedBorder)
+                                .focused($isEmailFieldFocused)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        Spacer()
+                                        Button("Done") {
+                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                        }
                                     }
                                 }
-                            }
+                        }
+                        .padding(.bottom, 8)
                     }
-                    .padding(.bottom, 8)
                 }
 
                 Spacer()

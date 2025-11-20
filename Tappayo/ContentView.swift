@@ -165,7 +165,7 @@ struct ContentView: View {
                 ]
 
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(savedProducts.filter({ $0.priceInCents > 0 && ($0.emoji != nil || $0.photoFilename != nil) }), id: \.id) { product in
+                    ForEach(savedProducts.filter({ $0.priceInCents > 0 && ($0.emoji != nil || $0.photoFilename != nil) && $0.isVisible }), id: \.id) { product in
                         let quantityInCart = basket.first(where: { $0.productId == product.id && $0.isProduct })?.quantity ?? 0
 
                         Button(action: {
@@ -501,11 +501,12 @@ struct AmountInputButton: View {
     var body: some View {
         Button(action: onTap) {
             Text(amountInCents > 0 ? formatAmount(amountInCents) : "Enter amount")
-                .font(.title)
+                .font(.title3)
                 .foregroundColor(amountInCents > 0 ? .primary : .secondary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
                 .padding()
+                .padding(.horizontal, 24)
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
         }
