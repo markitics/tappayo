@@ -58,9 +58,9 @@ struct CartListView: View {
                         if !allItemsQuantityOne {
                             Text("×\(item.quantity)")
                                 .font(.system(.body, design: .monospaced))
+                                .fontWeight(lastChangedItemId == item.id && isAnimatingQuantity ? .bold : .regular)
                                 .foregroundColor(.secondary)
                                 .frame(minWidth: 40, alignment: .trailing)
-                                .scaleEffect(lastChangedItemId == item.id && isAnimatingQuantity ? 1.1 : 1.0)
                         }
 
                         // Total price (right-aligned, monospace, live price)

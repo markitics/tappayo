@@ -16,7 +16,24 @@ struct ProductGridButton: View {
     let formatCurrency: (Int, Bool) -> String
 
     var body: some View {
-        Button(action: {}) {
+        Button(action: {
+            // Increment quantity or add new product to cart
+            if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    basket[index].quantity += 1
+                }
+            } else {
+                // Add new product to cart
+                let item = CartItem(
+                    productId: product.id,
+                    name: product.name,
+                    priceInCents: product.priceInCents,
+                    quantity: 1,
+                    isProduct: true
+                )
+                basket.append(item)
+            }
+        }) {
             VStack(spacing: 4) {
                 // Show photo or emoji
                 if let photoFilename = product.photoFilename,
@@ -53,6 +70,22 @@ struct ProductGridButton: View {
             .background(Color.green.opacity(0.4))  // DEBUG: Shows padded area (should be tappable)
             .contentShape(Rectangle())
         }
+        .buttonStyle(ProductTileButtonStyle(onPressChanged: { isPressed in
+            if isPressed {
+                // Touch DOWN - blue appears immediately
+                if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
+                    let itemId = basket[index].id
+                    lastChangedItemId = itemId
+                    isAnimatingQuantity = true
+                }
+            } else {
+                // Touch UP (release) - start fade-out timer
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    lastChangedItemId = nil
+                    isAnimatingQuantity = false
+                }
+            }
+        }))
         .background(Color.blue.opacity(0.4))  // DEBUG: Shows button boundary
         .foregroundColor(.primary)
         .cornerRadius(8)
@@ -77,55 +110,5 @@ struct ProductGridButton: View {
                     .offset(x: -2, y: -2)
             }
         }
-        .onLongPressGesture(minimumDuration: 0.0, pressing: { isPressing in
-            // On touch down: immediately start blue animation
-            if isPressing {
-                if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
-                    let itemId = basket[index].id
-                    lastChangedItemId = itemId
-                    isAnimatingQuantity = true
-                } else {
-                    // For new items, we'll set animation state when added (on perform)
-                }
-            }
-        }, perform: {
-            // On touch release: increment quantity and start fade-out
-            if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
-                let itemId = basket[index].id
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    basket[index].quantity += 1
-                }
-                lastChangedItemId = itemId
-                isAnimatingQuantity = true
-
-                // Start fade-out timer
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    lastChangedItemId = nil
-                    isAnimatingQuantity = false
-                }
-            } else {
-                // Add new product to cart
-                let item = CartItem(
-                    productId: product.id,
-                    name: product.name,
-                    priceInCents: product.priceInCents,
-                    quantity: 1,
-                    isProduct: true
-                )
-                basket.append(item)
-
-                // Start blue animation for newly added item
-                if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
-                    let itemId = basket[index].id
-                    lastChangedItemId = itemId
-                    isAnimatingQuantity = true
-
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        lastChangedItemId = nil
-                        isAnimatingQuantity = false
-                    }
-                }
-            }
-        })
     }
 }
