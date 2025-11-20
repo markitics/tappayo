@@ -165,88 +165,21 @@ struct ContentView: View {
                 ]
 
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(savedProducts.filter({ $0.priceInCents > 0 && ($0.emoji != nil || $0.photoFilename != nil) && $0.isVisible }), id: \.id) { product in
+                    // used to also have requirement that to appear in shop, Product needed an image or emoji:
+                    // $0.priceInCents > 0 && $0.isVisible && ($0.emoji != nil || $0.photoFilename != nil)
+                    ForEach(savedProducts.filter({ $0.priceInCents > 0 && $0.isVisible }), id: \.id) { product in
                         let quantityInCart = basket.first(where: { $0.productId == product.id && $0.isProduct })?.quantity ?? 0
 
-                        Button(action: {
-                            // Check if this product is already in the cart
-                            if let index = basket.firstIndex(where: { $0.productId == product.id && $0.isProduct }) {
-                                // Increment quantity with animation
-                                let itemId = basket[index].id
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    basket[index].quantity += 1
-                                }
-                                lastChangedItemId = itemId
-                                isAnimatingQuantity = true
-
-                                // Reset animation state
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    lastChangedItemId = nil
-                                    isAnimatingQuantity = false
-                                }
-                            } else {
-                                // Add new product to cart
-                                let item = CartItem(
-                                    productId: product.id,
-                                    name: product.name,
-                                    priceInCents: product.priceInCents,
-                                    quantity: 1,
-                                    isProduct: true
-                                )
-                                basket.append(item)
-                            }
-                        }) {
-                            VStack(spacing: 4) {
-                                // Show photo or emoji
-                                if let photoFilename = product.photoFilename,
-                                   let image = getCachedImage(for: photoFilename) {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: productIconSize, height: productIconSize)
-                                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                                } else if let emoji = product.emoji {
-                                    Text(emoji)
-                                        .font(.system(size: productIconSize - 4))
-                                        .frame(width: productIconSize, height: productIconSize)
-                                }
-
-                                Text(product.name)
-                                    .font(.caption)
-                                    .lineLimit(1)
-                                Text(formatCurrency(product.priceInCents))
-                                    .font(.body)
-                                    .fontWeight(.medium)
-                                    .minimumScaleFactor(0.7)
-                                    .lineLimit(1)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 90)
-                        }
-                        .padding()
-                        .background(Color.clear)
-                        .foregroundColor(.primary)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(quantityInCart > 0 ? Color.blue : Color.gray,  lineWidth: quantityInCart > 0 ? 3 : 1)
+                        ProductGridButton(
+                            product: product,
+                            quantityInCart: quantityInCart,
+                            productIconSize: productIconSize,
+                            basket: $basket,
+                            lastChangedItemId: $lastChangedItemId,
+                            isAnimatingQuantity: $isAnimatingQuantity,
+                            getCachedImage: getCachedImage,
+                            formatCurrency: formatCurrency
                         )
-                        .overlay(alignment: .topLeading) {
-                            // Quantity badge in top-left corner
-                            if quantityInCart > 0 {
-                                Text("\(quantityInCart)")
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color.blue)
-                                            .frame(minWidth: 22, minHeight: 22)
-                                    )
-                                    .offset(x: -2, y: -2)
-                            }
-                        }
                     }
                 }
                 .padding([.leading, .trailing])

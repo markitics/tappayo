@@ -4,6 +4,7 @@
 //  Reusable component for editing product icons (emoji or photo)
 
 import SwiftUI
+import MCEmojiPicker
 
 struct ProductIconPicker: View {
     @Binding var product: Product
