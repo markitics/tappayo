@@ -52,13 +52,13 @@ struct CheckoutSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Business name header
-            Text(businessName)
-                .font(.title2)
-                .fontWeight(.semibold)
-                .padding(.top, 28)
-                .padding(.bottom, 8)
-                .padding(.horizontal, 24)
+            // Business name header removed - .presentationDetents([.fraction(0.9)]) means we can see business name on the main page behind this sheet
+//            Text(businessName)
+//                .font(.title2)
+//                .fontWeight(.semibold)
+//                .padding(.top, 28)
+//                .padding(.bottom, 8)
+//                .padding(.horizontal, 24)
 
             // Cart section header
 //            HStack {
@@ -122,7 +122,6 @@ struct CheckoutSheet: View {
                     allItemsQuantityOne: allItemsQuantityOne,
                     cartHasAnyCents: cartHasAnyCents
                 )
-                .background(Color.red.opacity(0.3))  // DEBUG: CartListView bounds
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
                 .frame(maxHeight: min(300, CGFloat(100 + 50 * basket.count)))
@@ -137,7 +136,6 @@ struct CheckoutSheet: View {
                     if basket.count != 1 || taxAmountInCents > 0 {
                         if !isKeyboardVisible {
                             Divider()
-                                .background(Color.green)  // DEBUG: Divider visibility
                                 .padding(.bottom, 8)
                         }
                         if basket.count != 1 {
@@ -160,8 +158,7 @@ struct CheckoutSheet: View {
                         .padding(.horizontal, 12)
                     }
                 }
-                .background(Color.blue.opacity(0.3))  // DEBUG: Subtotal VStack bounds
-                
+
                 Spacer()
 
                 // Email field for receipt (optional) OR receipt confirmation
