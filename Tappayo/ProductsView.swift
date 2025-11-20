@@ -8,14 +8,12 @@ import SwiftUI
 struct ProductsView: View {
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var editingProduct: Product?
-    @State private var showingProductEditor = false
 
     var body: some View {
         List {
             ForEach(savedProducts.indices, id: \.self) { index in
                 Button(action: {
                     editingProduct = savedProducts[index]
-                    showingProductEditor = true
                 }) {
                     HStack(spacing: 12) {
                         // Product icon
@@ -76,7 +74,6 @@ struct ProductsView: View {
                 savedProducts.append(newProduct)
                 UserDefaults.standard.savedProducts = savedProducts
                 editingProduct = newProduct
-                showingProductEditor = true
             }) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
@@ -86,9 +83,8 @@ struct ProductsView: View {
         }
         .navigationTitle("Products")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showingProductEditor) {
-            if let product = editingProduct,
-               let productIndex = savedProducts.firstIndex(where: { $0.id == product.id }) {
+        .sheet(item: $editingProduct) { product in
+            if let productIndex = savedProducts.firstIndex(where: { $0.id == product.id }) {
                 ProductEditorView(
                     product: $savedProducts[productIndex],
                     savedProducts: $savedProducts

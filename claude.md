@@ -62,6 +62,51 @@ The app provides a simple, streamlined interface for in-person payment processin
 
 **Key lesson:** User's reasoning (git cleanliness, matching disk structure) was obviously correct. I should have presented both options with honest tradeoffs instead of defaulting to legacy convention.
 
+### Anti-Pattern: Redundant Boolean State for Sheet Presentation
+
+**Context:** November 2025 - Created ProductsView with BOTH `editingProduct: Product?` AND `showingProductEditor: Bool`, causing blank sheet bug on first tap.
+
+**The Mistake:**
+Creating redundant boolean flags alongside optional state for sheet presentation. This caused a race condition where the sheet would appear blank on first tap, then work after tapping a different item.
+
+**Bad Pattern (causes bugs):**
+```swift
+@State private var editingProduct: Product?
+@State private var showingProductEditor = false  // ← UNNECESSARY! Creates race condition
+
+Button(action: {
+    editingProduct = product
+    showingProductEditor = true  // ← Manual sync required
+}) { ... }
+
+.sheet(isPresented: $showingProductEditor) {
+    if let product = editingProduct { ... }  // ← Can be nil due to timing
+}
+```
+
+**Good Pattern:**
+```swift
+@State private var editingProduct: Product?  // ← Only state needed
+
+Button(action: {
+    editingProduct = product  // ← Auto-presents sheet
+}) { ... }
+
+.sheet(item: $editingProduct) { product in
+    // product is guaranteed non-nil here
+    // Sheet auto-presents when editingProduct set
+    // Sheet auto-dismisses when editingProduct becomes nil
+}
+```
+
+**Why This Matters:**
+- Redundant state creates synchronization bugs
+- `.sheet(item:)` already handles presentation automatically
+- More state = more complexity = more bugs
+- **User caught this pattern happening TWICE in 36 hours** - clear sign of over-engineering
+
+**Root Cause:** Adding state "just in case" instead of using SwiftUI's built-in patterns. Always ask: "Is this state truly necessary or am I duplicating logic that the framework already handles?"
+
 ---
 
 ## Known Issues & Quirks

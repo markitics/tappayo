@@ -66,7 +66,7 @@ struct CheckoutSheet: View {
 //                    .font(.headline)
 //                    .fontWeight(.bold)
 //                    .padding(.horizontal, 20)
-                Spacer()
+//                Spacer()
 //            }
 
             Spacer() // spacer between business name and cart items
@@ -123,7 +123,7 @@ struct CheckoutSheet: View {
                     cartHasAnyCents: cartHasAnyCents
                 )
                 .padding(.horizontal, 24)
-                .padding(.top, 12)
+                .padding(.top, 48) // Breathing room above cart
                 .frame(maxHeight: min(300, CGFloat(100 + 50 * basket.count)))
             }
 
@@ -157,6 +157,18 @@ struct CheckoutSheet: View {
                         }
                         .padding(.horizontal, 12)
                     }
+
+                    // Total line (always show)
+                    HStack {
+                        Text("Total")
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Text(formatMoney(totalAmountInCents))
+                            .font(.system(.body, design: .monospaced))
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)  // Extra space above total for visual separation
                 }
 
                 Spacer()
@@ -298,13 +310,14 @@ struct CheckoutSheet: View {
                             .foregroundColor(.gray)
                     }
                     }
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 4)
                 }
             }
             .padding(.horizontal, 24)
         }
-        .padding(.bottom, 20)
+//        .padding(.bottom, 20)
         .background(Color(.systemBackground))
+//        .background(Color(.red))
         .overlay(
             GeometryReader { geometry in
                 if paymentSucceeded {
@@ -384,7 +397,7 @@ struct CheckoutSheet: View {
                     savedProducts: $savedProducts,
                     formatAmount: formatCurrency
                 )
-                .presentationDetents([.fraction(0.7), .fraction(0.9)])
+                .presentationDetents([.fraction(0.7), .fraction(0.9)]) 
                 .presentationDragIndicator(.visible)
             }
         }

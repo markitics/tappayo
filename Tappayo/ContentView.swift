@@ -395,7 +395,7 @@ struct ContentView: View {
                         savedProducts: $savedProducts,
                         formatAmount: formatCurrency
                     )
-                    .presentationDetents([.fraction(0.89), .large])
+                    .presentationDetents([.fraction(0.89), .large]) // detents of cart row item editor
                     .presentationDragIndicator(.visible)
                 }
             }
@@ -461,7 +461,7 @@ struct ContentView: View {
                     allItemsQuantityOne: allItemsQuantityOne,
                     cartHasAnyCents: cartHasAnyCents
                 )
-                .presentationDetents([/*.medium, */.large])
+                .presentationDetents([.fraction(0.96)]) // detents of the checkout sheet (leave a little room on top to see the business name in the background, and to make it obvious it's a sheet we can dismiss down)
                 .presentationDragIndicator(.visible)
             }
         }

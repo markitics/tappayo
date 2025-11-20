@@ -81,7 +81,7 @@ struct ProductEditorView: View {
                 }
             }
         }
-        .presentationDetents([.fraction(0.9)])
+        .presentationDetents([.fraction(0.89), .large]) // detents of "add/edit item" sheet, which matches the "edit cart row" sheet detents
         .onDisappear {
             saveChanges()
         }
