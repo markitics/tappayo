@@ -65,9 +65,12 @@ struct ProductGridButton: View {
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, minHeight: 90)
-            .background(Color.red.opacity(0.4))  // DEBUG: Shows content frame
             .padding()
-            .background(Color.green.opacity(0.4))  // DEBUG: Shows padded area (should be tappable)
+            // IMPORTANT: .contentShape(Rectangle()) makes the ENTIRE padded area tappable,
+            // not just the visible content (icon/text). Without this, users must tap exactly
+            // on the emoji or text, not the empty space. The .padding() MUST be inside the
+            // Button's content (before the closing brace) for this to work. Don't "simplify"
+            // this structure or move .padding() outside - it will break tap targets!
             .contentShape(Rectangle())
         }
         .buttonStyle(ProductTileButtonStyle(onPressChanged: { isPressed in
@@ -86,7 +89,6 @@ struct ProductGridButton: View {
                 }
             }
         }))
-        .background(Color.blue.opacity(0.4))  // DEBUG: Shows button boundary
         .foregroundColor(.primary)
         .cornerRadius(8)
         .overlay(

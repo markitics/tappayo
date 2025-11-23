@@ -109,7 +109,7 @@ struct CheckoutSheet: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
-                .frame(maxHeight: min(300, CGFloat(150 + 40 * basket.count)))
+                .frame(maxHeight: min(500, CGFloat(150 + 40 * basket.count)))
             } else {
                 CartListView(
                     basket: $basket,
@@ -125,7 +125,7 @@ struct CheckoutSheet: View {
                 )
                 .padding(.horizontal, 24)
                 .padding(.top, 48) // Breathing room above cart
-                .frame(maxHeight: min(300, CGFloat(100 + 50 * basket.count)))
+                .frame(maxHeight: min(500, CGFloat(150 + 40 * basket.count)))
             }
 
             // Everything below cart needs horizontal padding

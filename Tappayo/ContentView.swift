@@ -186,18 +186,20 @@ struct ContentView: View {
                 .padding([.top], 4)
                 .padding([.bottom], 14)
 
-                if !basket.isEmpty {
-//                    Divider() // divider above Cart
-                    HStack {
-                        Text("Cart").font(.headline)
-                            .fontWeight(.bold)
-                            .multilineTextAlignment(.leading)
-                            .padding(.bottom, 8)
-                            .padding(.top, 2) // was .top, 16
-                            .padding(.horizontal, 16) // 4pt outer + 12pt to match cart row content
-                        Spacer()
-                    }
-                }
+                // Edit: removing this heading entirely for now (temporary; to review)
+//                if !basket.isEmpty {
+////                    Divider() // divider above Cart
+//                    HStack {
+//                        Text("Cart").font(.headline)
+//                            .fontWeight(.bold)
+//                            .multilineTextAlignment(.leading)
+//                            .padding(.bottom, 8)
+//                            .padding(.top, 16) // was .top, 16
+//                            .padding(.horizontal, 16) // 4pt outer + 12pt to match cart row content
+//                            .background(Color(.systemGroupedBackground))
+//                        Spacer()
+//                    }
+//                }
                 CartListView(
                     basket: $basket,
                     savedProducts: $savedProducts,

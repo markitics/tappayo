@@ -13,6 +13,8 @@ struct CartListView: View {
     @Binding var lastChangedItemId: UUID?
     @Binding var isAnimatingQuantity: Bool
 
+    @Environment(\.colorScheme) var colorScheme
+
     // Helper functions passed from parent
     let getCurrentProduct: (CartItem) -> (name: String, priceInCents: Int)
     let formatCurrency: (Int, Bool) -> String
@@ -69,16 +71,16 @@ struct CartListView: View {
                             .frame(width: 110, alignment: .trailing)
                     }
                     .padding(.vertical, 6)
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 16) // padding inside each row, prevent text touching left/right edges
                     .background(
                         RoundedRectangle(cornerRadius: 8)
                             .fill(
                                 lastChangedItemId == item.id && isAnimatingQuantity
-                                    ? Color.blue.opacity(0.15)
+                                    ? Color.blue.opacity(colorScheme == .dark ? 0.25 : 0.15)  // more visible on dark background
                                     : Color.clear
                             )
                     )
-                    .padding(.horizontal, 4)
+//                    .padding(.horizontal, 0)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         editingItem = item
@@ -138,13 +140,13 @@ struct CartListView: View {
                 }
             } footer: {
                 if !basket.isEmpty {
-                    Text(basket.count == 1 ? "👆 Swipe row right or left to add or remove" : "Swipe any row right or left to add or remove")
+                    Text(basket.count == 1 ? "👆 Swipe row right to add, or left to remove" : "Swipe any row right to add, or left to add or remove")
                         .font(.caption2)
                         .foregroundColor(.gray)
                 }
             }
         }
-        .listStyle(.plain)
+        .listStyle(.plain) // comment out to have rounded rows, standing out above the background (in light and dark mode), or add listStyle(.plain) to have simple minimal rows
         .scrollIndicators(.visible)
         .modifier(FlashScrollIndicatorsModifier())
 
