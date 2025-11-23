@@ -4,7 +4,7 @@
 //  Reusable component for editing product icons (emoji or photo)
 
 import SwiftUI
-import MCEmojiPicker
+import ElegantEmojiPicker
 
 struct ProductIconPicker: View {
     @Binding var product: Product
@@ -15,6 +15,7 @@ struct ProductIconPicker: View {
     @State private var showingPhotoLibrary = false
     @State private var selectedImage: UIImage?
     @State private var showingEmojiPicker = false
+    @State private var selectedEmojiFromPicker: Emoji?
 
     var body: some View {
         Button(action: {
@@ -67,15 +68,14 @@ struct ProductIconPicker: View {
         }
         .emojiPicker(
             isPresented: $showingEmojiPicker,
-            selectedEmoji: Binding(
-                get: {
-                    product.emoji ?? ""
-                },
-                set: { newEmoji in
-                    handleEmojiSelection(newEmoji)
-                }
-            )
+            selectedEmoji: $selectedEmojiFromPicker
         )
+        .onChange(of: selectedEmojiFromPicker) { newEmoji in
+            if let emoji = newEmoji {
+                handleEmojiSelection(emoji.emoji)
+                selectedEmojiFromPicker = nil
+            }
+        }
     }
 
     private func handleImageSelection(_ image: UIImage?) {

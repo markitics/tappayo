@@ -28,7 +28,6 @@
 		4DA470962CF63B56009FAAD9 /* notes-for-cursor.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */; };
 		4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DCA6AFB2BE347AB006220E5 /* APIClient.swift */; };
 		4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */; };
-		4DD86DD02ECD795000332F37 /* MCEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 4DD86DCF2ECD794000332F37 /* MCEmojiPicker */; };
 		4DD86DD02ECD85FD00332F37 /* ItemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCF2ECD85FD00332F37 /* ItemEditorView.swift */; };
 		4DD86DD22ECD9BC800332F37 /* CustomKeypadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DD12ECD9BC800332F37 /* CustomKeypadView.swift */; };
 		4DD86DD42ECDA18800332F37 /* CheckoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DD32ECDA18800332F37 /* CheckoutSheet.swift */; };
@@ -36,6 +35,7 @@
 		4DD86DE12ECEB42200332F37 /* ProductEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DDF2ECEB42200332F37 /* ProductEditorView.swift */; };
 		4DD86DE22ECEB42200332F37 /* ProductsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DE02ECEB42200332F37 /* ProductsView.swift */; };
 		4DD86DE32ECEB42200332F37 /* DisplayOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DDE2ECEB42200332F37 /* DisplayOptionsView.swift */; };
+		4DE1588D2ED368F4000290FA /* ElegantEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 4DE1588C2ED368F4000290FA /* ElegantEmojiPicker */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,8 +99,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4DE1588D2ED368F4000290FA /* ElegantEmojiPicker in Frameworks */,
 				4D08BCA22BCE7E19007B1FBA /* StripeTerminal in Frameworks */,
-				4DD86DD02ECD795000332F37 /* MCEmojiPicker in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,7 +237,7 @@
 			name = Tappayo;
 			packageProductDependencies = (
 				4D08BCA12BCE7E19007B1FBA /* StripeTerminal */,
-				4DD86DCF2ECD794000332F37 /* MCEmojiPicker */,
+				4DE1588C2ED368F4000290FA /* ElegantEmojiPicker */,
 			);
 			productName = Tappayo;
 			productReference = 4D08BC732BCE79B4007B1FBA /* Tappayo.app */;
@@ -313,7 +313,7 @@
 			mainGroup = 4D08BC6A2BCE79B4007B1FBA;
 			packageReferences = (
 				4D08BCA02BCE7E18007B1FBA /* XCRemoteSwiftPackageReference "stripe-terminal-ios" */,
-				4DD86DCE2ECD790F00332F37 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */,
+				4DE1588B2ED368F4000290FA /* XCRemoteSwiftPackageReference "Elegant-Emoji-Picker" */,
 			);
 			productRefGroup = 4D08BC742BCE79B4007B1FBA /* Products */;
 			projectDirPath = "";
@@ -721,12 +721,12 @@
 				minimumVersion = 3.0.0;
 			};
 		};
-		4DD86DCE2ECD790F00332F37 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */ = {
+		4DE1588B2ED368F4000290FA /* XCRemoteSwiftPackageReference "Elegant-Emoji-Picker" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/izyumkin/MCEmojiPicker";
+			repositoryURL = "https://github.com/Finalet/Elegant-Emoji-Picker";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.5;
+				branch = main;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -737,10 +737,10 @@
 			package = 4D08BCA02BCE7E18007B1FBA /* XCRemoteSwiftPackageReference "stripe-terminal-ios" */;
 			productName = StripeTerminal;
 		};
-		4DD86DCF2ECD794000332F37 /* MCEmojiPicker */ = {
+		4DE1588C2ED368F4000290FA /* ElegantEmojiPicker */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 4DD86DCE2ECD790F00332F37 /* XCRemoteSwiftPackageReference "MCEmojiPicker" */;
-			productName = MCEmojiPicker;
+			package = 4DE1588B2ED368F4000290FA /* XCRemoteSwiftPackageReference "Elegant-Emoji-Picker" */;
+			productName = ElegantEmojiPicker;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
