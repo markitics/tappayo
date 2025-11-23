@@ -359,7 +359,8 @@ struct ContentView: View {
                     },
                     inputMode: inputMode
                 )
-                .presentationDetents([.fraction(0.8), .large])
+//                .presentationDetents([.fraction(0.8), .large]) // original detents of the keypad, but if not max-size (large), then ios sheet animations distract from button-presses. Work-around, just have full-screen mode, so the only visual response when I touch a button is the custom animation we have (swelling button size, blue tint, then bounce back to original size with extraBounce
+                .presentationDetents([.large]) // new detents of the keypad (force full-screen only)
                 .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showCheckoutSheet) {

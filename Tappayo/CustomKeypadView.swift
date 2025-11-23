@@ -11,52 +11,64 @@ struct CustomKeypadView: View {
     let onCancel: () -> Void
     let inputMode: String
 
-    private let buttonSize: CGFloat = 70
-    private let buttonSpacing: CGFloat = 16
-
     var body: some View {
-        VStack(spacing: 20) {
+        GeometryReader { geometry in
+            let horizontalEdgePadding: CGFloat = 36  // Padding on left/right edges of entire keypad
+            let buttonSpacing: CGFloat = 20          // Space between individual buttons
+
+            let availableWidth = geometry.size.width - (2 * horizontalEdgePadding)
+            let calculatedSize = (availableWidth - (2 * buttonSpacing)) / 3  // 3 buttons per row
+            let buttonSize = max(calculatedSize, 60)  // Ensure minimum 60pt (prevents invalid frames build warning)
+
+            keypadContent(buttonSize: buttonSize, spacing: buttonSpacing, horizontalEdgePadding: horizontalEdgePadding)
+        }
+    }
+
+    private func keypadContent(buttonSize: CGFloat, spacing: CGFloat, horizontalEdgePadding: CGFloat) -> some View {
+        VStack(spacing: 40) {
             // Amount display
             Text(formatAmount(amountInCents))
-                .font(.system(size: 48, weight: .medium, design: .default))
-                .foregroundColor(.white)
-                .frame(height: 60)
+                .font(.system(size: 56, weight: .medium, design: .default))
+                .foregroundStyle(.primary)
+                .frame(height: 70)
+                .padding(.top, 30)
 
             // Number pad grid
-            VStack(spacing: buttonSpacing) {
+            VStack(spacing: spacing) {
                 // Row 1: 1, 2, 3
-                HStack(spacing: buttonSpacing) {
+                HStack(spacing: spacing) {
                     ForEach(1...3, id: \.self) { number in
-                        numberButton(number)
+                        numberButton(number, size: buttonSize)
                     }
                 }
 
                 // Row 2: 4, 5, 6
-                HStack(spacing: buttonSpacing) {
+                HStack(spacing: spacing) {
                     ForEach(4...6, id: \.self) { number in
-                        numberButton(number)
+                        numberButton(number, size: buttonSize)
                     }
                 }
 
                 // Row 3: 7, 8, 9
-                HStack(spacing: buttonSpacing) {
+                HStack(spacing: spacing) {
                     ForEach(7...9, id: \.self) { number in
-                        numberButton(number)
+                        numberButton(number, size: buttonSize)
                     }
                 }
 
                 // Row 4: Add/Empty, 0, Backspace/Empty
-                HStack(spacing: buttonSpacing) {
+                HStack(spacing: spacing) {
                     if amountInCents > 0 {
                         // Add to cart button (bottom-left when amount > 0)
                         Button(action: onAddToCart) {
                             Image(systemName: "plus")
-                                .font(.system(size: 28, weight: .medium))
-                                .foregroundColor(.white)
+                                .font(.system(size: buttonSize * 0.35, weight: .medium))  // Scales with button
+                                .foregroundStyle(.white)
                         }
                         .frame(width: buttonSize, height: buttonSize)
                         .background(Color.blue)
                         .clipShape(Circle())
+                        .shadow(color: .blue.opacity(0.3), radius: 8, y: 4)
                     } else {
                         // Empty space when amount is 0
                         Color.clear
@@ -64,7 +76,7 @@ struct CustomKeypadView: View {
                     }
 
                     // Zero button (always in center)
-                    numberButton(0)
+                    numberButton(0, size: buttonSize)
 
                     if amountInCents > 0 {
                         // Backspace button (bottom-right when amount > 0)
@@ -80,12 +92,11 @@ struct CustomKeypadView: View {
                             }
                         }) {
                             Image(systemName: "delete.left")
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(.white)
+                                .font(.system(size: buttonSize * 0.31, weight: .medium))  // Scales with button
+                                .foregroundStyle(.primary)
+                                .frame(width: buttonSize, height: buttonSize)
                         }
-                        .frame(width: buttonSize, height: buttonSize)
-                        .background(Color.gray.opacity(0.6))
-                        .clipShape(Circle())
+                        .buttonStyle(GlassButtonStyle())
                     } else {
                         // Empty space when amount is 0
                         Color.clear
@@ -93,7 +104,7 @@ struct CustomKeypadView: View {
                     }
                 }
             }
-            .padding(.vertical, 20)
+//            .padding(.vertical, 20) removed this; increased overall VStack spacing to 40 instead, for consistency of gab between (i) top number and keypad and (ii) keypad and "add to cart" row.
 
             // Bottom buttons: Add to Cart and Dismiss
             HStack(spacing: 12) {
@@ -102,13 +113,14 @@ struct CustomKeypadView: View {
                     Text("Add to Cart")
                         .font(.title3)
                         .fontWeight(.medium)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                 }
                 .background(amountInCents > 0 ? Color.blue : Color.gray.opacity(0.5))
                 .cornerRadius(10)
                 .disabled(amountInCents == 0)
+                .shadow(color: amountInCents > 0 ? .blue.opacity(0.3) : .clear, radius: 8, y: 4)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Dismiss button (1/3 width)
@@ -116,42 +128,55 @@ struct CustomKeypadView: View {
                     Text("Cancel")
                         .font(.callout)
                         .fontWeight(.medium)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .frame(width: 100, height: 50)
                 }
                 .background(Color.red.opacity(0.8))
                 .cornerRadius(10)
+                .shadow(color: .red.opacity(0.2), radius: 6, y: 3)
             }
-            .padding(.horizontal, 20)
         }
         .padding(.vertical, 30)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(UIColor.systemGray6).opacity(0.98))
-        )
-        .padding(.horizontal, 20)
+        .padding(.horizontal, horizontalEdgePadding)  // Consistent padding on all edges
+//        .background(
+//            RoundedRectangle(cornerRadius: 20)
+//                .fill(Color(UIColor.systemGray6).opacity(0.98))
+//        )
+        
     }
 
     // Helper to create number buttons
-    private func numberButton(_ number: Int) -> some View {
+    private func numberButton(_ number: Int, size: CGFloat) -> some View {
         Button(action: {
+            // Maximum value: $999,999.99 (prevents overflow and unrealistic amounts)
+            let maxCents = 99_999_999
+
             if inputMode == "dollars" {
                 // In dollars mode, build whole dollar amounts (always multiples of 100 cents)
                 let currentDollars = amountInCents / 100
                 let newDollars = currentDollars * 10 + number
-                amountInCents = newDollars * 100
+                let newCents = newDollars * 100
+
+                // Only update if under maximum
+                if newCents <= maxCents {
+                    amountInCents = newCents
+                }
             } else {
                 // In cents mode, append digit normally
-                amountInCents = amountInCents * 10 + number
+                let newAmount = amountInCents * 10 + number
+
+                // Only update if under maximum
+                if newAmount <= maxCents {
+                    amountInCents = newAmount
+                }
             }
         }) {
             Text("\(number)")
-                .font(.system(size: 32, weight: .medium))
-                .foregroundColor(.white)
-                .frame(width: buttonSize, height: buttonSize)
+                .font(.system(size: size * 0.4, weight: .medium))  // Font scales with button (40% of button size)
+                .foregroundStyle(.primary)
+                .frame(width: size, height: size)
         }
-        .background(Color.gray.opacity(0.8))
-        .clipShape(Circle())
+        .buttonStyle(GlassButtonStyle())
     }
 
     // Helper to format the amount display
@@ -177,5 +202,32 @@ struct CustomKeypadView_Previews: PreviewProvider {
             inputMode: "cents"
         )
         .presentationDetents([.fraction(0.8), .large]) // just the preview; what matters is contentview where this is called
+    }
+}
+
+// MARK: - Glass Button Style
+
+struct GlassButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay(
+                Circle()
+                    .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+            )
+            .overlay(  // Color feedback on press (before scale so it scales too)
+                Circle()
+                    .fill(configuration.isPressed ? Color.blue.opacity(0.15) : Color.clear)
+            )
+            .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+            .scaleEffect(configuration.isPressed ? 1.15 : 1.0)  // Grow to 115% (lock screen style)
+            .animation(
+                configuration.isPressed
+                    ? nil  // Instant scale-up when pressed (fast response!)
+                    : .bouncy(duration: 0.4, extraBounce: 0.3),  // Bouncy when released
+                value: configuration.isPressed
+            )
+            .contentShape(Circle())  // Define exact hit area (prevents sheet from capturing touches)
+            .environment(\.colorScheme, .dark)  // Force neutral material (fixes green tint)
     }
 }
