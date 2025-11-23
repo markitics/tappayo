@@ -5,7 +5,7 @@
 import SwiftUI
 
 struct CurrencyTextField: UIViewRepresentable {
-    @Binding var value: Int
+    @Binding var value: Int // Stored as cents (1000 = $10.00)
     let placeholder: String
     let font: Font
 

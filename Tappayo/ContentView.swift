@@ -16,7 +16,8 @@ struct ContentView: View {
     @State private var myAccentColor: Color = UserDefaults.standard.myAccentColor
     @State private var darkModePreference: String = UserDefaults.standard.darkModePreference
     @State private var businessName: String = UserDefaults.standard.businessName
-    @State private var taxRate: Double = UserDefaults.standard.taxRate
+    @State private var taxRateBasisPoints: Int = UserDefaults.standard.taxRateBasisPoints
+    @State private var taxEnabled: Bool = UserDefaults.standard.taxEnabled
     @State private var dismissKeypadAfterAdd: String = UserDefaults.standard.dismissKeypadAfterAdd
     @State private var inputMode: String = UserDefaults.standard.inputMode
     @State private var isKeypadActive: Bool = false
@@ -51,8 +52,10 @@ struct ContentView: View {
     }
 
     var taxAmountInCents: Int {
-        if taxRate > 0 {
-            return Int(round(Double(subtotalInCents) * taxRate / 100.0))
+        if taxEnabled && taxRateBasisPoints > 0 {
+            // taxRateBasisPoints is stored as basis points (1000 = 10.00%)
+            // So divide by 10000 to get the decimal multiplier
+            return Int(round(Double(subtotalInCents) * Double(taxRateBasisPoints) / 10000.0))
         }
         return 0
     }
@@ -64,7 +67,7 @@ struct ContentView: View {
     // Helper to get next manual item name
     private func nextManualItemName() -> String {
         let manualItemCount = basket.filter { !$0.isProduct }.count
-        return "Item \(manualItemCount + 1)"
+        return "Custom Item \(manualItemCount + 1)"
     }
 
     // Helper to get cached image (loads from disk only once per photo)
@@ -110,13 +113,13 @@ struct ContentView: View {
 
     // Format tax rate for display (up to 2 decimals, drop trailing zeros)
     private var formattedTaxRate: String {
-        let rounded = round(taxRate * 100) / 100  // Round to 2 decimals
-        if rounded.truncatingRemainder(dividingBy: 1) == 0 {
-            return String(format: "%.0f", rounded)
-        } else if (rounded * 10).truncatingRemainder(dividingBy: 1) == 0 {
-            return String(format: "%.1f", rounded)
+        let percentage = Double(taxRateBasisPoints) / 100.0
+        if percentage.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f", percentage)
+        } else if (percentage * 10).truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.1f", percentage)
         } else {
-            return String(format: "%.2f", rounded)
+            return String(format: "%.2f", percentage)
         }
     }
 
@@ -190,7 +193,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal, horizontalPadding)
-                .padding([.bottom], 14)
+                .padding([.bottom], productGridSpacing+2) // optically we actually need slightly more spacing here (eyball'd it)
 
                 // Edit: removing this heading entirely for now (temporary; to review)
 //                if !basket.isEmpty {
@@ -222,8 +225,8 @@ struct ContentView: View {
 
 //                Spacer()
 
-                // Tax summary (only if tax > 0 and cart not empty)
-                if taxRate > 0 && !basket.isEmpty {
+                // Tax summary (only if tax enabled and cart not empty)
+                if taxEnabled && taxRateBasisPoints > 0 && !basket.isEmpty {
                     VStack(spacing: 8) {
                         HStack(spacing: 12) {
                             Text("Subtotal")
@@ -306,7 +309,8 @@ struct ContentView: View {
                 myAccentColor = UserDefaults.standard.myAccentColor
                 darkModePreference = UserDefaults.standard.darkModePreference
                 businessName = UserDefaults.standard.businessName
-                taxRate = UserDefaults.standard.taxRate
+                taxRateBasisPoints = UserDefaults.standard.taxRateBasisPoints
+                taxEnabled = UserDefaults.standard.taxEnabled
                 dismissKeypadAfterAdd = UserDefaults.standard.dismissKeypadAfterAdd
                 inputMode = UserDefaults.standard.inputMode
                 applyDarkModePreference()

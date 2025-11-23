@@ -12,6 +12,7 @@ struct CheckoutSheet: View {
     @Binding var lastChangedItemId: UUID?
     @Binding var isAnimatingQuantity: Bool
     @State private var showingClearCartAlert = false
+    @State private var showingSaveCartAlert = false
     @State private var isKeyboardVisible = false
     @State private var dismissCountdown: Int = 30
     @State private var dismissTimer: Timer? = nil
@@ -95,13 +96,13 @@ struct CheckoutSheet: View {
                                 // Background
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.3))
-                                    .frame(height: 8)
+                                    .frame(width: geometry.size.width, height: 8)
                                     .cornerRadius(4)
 
                                 // Progress
                                 Rectangle()
                                     .fill(Color.green)
-                                    .frame(width: geometry.size.width * CGFloat(6 - clearCartCountdown) / 5.0, height: 8)
+                                    .frame(width: geometry.size.width * CGFloat(5 - clearCartCountdown) / 5.0, height: 8)
                                     .cornerRadius(4)
                                     .animation(.linear(duration: 1.0), value: clearCartCountdown)
                             }
@@ -129,33 +130,27 @@ struct CheckoutSheet: View {
                     .listStyle(.plain)
                     .padding(.horizontal, 24)
                     .padding(.top, 48) // Breathing room above cart
-                    .frame(maxHeight: min(500, CGFloat(150 + 40 * basket.count)))
+                    .frame(maxHeight: min(800, CGFloat(200 + 50 * basket.count)))
                 }
             }
 
             // Everything below cart needs horizontal padding
             VStack(spacing: 0) {
-                // Subtotal & Tax (only show Subtotal line if multiple items or if it's just visual separation)
+                // Subtotal, Tax, Tip, Total breakdown
                 VStack(spacing: 8) {
-                    // Only show subtotal line if there are multiple items OR no items
-                    // Skip it if exactly 1 item (unless there's tax, then we need the breakdown)
-                    if basket.count != 1 || taxAmountInCents > 0 {
-                        if !isKeyboardVisible {
-                            Divider()
-                                .padding(.bottom, 8)
+                    // Show Subtotal only when there's a breakdown (tax > 0, or future: tip > 0)
+                    let hasBreakdown = taxAmountInCents > 0 // TODO: || tipAmountInCents > 0
+
+                    if hasBreakdown {
+                        HStack {
+                            Text("Subtotal")
+                            Spacer()
+                            Text(formatMoney(subtotalInCents))
+                                .font(.system(.body, design: .monospaced))
                         }
-                        // Always show Subtotal when email field is focused (cart is hidden, so user needs context)
-                        if basket.count != 1 || isEmailFieldFocused {
-                            HStack {
-                                Text("Subtotal")
-                                Spacer()
-                                Text(formatMoney(subtotalInCents))
-                                    .font(.system(.body, design: .monospaced))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.top, isEmailFieldFocused ? 24 : 0) // Add breathing room when cart is hidden
-                        }
+                        .padding(.horizontal, 12)
                     }
+
                     if taxAmountInCents > 0 {
                         HStack {
                             Text("Tax")
@@ -166,8 +161,8 @@ struct CheckoutSheet: View {
                         .padding(.horizontal, 12)
                     }
 
-                    // Total line (only show if multiple items OR tax exists - otherwise item price = total)
-                    if basket.count != 1 || taxAmountInCents > 0 {
+                    // Total line - always show (when there's a breakdown it shows the sum, otherwise it's the only line)
+                    if true {
                         HStack {
                             Text("Total")
                                 .fontWeight(.semibold)
@@ -275,13 +270,13 @@ struct CheckoutSheet: View {
                                 // Background
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.3))
-                                    .frame(height: 8)
+                                    .frame(width: geometry.size.width, height: 8)
                                     .cornerRadius(4)
 
                                 // Progress
                                 Rectangle()
                                     .fill(Color.green)
-                                    .frame(width: geometry.size.width * CGFloat(31 - dismissCountdown) / 30.0, height: 8)
+                                    .frame(width: geometry.size.width * CGFloat(30 - dismissCountdown) / 30.0, height: 8)
                                     .cornerRadius(4)
                                     .animation(.linear(duration: 1.0), value: dismissCountdown)
                             }
@@ -344,7 +339,7 @@ struct CheckoutSheet: View {
                     Spacer()
 
                     Button(action: {
-                        // TODO: Implement save cart functionality
+                        showingSaveCartAlert = true
                     }) {
                         Text("Save Cart")
                             .font(.caption)
@@ -431,6 +426,11 @@ struct CheckoutSheet: View {
             }
         } message: {
             Text("This will remove all items from your cart.")
+        }
+        .alert("Feature Not Available", isPresented: $showingSaveCartAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("This feature isn't live yet. Contact us to vote for which feature we should add next!")
         }
 //        .background(Color(.red)) // only while debugging
         .sheet(item: $editingItem) { item in

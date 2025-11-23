@@ -64,7 +64,9 @@ struct ProductGridButton: View {
                     .minimumScaleFactor(0.7)
                     .lineLimit(1)
             }
-            .frame(maxWidth: .infinity, minHeight: 90)
+            .frame(maxWidth: .infinity)
+            .aspectRatio(1, contentMode: .fit)
+//            .frame(maxWidth: .infinity, minHeight: 90)  // Old: hardcoded height
             .padding()
             // IMPORTANT: .contentShape(Rectangle()) makes the ENTIRE padded area tappable,
             // not just the visible content (icon/text). Without this, users must tap exactly

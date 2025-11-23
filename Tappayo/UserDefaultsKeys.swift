@@ -11,6 +11,8 @@ enum UserDefaultsKeys: String {
     case darkModePreference
     case businessName
     case taxRate
+    case taxRateBasisPoints
+    case taxEnabled
     case dismissKeypadAfterAdd
     case inputMode  // "cents" or "dollars"
 }

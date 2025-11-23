@@ -87,6 +87,35 @@ extension UserDefaults {
         }
     }
 
+    var taxRateBasisPoints: Int {
+        get {
+            // Check if we have the new basis points value
+            if object(forKey: UserDefaultsKeys.taxRateBasisPoints.rawValue) != nil {
+                return integer(forKey: UserDefaultsKeys.taxRateBasisPoints.rawValue)
+            }
+
+            // Migration: Convert old taxRate (Double) to basis points
+            let oldTaxRate = taxRate
+            let basisPoints = Int(round(oldTaxRate * 100))
+
+            // Save migrated value
+            set(basisPoints, forKey: UserDefaultsKeys.taxRateBasisPoints.rawValue)
+            return basisPoints
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.taxRateBasisPoints.rawValue)
+        }
+    }
+
+    var taxEnabled: Bool {
+        get {
+            return bool(forKey: UserDefaultsKeys.taxEnabled.rawValue)
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.taxEnabled.rawValue)
+        }
+    }
+
     var dismissKeypadAfterAdd: String {
         get {
             return string(forKey: UserDefaultsKeys.dismissKeypadAfterAdd.rawValue) ?? "dismiss"

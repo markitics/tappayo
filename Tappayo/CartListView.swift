@@ -148,6 +148,7 @@ struct CartListView: View {
                 }
             }
         }
+        .listRowSeparator(.hidden) // Hide all row separators (for .plain style)
         .scrollIndicators(.visible) // this is supposed to make scroll indicators always visible (if cart is too tall to view all at once), but it's not working for me (Nov 25)
         .modifier(FlashScrollIndicatorsModifier())
 

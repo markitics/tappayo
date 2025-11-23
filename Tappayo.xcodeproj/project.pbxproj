@@ -36,6 +36,7 @@
 		4DD86DE22ECEB42200332F37 /* ProductsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DE02ECEB42200332F37 /* ProductsView.swift */; };
 		4DD86DE32ECEB42200332F37 /* DisplayOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DDE2ECEB42200332F37 /* DisplayOptionsView.swift */; };
 		4DE1588D2ED368F4000290FA /* ElegantEmojiPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 4DE1588C2ED368F4000290FA /* ElegantEmojiPicker */; };
+		4DE1589B2ED3C544000290FA /* PercentageTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE1589A2ED3C544000290FA /* PercentageTextField.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,7 @@
 		4DD86DDE2ECEB42200332F37 /* DisplayOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayOptionsView.swift; sourceTree = "<group>"; };
 		4DD86DDF2ECEB42200332F37 /* ProductEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductEditorView.swift; sourceTree = "<group>"; };
 		4DD86DE02ECEB42200332F37 /* ProductsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductsView.swift; sourceTree = "<group>"; };
+		4DE1589A2ED3C544000290FA /* PercentageTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentageTextField.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -211,6 +213,7 @@
 		4D92B7252C0FF66D005AD949 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				4DE1589A2ED3C544000290FA /* PercentageTextField.swift */,
 				4D92B7262C0FF67C005AD949 /* CurrencyTextField.swift */,
 			);
 			path = common;
@@ -375,6 +378,7 @@
 				4DD86DE32ECEB42200332F37 /* DisplayOptionsView.swift in Sources */,
 				4D92B7212C0EE642005AD949 /* UserDefaultsHelper.swift in Sources */,
 				4DD86DD42ECDA18800332F37 /* CheckoutSheet.swift in Sources */,
+				4DE1589B2ED3C544000290FA /* PercentageTextField.swift in Sources */,
 				4D14B3C52BE37E49009213AC /* TerminalConnectionView.swift in Sources */,
 				4DD86DD62ECDA5FD00332F37 /* CartListView.swift in Sources */,
 				4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */,

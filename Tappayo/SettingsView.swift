@@ -2,7 +2,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @State private var businessName: String = UserDefaults.standard.businessName
-    @State private var taxRate: Double = UserDefaults.standard.taxRate
+    @State private var taxRateBasisPoints: Int = UserDefaults.standard.taxRateBasisPoints
+    @State private var taxEnabled: Bool = UserDefaults.standard.taxEnabled
 
     var body: some View {
         Form {
@@ -23,15 +24,19 @@ struct SettingsView: View {
             }
 
             Section(header: Text("Tax")) {
-                HStack {
-                    TextField("Tax %", value: $taxRate, format: .number.precision(.fractionLength(0...2)))
-                        .keyboardType(.decimalPad)
-                    Text("%")
-                        .foregroundColor(.secondary)
+                Toggle("Add tax", isOn: $taxEnabled)
+
+                if taxEnabled {
+                    HStack {
+                        PercentageTextField(
+                            value: $taxRateBasisPoints,
+                            placeholder: "0.00",
+                            font: .body
+                        )
+                        Text("%")
+                            .foregroundColor(.secondary)
+                    }
                 }
-                Text("Enter tax rate as percentage (0 = no tax, max 2 decimals)")
-                    .font(.caption)
-                    .foregroundColor(.gray)
             }
 
             Section {
@@ -43,13 +48,17 @@ struct SettingsView: View {
         .navigationTitle("Tappayo Settings")
         .onAppear {
             businessName = UserDefaults.standard.businessName
-            taxRate = UserDefaults.standard.taxRate
+            taxRateBasisPoints = UserDefaults.standard.taxRateBasisPoints
+            taxEnabled = UserDefaults.standard.taxEnabled
         }
         .onChange(of: businessName) { _, newValue in
             UserDefaults.standard.businessName = newValue
         }
-        .onChange(of: taxRate) { _, newValue in
-            UserDefaults.standard.taxRate = newValue
+        .onChange(of: taxRateBasisPoints) { _, newValue in
+            UserDefaults.standard.taxRateBasisPoints = newValue
+        }
+        .onChange(of: taxEnabled) { _, newValue in
+            UserDefaults.standard.taxEnabled = newValue
         }
     }
 }
