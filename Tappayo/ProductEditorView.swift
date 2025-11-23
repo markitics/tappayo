@@ -8,6 +8,7 @@ import SwiftUI
 struct ProductEditorView: View {
     @Binding var product: Product
     @Binding var savedProducts: [Product]
+    let isNewProduct: Bool
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -88,6 +89,17 @@ struct ProductEditorView: View {
     }
 
     private func saveChanges() {
+        // If this is a new product and it's empty, remove it instead of saving
+        if isNewProduct && isProductEmpty() {
+            savedProducts.removeAll { $0.id == product.id }
+        }
         UserDefaults.standard.savedProducts = savedProducts
+    }
+
+    private func isProductEmpty() -> Bool {
+        return product.name.isEmpty &&
+               product.priceInCents == 0 &&
+               product.emoji == nil &&
+               product.photoFilename == nil
     }
 }

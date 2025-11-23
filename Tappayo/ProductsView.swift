@@ -8,11 +8,13 @@ import SwiftUI
 struct ProductsView: View {
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var editingProduct: Product?
+    @State private var isEditingNewProduct = false
 
     var body: some View {
         List {
             ForEach(savedProducts.indices, id: \.self) { index in
                 Button(action: {
+                    isEditingNewProduct = false
                     editingProduct = savedProducts[index]
                 }) {
                     HStack(spacing: 12) {
@@ -73,6 +75,7 @@ struct ProductsView: View {
                 let newProduct = Product(name: "", priceInCents: 0)
                 savedProducts.append(newProduct)
                 UserDefaults.standard.savedProducts = savedProducts
+                isEditingNewProduct = true
                 editingProduct = newProduct
             }) {
                 HStack {
@@ -87,7 +90,8 @@ struct ProductsView: View {
             if let productIndex = savedProducts.firstIndex(where: { $0.id == product.id }) {
                 ProductEditorView(
                     product: $savedProducts[productIndex],
-                    savedProducts: $savedProducts
+                    savedProducts: $savedProducts,
+                    isNewProduct: isEditingNewProduct
                 )
             }
         }
