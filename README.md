@@ -55,7 +55,7 @@ This ensures your receipts are always professional and easy to read, whether you
 
 ## Requirements
 
-- iPhone XS or newer running iOS 15.4+
+- iPhone running iOS 17+
 - Stripe Terminal account with Tap to Pay enabled
 - Physical presence in a supported region (US, UK, Australia, etc.)
 

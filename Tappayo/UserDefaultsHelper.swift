@@ -116,6 +116,15 @@ extension UserDefaults {
         }
     }
 
+    var tippingEnabled: Bool {
+        get {
+            return bool(forKey: UserDefaultsKeys.tippingEnabled.rawValue)
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.tippingEnabled.rawValue)
+        }
+    }
+
     var dismissKeypadAfterAdd: String {
         get {
             return string(forKey: UserDefaultsKeys.dismissKeypadAfterAdd.rawValue) ?? "dismiss"

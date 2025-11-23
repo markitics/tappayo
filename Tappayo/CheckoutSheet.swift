@@ -22,9 +22,11 @@ struct CheckoutSheet: View {
     @State private var showEmailField = false
     @FocusState private var isEmailFieldFocused: Bool
     @Binding var receiptEmail: String
+    @State private var selectedTipPercentage: Double = 0.0  // 0, 12, 18, or 22
     @Environment(\.dismiss) private var dismiss
 
     let businessName: String
+    let tippingEnabled: Bool
     let subtotalInCents: Int
     let taxAmountInCents: Int
     let totalAmountInCents: Int
@@ -32,7 +34,7 @@ struct CheckoutSheet: View {
     let connectionStatus: String
     let isProcessingPayment: Bool
     let paymentSucceeded: Bool
-    let onCharge: (String?) -> Void
+    let onCharge: (Int, String?) -> Void  // (amountInCents, email)
     let onDismiss: () -> Void
 
     // Helper functions passed from ContentView
@@ -50,6 +52,17 @@ struct CheckoutSheet: View {
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
         return formatter.string(from: NSNumber(value: Double(cents) / 100)) ?? "$0.00"
+    }
+
+    // Tip calculation
+    private var tipAmountInCents: Int {
+        guard tippingEnabled else { return 0 }
+        return Int(round(Double(subtotalInCents) * selectedTipPercentage / 100.0))
+    }
+
+    // Total with tip
+    private var totalWithTipInCents: Int {
+        return subtotalInCents + taxAmountInCents + tipAmountInCents
     }
 
     var body: some View {
@@ -130,7 +143,7 @@ struct CheckoutSheet: View {
                     .listStyle(.plain)
                     .padding(.horizontal, 24)
                     .padding(.top, 48) // Breathing room above cart
-                    .frame(maxHeight: min(800, CGFloat(200 + 50 * basket.count)))
+                    .frame(maxHeight: min(600, CGFloat(200 + 50 * basket.count)))
                 }
             }
 
@@ -138,8 +151,8 @@ struct CheckoutSheet: View {
             VStack(spacing: 0) {
                 // Subtotal, Tax, Tip, Total breakdown
                 VStack(spacing: 8) {
-                    // Show Subtotal only when there's a breakdown (tax > 0, or future: tip > 0)
-                    let hasBreakdown = taxAmountInCents > 0 // TODO: || tipAmountInCents > 0
+                    // Show Subtotal only when there's a breakdown (tax > 0 or tip > 0)
+                    let hasBreakdown = taxAmountInCents > 0 || tipAmountInCents > 0
 
                     if hasBreakdown {
                         HStack {
@@ -161,13 +174,24 @@ struct CheckoutSheet: View {
                         .padding(.horizontal, 12)
                     }
 
-                    // Total line - always show (when there's a breakdown it shows the sum, otherwise it's the only line)
-                    if true {
+                    if tippingEnabled { // alternatively could have condition "if tipAmountInCents > 0" to keep things clean, but then UI jumpts around if we go from 0% to 18% (adding 1-2 more lines, maybe adding subtotal line, and def adding the 'Tip' line. Having this condition be "if tipppingEnabled" means we start with a "Tip      $0.00" line by defaul
+                        HStack {
+                            Text("Tip")
+                            Spacer()
+                            Text(formatMoney(tipAmountInCents))
+                                .font(.system(.body, design: .monospaced))
+                        }
+                        .padding(.horizontal, 12)
+                    }
+
+                    // Total line - show when multiple items OR breakdown exists (tax/tip)
+                    // Hide when single item with no tax/tip (item price = total, so redundant)
+                    if basket.count != 1 || taxAmountInCents > 0 || tipAmountInCents > 0 {
                         HStack {
                             Text("Total")
                                 .fontWeight(.semibold)
                             Spacer()
-                            Text(formatMoney(totalAmountInCents))
+                            Text(formatMoney(totalWithTipInCents))
                                 .font(.system(.body, design: .monospaced))
                                 .fontWeight(.semibold)
                         }
@@ -198,7 +222,7 @@ struct CheckoutSheet: View {
                         }) {
                             HStack {
                                 Image(systemName: "envelope")
-                                Text("Email me a receipt")
+                                Text("Email for receipt")
                             }
                             .font(.subheadline)
                             .foregroundColor(.blue)
@@ -244,6 +268,25 @@ struct CheckoutSheet: View {
                     }
                 }
 
+                // Tip selector (only show if tipping enabled and before payment)
+                if tippingEnabled && !paymentSucceeded {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Tip")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        // Four conjoined tip buttons
+                        HStack(spacing: 0) {
+                            TipButton(percentage: 0, selectedPercentage: $selectedTipPercentage, position: .leading)
+                            TipButton(percentage: 12, selectedPercentage: $selectedTipPercentage, position: .middle)
+                            TipButton(percentage: 18, selectedPercentage: $selectedTipPercentage, position: .middle)
+                            TipButton(percentage: 22, selectedPercentage: $selectedTipPercentage, position: .trailing)
+                        }
+                        .frame(height: 44)
+                    }
+                    .padding(.bottom, 8)
+                }
+
                 Spacer()
 
                 // Charge Button or Success Message
@@ -286,15 +329,15 @@ struct CheckoutSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
-                } else if totalAmountInCents > 49 && !isKeyboardVisible {
+                } else if totalWithTipInCents > 49 && !isKeyboardVisible {
                     Button(action: {
                         // Dismiss keyboard before processing payment
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        onCharge(receiptEmail.isEmpty ? nil : receiptEmail)
+                        onCharge(totalWithTipInCents, receiptEmail.isEmpty ? nil : receiptEmail)
                     }) {
                         HStack {
                             Image(systemName: "wave.3.right.circle.fill")
-                            Text("Pay $\(formattedTotalAmount)")
+                            Text("Pay \(formatMoney(totalWithTipInCents))")
                                 .font(.title2)
                                 .fontWeight(.medium)
                         }
@@ -464,6 +507,105 @@ struct CheckoutSheet: View {
             if paymentSucceeded {
                 onDismiss()
             }
+        }
+    }
+}
+
+// MARK: - Tip Button Component
+
+enum ButtonPosition {
+    case leading, middle, trailing
+}
+
+struct TipButton: View {
+    let percentage: Double
+    @Binding var selectedPercentage: Double
+    let position: ButtonPosition
+
+    private var isSelected: Bool {
+        selectedPercentage == percentage
+    }
+
+    private var cornerRadius: CGFloat { 8 }
+
+    var body: some View {
+        Group {
+            switch position {
+            case .leading:
+                leadingButton
+            case .middle:
+                middleButton
+            case .trailing:
+                trailingButton
+            }
+        }
+    }
+
+    private var leadingButton: some View {
+        Button(action: { selectedPercentage = percentage }) {
+            Text(percentage == 0 ? "None" : "\(Int(percentage))%")
+                .font(.body)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundColor(isSelected ? .white : .blue)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(isSelected ? Color.blue : Color.white)
+                .clipShape(UnevenRoundedRectangle(
+                    topLeadingRadius: cornerRadius,
+                    bottomLeadingRadius: cornerRadius,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 0
+                ))
+                .overlay(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: cornerRadius,
+                        bottomLeadingRadius: cornerRadius,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 0
+                    )
+                    .stroke(Color.blue, lineWidth: 1)
+                )
+        }
+    }
+
+    private var middleButton: some View {
+        Button(action: { selectedPercentage = percentage }) {
+            Text(percentage == 0 ? "None" : "\(Int(percentage))%")
+                .font(.body)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundColor(isSelected ? .white : .blue)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(isSelected ? Color.blue : Color.white)
+                .clipShape(Rectangle())
+                .overlay(Rectangle().stroke(Color.blue, lineWidth: 1))
+        }
+    }
+
+    private var trailingButton: some View {
+        Button(action: { selectedPercentage = percentage }) {
+            Text(percentage == 0 ? "None" : "\(Int(percentage))%")
+                .font(.body)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundColor(isSelected ? .white : .blue)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(isSelected ? Color.blue : Color.white)
+                .clipShape(UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: cornerRadius,
+                    topTrailingRadius: cornerRadius
+                ))
+                .overlay(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: cornerRadius,
+                        topTrailingRadius: cornerRadius
+                    )
+                    .stroke(Color.blue, lineWidth: 1)
+                )
         }
     }
 }

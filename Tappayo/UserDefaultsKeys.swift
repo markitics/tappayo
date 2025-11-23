@@ -13,6 +13,7 @@ enum UserDefaultsKeys: String {
     case taxRate
     case taxRateBasisPoints
     case taxEnabled
+    case tippingEnabled
     case dismissKeypadAfterAdd
     case inputMode  // "cents" or "dollars"
 }

@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var businessName: String = UserDefaults.standard.businessName
     @State private var taxRateBasisPoints: Int = UserDefaults.standard.taxRateBasisPoints
     @State private var taxEnabled: Bool = UserDefaults.standard.taxEnabled
+    @State private var tippingEnabled: Bool = UserDefaults.standard.tippingEnabled
     @State private var dismissKeypadAfterAdd: String = UserDefaults.standard.dismissKeypadAfterAdd
     @State private var inputMode: String = UserDefaults.standard.inputMode
     @State private var isKeypadActive: Bool = false
@@ -311,6 +312,7 @@ struct ContentView: View {
                 businessName = UserDefaults.standard.businessName
                 taxRateBasisPoints = UserDefaults.standard.taxRateBasisPoints
                 taxEnabled = UserDefaults.standard.taxEnabled
+                tippingEnabled = UserDefaults.standard.tippingEnabled
                 dismissKeypadAfterAdd = UserDefaults.standard.dismissKeypadAfterAdd
                 inputMode = UserDefaults.standard.inputMode
                 applyDarkModePreference()
@@ -381,6 +383,7 @@ struct ContentView: View {
                     isAnimatingQuantity: $isAnimatingQuantity,
                     receiptEmail: $receiptEmail,
                     businessName: businessName,
+                    tippingEnabled: tippingEnabled,
                     subtotalInCents: subtotalInCents,
                     taxAmountInCents: taxAmountInCents,
                     totalAmountInCents: totalAmountInCents,
@@ -388,9 +391,9 @@ struct ContentView: View {
                     connectionStatus: connectionStatus,
                     isProcessingPayment: isProcessingPayment,
                     paymentSucceeded: paymentSucceeded,
-                    onCharge: { email in
+                    onCharge: { amountInCents, email in
                         do {
-                            try readerDiscoveryController.checkoutAction(amount: totalAmountInCents, receiptEmail: email)
+                            try readerDiscoveryController.checkoutAction(amount: amountInCents, receiptEmail: email)
                         } catch {
                             print("Error occurred: \(error)")
                         }
