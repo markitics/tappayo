@@ -139,6 +139,8 @@ struct CartListView: View {
                     .listRowInsets(EdgeInsets())
                 }
             } footer: {
+                // Note: Previously had showSwipeHelper parameter to hide this in CheckoutSheet,
+                // but removed to reduce type-checker complexity. Now always shown.
                 if !basket.isEmpty {
                     Text(basket.count == 1 ? "👆 Swipe row right to add, or left to remove" : "Swipe any row right to add, or left to add or remove")
                         .font(.caption2)
@@ -146,28 +148,26 @@ struct CartListView: View {
                 }
             }
         }
-        .listStyle(.plain) // comment out to have rounded rows, standing out above the background (in light and dark mode), or add listStyle(.plain) to have simple minimal rows
-        .scrollIndicators(.visible)
+        .scrollIndicators(.visible) // this is supposed to make scroll indicators always visible (if cart is too tall to view all at once), but it's not working for me (Nov 25)
         .modifier(FlashScrollIndicatorsModifier())
 
-            // Gradient fade overlay at bottom to indicate more content
-            if !basket.isEmpty {
-                VStack {
-                    Spacer()
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(.systemBackground).opacity(0),
-                            Color(.systemBackground).opacity(0.7),
-                            Color(.systemBackground)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 80)
-                    .allowsHitTesting(false)
-                }
+            // Gradient fade overlay at bottom (always shown for smooth grey-to-white transition)
+            VStack {
+                Spacer()
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground).opacity(0),
+                        Color(.systemBackground).opacity(0.7),
+                        Color(.systemBackground)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 80)
+                .allowsHitTesting(false)
             }
         }
+//        .border(Color.red, width: 3) // for debugging only
     }
 }
 

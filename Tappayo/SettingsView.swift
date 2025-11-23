@@ -45,10 +45,10 @@ struct SettingsView: View {
             businessName = UserDefaults.standard.businessName
             taxRate = UserDefaults.standard.taxRate
         }
-        .onChange(of: businessName) { newValue in
+        .onChange(of: businessName) { _, newValue in
             UserDefaults.standard.businessName = newValue
         }
-        .onChange(of: taxRate) { newValue in
+        .onChange(of: taxRate) { _, newValue in
             UserDefaults.standard.taxRate = newValue
         }
     }

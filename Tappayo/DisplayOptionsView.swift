@@ -54,17 +54,17 @@ struct DisplayOptionsView: View {
             dismissKeypadAfterAdd = UserDefaults.standard.dismissKeypadAfterAdd
             applyDarkModePreference()
         }
-        .onChange(of: myAccentColor) { newValue in
+        .onChange(of: myAccentColor) { _, newValue in
             UserDefaults.standard.myAccentColor = newValue
         }
-        .onChange(of: darkModePreference) { _ in
+        .onChange(of: darkModePreference) { _, _ in
             UserDefaults.standard.darkModePreference = darkModePreference
             applyDarkModePreference()
         }
-        .onChange(of: inputMode) { newValue in
+        .onChange(of: inputMode) { _, newValue in
             UserDefaults.standard.inputMode = newValue
         }
-        .onChange(of: dismissKeypadAfterAdd) { newValue in
+        .onChange(of: dismissKeypadAfterAdd) { _, newValue in
             UserDefaults.standard.dismissKeypadAfterAdd = newValue
         }
     }

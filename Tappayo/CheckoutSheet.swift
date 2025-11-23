@@ -71,61 +71,66 @@ struct CheckoutSheet: View {
 //            }
 
             Spacer() // spacer between business name and cart items
-            // Interactive cart list (with swipe actions and tap to edit)
-            if showingClearCartCountdown && basket.isEmpty {
-                // Empty cart countdown state
-                VStack(spacing: 16) {
-                    Text("Cart is empty")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                        .padding(.top, 40)
 
-                    Spacer()
+            // Hide cart items when email field is focused (keyboard takes up too much space)
+            if !isEmailFieldFocused {
+                // Interactive cart list (with swipe actions and tap to edit)
+                if showingClearCartCountdown && basket.isEmpty {
+                    // Empty cart countdown state
+                    VStack(spacing: 16) {
+                        Text("Cart is empty")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 40)
 
-                    Text("Returning to shop in \(clearCartCountdown) seconds...")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        Spacer()
 
-                    // Green progress bar
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            // Background
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(height: 8)
-                                .cornerRadius(4)
+                        Text("Returning to shop in \(clearCartCountdown) seconds...")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
 
-                            // Progress
-                            Rectangle()
-                                .fill(Color.green)
-                                .frame(width: geometry.size.width * CGFloat(6 - clearCartCountdown) / 5.0, height: 8)
-                                .cornerRadius(4)
-                                .animation(.linear(duration: 1.0), value: clearCartCountdown)
+                        // Green progress bar
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                // Background
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(height: 8)
+                                    .cornerRadius(4)
+
+                                // Progress
+                                Rectangle()
+                                    .fill(Color.green)
+                                    .frame(width: geometry.size.width * CGFloat(6 - clearCartCountdown) / 5.0, height: 8)
+                                    .cornerRadius(4)
+                                    .animation(.linear(duration: 1.0), value: clearCartCountdown)
+                            }
                         }
-                    }
-                    .frame(height: 8)
+                        .frame(height: 8)
 
-                    Spacer()
+                        Spacer()
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 12)
+                    .frame(maxHeight: min(500, CGFloat(150 + 40 * basket.count)))
+                } else {
+                    CartListView(
+                        basket: $basket,
+                        savedProducts: $savedProducts,
+                        editingItem: $editingItem,
+                        lastChangedItemId: $lastChangedItemId,
+                        isAnimatingQuantity: $isAnimatingQuantity,
+                        getCurrentProduct: getCurrentProduct,
+                        formatCurrency: formatCurrency,
+                        getCachedImage: getCachedImage,
+                        allItemsQuantityOne: allItemsQuantityOne,
+                        cartHasAnyCents: cartHasAnyCents
+                    )
+                    .listStyle(.plain)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 48) // Breathing room above cart
+                    .frame(maxHeight: min(500, CGFloat(150 + 40 * basket.count)))
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 12)
-                .frame(maxHeight: min(500, CGFloat(150 + 40 * basket.count)))
-            } else {
-                CartListView(
-                    basket: $basket,
-                    savedProducts: $savedProducts,
-                    editingItem: $editingItem,
-                    lastChangedItemId: $lastChangedItemId,
-                    isAnimatingQuantity: $isAnimatingQuantity,
-                    getCurrentProduct: getCurrentProduct,
-                    formatCurrency: formatCurrency,
-                    getCachedImage: getCachedImage,
-                    allItemsQuantityOne: allItemsQuantityOne,
-                    cartHasAnyCents: cartHasAnyCents
-                )
-                .padding(.horizontal, 24)
-                .padding(.top, 48) // Breathing room above cart
-                .frame(maxHeight: min(500, CGFloat(150 + 40 * basket.count)))
             }
 
             // Everything below cart needs horizontal padding
@@ -139,7 +144,8 @@ struct CheckoutSheet: View {
                             Divider()
                                 .padding(.bottom, 8)
                         }
-                        if basket.count != 1 {
+                        // Always show Subtotal when email field is focused (cart is hidden, so user needs context)
+                        if basket.count != 1 || isEmailFieldFocused {
                             HStack {
                                 Text("Subtotal")
                                 Spacer()
@@ -147,6 +153,7 @@ struct CheckoutSheet: View {
                                     .font(.system(.body, design: .monospaced))
                             }
                             .padding(.horizontal, 12)
+                            .padding(.top, isEmailFieldFocused ? 24 : 0) // Add breathing room when cart is hidden
                         }
                     }
                     if taxAmountInCents > 0 {
@@ -223,6 +230,11 @@ struct CheckoutSheet: View {
                                 .keyboardType(.emailAddress)
                                 .autocapitalization(.none)
                                 .textFieldStyle(.roundedBorder)
+                                .font(.body)
+                                .submitLabel(.done)
+                                .onSubmit {
+                                    isEmailFieldFocused = false
+                                }
                                 .focused($isEmailFieldFocused)
                                 .toolbar {
                                     ToolbarItemGroup(placement: .keyboard) {
@@ -365,7 +377,7 @@ struct CheckoutSheet: View {
             }
             .allowsHitTesting(false)
         )
-        .onChange(of: paymentSucceeded) { newValue in
+        .onChange(of: paymentSucceeded) { _, newValue in
             if newValue {
                 // Play success haptic
                 let generator = UINotificationFeedbackGenerator()
@@ -384,12 +396,17 @@ struct CheckoutSheet: View {
                 }
             }
         }
-        .onChange(of: isEmailFieldFocused) { isFocused in
+        .onChange(of: isEmailFieldFocused) { _, isFocused in
             if isFocused && showingClearCartCountdown {
                 // User tapped email field during countdown - abort timer
                 clearCartTimer?.invalidate()
                 clearCartTimer = nil
                 showingClearCartCountdown = false
+            }
+
+            // If email field loses focus and is empty, collapse back to button
+            if !isFocused && receiptEmail.isEmpty {
+                showEmailField = false
             }
         }
         .alert("Clear Cart?", isPresented: $showingClearCartAlert) {
@@ -430,6 +447,7 @@ struct CheckoutSheet: View {
                 .presentationDragIndicator(.visible)
             }
         }
+        .interactiveDismissDisabled(isKeyboardVisible) // Prevent swipe-down from dismissing sheet when keyboard is visible
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
             isKeyboardVisible = true
         }

@@ -725,8 +725,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Finalet/Elegant-Emoji-Picker";
 			requirement = {
-				kind = exactVersion;
-				version = 1.0.0;
+				branch = main;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

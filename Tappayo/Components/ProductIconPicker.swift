@@ -37,7 +37,7 @@ struct ProductIconPicker: View {
                         .frame(width: 100, height: 100)
                 } else {
                     // Show placeholder
-                    Image(systemName: "camera.circle")
+                    Image(systemName: "photo.badge.plus")
                         .font(.system(size: 80))
                         .foregroundColor(.gray)
                         .frame(width: 100, height: 100)
@@ -63,14 +63,14 @@ struct ProductIconPicker: View {
         .sheet(isPresented: $showingPhotoLibrary) {
             ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
         }
-        .onChange(of: selectedImage) { newImage in
+        .onChange(of: selectedImage) { _, newImage in
             handleImageSelection(newImage)
         }
         .emojiPicker(
             isPresented: $showingEmojiPicker,
             selectedEmoji: $selectedEmojiFromPicker
         )
-        .onChange(of: selectedEmojiFromPicker) { newEmoji in
+        .onChange(of: selectedEmojiFromPicker) { _, newEmoji in
             if let emoji = newEmoji {
                 handleEmojiSelection(emoji.emoji)
                 selectedEmojiFromPicker = nil

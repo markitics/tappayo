@@ -31,7 +31,7 @@ struct ProductsView: View {
                                 .font(.system(size: 40))
                                 .frame(width: 50, height: 50)
                         } else {
-                            Image(systemName: "camera.circle")
+                            Image(systemName: "photo.badge.plus")
                                 .font(.system(size: 40))
                                 .foregroundColor(.gray)
                                 .frame(width: 50, height: 50)
@@ -98,7 +98,7 @@ struct ProductsView: View {
         .onAppear {
             savedProducts = UserDefaults.standard.savedProducts
         }
-        .onChange(of: savedProducts) { newValue in
+        .onChange(of: savedProducts) { _, newValue in
             UserDefaults.standard.savedProducts = newValue
         }
     }

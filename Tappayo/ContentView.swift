@@ -35,6 +35,12 @@ struct ContentView: View {
     // Product icon sizing constant
     private let productIconSize: CGFloat = 40
 
+    // Horizontal padding constant for consistent spacing
+    private let horizontalPadding: CGFloat = 32
+
+    // Vertical spacing between product tiles
+    private let productGridSpacing: CGFloat = 14
+
     let readerDiscoveryController = ReaderDiscoveryViewController()
 
     var subtotalInCents: Int {
@@ -140,14 +146,15 @@ struct ContentView: View {
     var body: some View {
         ZStack {
         NavigationView {
-            VStack {
+            VStack(spacing: 0) {
                 // Tappable amount display (triggers custom keypad)
                 AmountInputButton(
                     amountInCents: amountInCents,
                     formatAmount: { formatCurrency($0, forceDecimals: true) },
                     onTap: { isKeypadActive = true }
                 )
-                .padding(.bottom, 12)
+                .padding(.bottom, productGridSpacing)
+                .padding(.horizontal, horizontalPadding)
 
 //                HStack {
 //                    Text("Quick add items")
@@ -159,12 +166,12 @@ struct ContentView: View {
 //                }
 
                 let columns = [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
+                    GridItem(.flexible(), spacing: productGridSpacing),
+                    GridItem(.flexible(), spacing: productGridSpacing),
+                    GridItem(.flexible(), spacing: productGridSpacing)
                 ]
 
-                LazyVGrid(columns: columns, spacing: 10) {
+                LazyVGrid(columns: columns, spacing: productGridSpacing) {
                     // used to also have requirement that to appear in shop, Product needed an image or emoji:
                     // $0.priceInCents > 0 && $0.isVisible && ($0.emoji != nil || $0.photoFilename != nil)
                     ForEach(savedProducts.filter({ $0.priceInCents > 0 && $0.isVisible }), id: \.id) { product in
@@ -182,8 +189,7 @@ struct ContentView: View {
                         )
                     }
                 }
-                .padding([.leading, .trailing])
-                .padding([.top], 4)
+                .padding(.horizontal, horizontalPadding)
                 .padding([.bottom], 14)
 
                 // Edit: removing this heading entirely for now (temporary; to review)
@@ -234,7 +240,6 @@ struct ContentView: View {
                                 .font(.system(.body, design: .monospaced))
                                 .frame(minWidth: 60, alignment: .trailing)
                         }
-                        .padding(.horizontal, 20)
 
                         HStack(spacing: 12) {
                             Text("Tax (\(formattedTaxRate)%)")
@@ -251,12 +256,11 @@ struct ContentView: View {
                                 .font(.system(.body, design: .monospaced))
                                 .frame(minWidth: 60, alignment: .trailing)
                         }
-                        .padding(.horizontal, 20)
 
                         Divider()
-                            .padding(.horizontal, 20)
                     }
                     .padding(.bottom, 8)
+                    .padding(.horizontal, horizontalPadding)
                 }
 
                 if totalAmountInCents > 49 {
@@ -275,13 +279,15 @@ struct ContentView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
                     .disabled(totalAmountInCents == 0)
+                    .padding(.horizontal, horizontalPadding)
                 } else if totalAmountInCents > 0 && totalAmountInCents <= 49 {
                     Text("Total amount must be > $0.49. Add more items to cart.")
                         .font(.caption)
                         .foregroundColor(.red)
+                        .padding(.horizontal, horizontalPadding)
                 }
             }
-            .padding()
+            .padding(.vertical) // this was simply .padding(), I want cartlistview to extend entirely left/right in light mode, so we have that grey gradient background
             .onAppear {
                 readerDiscoveryController.updateConnectionStatus = { status in
                     self.connectionStatus = status
@@ -436,16 +442,27 @@ struct AmountInputButton: View {
 
     var body: some View {
         Button(action: onTap) {
-            Text(amountInCents > 0 ? formatAmount(amountInCents) : "Enter amount")
-                .font(.title3)
-                .foregroundColor(amountInCents > 0 ? .primary : .secondary)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .padding()
-                .padding(.horizontal, 24)
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
+            VStack(spacing: 4) {
+                Text("Custom amount")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Text(formatAmount(amountInCents))
+                    .font(.body)
+                    .fontWeight(.medium)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 70)
+            .padding()
+            .contentShape(Rectangle())
         }
+        .foregroundColor(.primary)
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray, lineWidth: 1)
+        )
     }
 }
 

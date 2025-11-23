@@ -13,7 +13,7 @@ struct CustomKeypadView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let horizontalEdgePadding: CGFloat = 36  // Padding on left/right edges of entire keypad
+            let horizontalEdgePadding: CGFloat = 48  // Padding on left/right edges of entire keypad
             let buttonSpacing: CGFloat = 20          // Space between individual buttons
 
             let availableWidth = geometry.size.width - (2 * horizontalEdgePadding)
@@ -31,7 +31,7 @@ struct CustomKeypadView: View {
                 .font(.system(size: 56, weight: .medium, design: .default))
                 .foregroundStyle(.primary)
                 .frame(height: 70)
-                .padding(.top, 30)
+                .padding(.top, 40)
 
             // Number pad grid
             VStack(spacing: spacing) {
@@ -93,7 +93,7 @@ struct CustomKeypadView: View {
                         }) {
                             Image(systemName: "delete.left")
                                 .font(.system(size: buttonSize * 0.31, weight: .medium))  // Scales with button
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(.white)  // Always white for high contrast
                                 .frame(width: buttonSize, height: buttonSize)
                         }
                         .buttonStyle(GlassButtonStyle())
@@ -173,7 +173,7 @@ struct CustomKeypadView: View {
         }) {
             Text("\(number)")
                 .font(.system(size: size * 0.4, weight: .medium))  // Font scales with button (40% of button size)
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)  // Always white for high contrast
                 .frame(width: size, height: size)
         }
         .buttonStyle(GlassButtonStyle())
@@ -210,24 +210,24 @@ struct CustomKeypadView_Previews: PreviewProvider {
 struct GlassButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .background(.ultraThinMaterial, in: Circle())
+            .background(
+                Circle()
+                    .fill(configuration.isPressed ? Color.blue : Color.clear)
+            )
+            .background(.ultraThinMaterial, in: Circle())  // Material shows through when not pressed
             .overlay(
                 Circle()
                     .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
-            )
-            .overlay(  // Color feedback on press (before scale so it scales too)
-                Circle()
-                    .fill(configuration.isPressed ? Color.blue.opacity(0.15) : Color.clear)
             )
             .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
             .scaleEffect(configuration.isPressed ? 1.15 : 1.0)  // Grow to 115% (lock screen style)
             .animation(
                 configuration.isPressed
-                    ? nil  // Instant scale-up when pressed (fast response!)
+                    ? .easeOut(duration: 0.03)  // Very fast smooth press (30ms)
                     : .bouncy(duration: 0.4, extraBounce: 0.3),  // Bouncy when released
                 value: configuration.isPressed
             )
             .contentShape(Circle())  // Define exact hit area (prevents sheet from capturing touches)
-            .environment(\.colorScheme, .dark)  // Force neutral material (fixes green tint)
+            .environment(\.colorScheme, .dark)  // Force neutral dark material (gray background)
     }
 }

@@ -49,7 +49,7 @@ struct ProductGridButton: View {
                         .frame(width: productIconSize, height: productIconSize)
                 } else {
                     // Show placeholder for products without emoji/image
-                    Image(systemName: "camera.circle")
+                    Image(systemName: "photo.badge.plus")
                         .font(.system(size: productIconSize - 10))
                         .foregroundColor(.gray)
                         .frame(width: productIconSize, height: productIconSize)
@@ -93,13 +93,13 @@ struct ProductGridButton: View {
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(quantityInCart > 0 ? Color.blue : Color.gray,  lineWidth: quantityInCart > 0 ? 3 : 1)
+                .stroke(quantityInCart > 0 ? Color.blue : Color.gray,  lineWidth: quantityInCart > 0 ? 2 : 1)
         )
         .overlay(alignment: .topLeading) {
             // Quantity badge in top-left corner
             if quantityInCart > 0 {
                 Text("\(quantityInCart)")
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .padding(.horizontal, 6)
