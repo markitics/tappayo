@@ -10,6 +10,7 @@ struct CustomKeypadView: View {
     let onAddToCart: () -> Void
     let onCancel: () -> Void
     let inputMode: String
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         GeometryReader { geometry in
@@ -93,7 +94,7 @@ struct CustomKeypadView: View {
                         }) {
                             Image(systemName: "delete.left")
                                 .font(.system(size: buttonSize * 0.31, weight: .medium))  // Scales with button
-                                .foregroundStyle(.white)  // Always white for high contrast
+                                .foregroundStyle(colorScheme == .light ? .black : .white)  // Dark text in light mode, white in dark
                                 .frame(width: buttonSize, height: buttonSize)
                         }
                         .buttonStyle(GlassButtonStyle())
@@ -138,11 +139,24 @@ struct CustomKeypadView: View {
         }
         .padding(.vertical, 30)
         .padding(.horizontal, horizontalEdgePadding)  // Consistent padding on all edges
-//        .background(
-//            RoundedRectangle(cornerRadius: 20)
-//                .fill(Color(UIColor.systemGray6).opacity(0.98))
-//        )
-        
+        .background(
+            // Gradient background: light mode only (elegant white on gray gradient)
+            Group {
+                if colorScheme == .light {
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.92, green: 0.92, blue: 0.94),  // Slightly darker gray (more visible)
+                            Color(red: 0.98, green: 0.98, blue: 0.99)   // Very light gray (not pure white)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                } else {
+                    Color.clear  // Dark mode: no background (inherits sheet background)
+                }
+            }
+        )
+
     }
 
     // Helper to create number buttons
@@ -173,7 +187,7 @@ struct CustomKeypadView: View {
         }) {
             Text("\(number)")
                 .font(.system(size: size * 0.4, weight: .medium))  // Font scales with button (40% of button size)
-                .foregroundStyle(.white)  // Always white for high contrast
+                .foregroundStyle(colorScheme == .light ? .black : .white)  // Dark text in light mode, white in dark
                 .frame(width: size, height: size)
         }
         .buttonStyle(GlassButtonStyle())
@@ -208,18 +222,44 @@ struct CustomKeypadView_Previews: PreviewProvider {
 // MARK: - Glass Button Style
 
 struct GlassButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) var colorScheme
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(
                 Circle()
                     .fill(configuration.isPressed ? Color.blue : Color.clear)
             )
-            .background(.ultraThinMaterial, in: Circle())  // Material shows through when not pressed
+            .background(
+                // Light mode: white frosted glass; Dark mode: dark frosted glass
+                Group {
+                    if colorScheme == .light {
+                        Circle()
+                            .fill(.white.opacity(0.7))
+                            .background(.ultraThinMaterial, in: Circle())
+                    } else {
+                        Circle()
+                            .fill(Color.clear)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                }
+            )
             .overlay(
                 Circle()
-                    .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                    .strokeBorder(
+                        colorScheme == .light
+                            ? Color.gray.opacity(0.2)  // Subtle gray border in light mode
+                            : Color.white.opacity(0.2),  // White border in dark mode
+                        lineWidth: 0.5
+                    )
             )
-            .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+            .shadow(
+                color: colorScheme == .light
+                    ? Color.gray.opacity(0.15)  // Subtle gray shadow in light mode
+                    : Color.black.opacity(0.1),  // Black shadow in dark mode
+                radius: 8,
+                y: 4
+            )
             .scaleEffect(configuration.isPressed ? 1.15 : 1.0)  // Grow to 115% (lock screen style)
             .animation(
                 configuration.isPressed
@@ -228,6 +268,5 @@ struct GlassButtonStyle: ButtonStyle {
                 value: configuration.isPressed
             )
             .contentShape(Circle())  // Define exact hit area (prevents sheet from capturing touches)
-            .environment(\.colorScheme, .dark)  // Force neutral dark material (gray background)
     }
 }

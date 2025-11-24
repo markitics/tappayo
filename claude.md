@@ -133,6 +133,139 @@ Button(action: {
 
 **File**: `SettingsView.swift:52-184` (unified icon button), `SettingsView.swift:185-202` (emoji picker modifier)
 
+### Retry/Timeout Logic Robustness Analysis (Nov 2025)
+
+**Context**: Analysis of reader discovery/connection retry logic and app lifecycle handling to identify edge cases where the app could get stuck or fail to recover.
+
+**Current Status**: App works perfectly in normal usage scenarios. This analysis documents potential improvements for future consideration when ready to tackle robustness systematically.
+
+#### ✅ What Works Well
+
+1. **Discovery watchdog timer** (30-second timeout) - Successfully catches stuck discovery state
+2. **Discovery retry logic** - 3 retries with 2-second delay between attempts
+3. **Duplicate operation prevention** - Guard statements prevent multiple simultaneous discoveries/payments
+4. **Auto-reconnect configuration** - `setAutoReconnectOnUnexpectedDisconnect(true)` enabled
+5. **Payment error handling** - All payment steps (create/collect/confirm) handle errors gracefully
+
+#### 🔴 Known Gaps & Edge Cases
+
+**1. Connection Phase Has No Timeout (Critical)**
+- **Issue**: `Terminal.shared.connectLocalMobileReader()` has no watchdog timer
+- **Current behavior**: If connection callback never fires, stuck at "Connecting to reader..." forever
+- **Why**: Discovery watchdog is only cancelled on connection SUCCESS (line 70), never started for connection phase
+- **Recovery**: None - user must force-quit app
+- **Impact**: Low likelihood in practice, but no graceful recovery
+
+**2. Connection Retry Logic is Broken (Critical)**
+- **Issue**: Retry attempt looks for `reader` parameter in error handler where it's guaranteed to be nil
+- **Lines**: ReaderDiscoveryViewController.swift:77-83
+- **Current behavior**: Shows "Reader is nil, cannot retry" instead of retrying
+- **Fix needed**: Store reader reference from function parameter before attempting connection
+- **Impact**: Connection failures (network issues, etc.) don't retry as intended
+
+**3. Force Unwrap Will Crash App (Medium)**
+- **Line**: ReaderDiscoveryViewController.swift:32
+- **Code**: `try! LocalMobileDiscoveryConfigurationBuilder().build()`
+- **Current behavior**: App crashes if build fails
+- **Should**: Handle error gracefully with do-catch
+- **Impact**: Low likelihood but catastrophic if it occurs
+
+**4. No App Lifecycle Management (Medium)**
+- **Issue**: No monitoring of background/foreground transitions
+- **Current behavior**:
+  - Discovery/connection operations continue in background
+  - Timers keep running when app backgrounded
+  - No cleanup on backgrounding
+  - No reconnect on foregrounding
+  - No pause/resume logic
+- **Impact**: Battery drain, potential stale state on return to foreground
+
+**5. Potential Infinite Retry Loop (Low)**
+- **Issue**: Discovery watchdog timeout (line 180) calls `discoverAndConnectReader()` with default 3 retries
+- **Current behavior**: Each watchdog timeout gives you 3 MORE retry attempts
+- **Result**: Could retry indefinitely in certain failure modes
+- **Impact**: Battery drain, poor UX
+
+**6. No Reader Disconnection Handling (Low)**
+- **Issue**: No implementation of `TerminalDelegate.didReportUnexpectedReaderDisconnect`
+- **Current behavior**: If reader disconnects mid-session (not during payment), `isConnected` remains true
+- **Result**: Stale connection state, UI says "Ready" when not actually connected
+- **Mitigation**: Auto-reconnect config helps, but doesn't update UI state
+
+**7. No Network State Monitoring (Low)**
+- **Issue**: No proactive network reachability checking
+- **Airplane mode scenario**: Discovery will fail and retry (works), but connection retry is broken (see #2)
+- **Impact**: Degraded UX in poor network conditions
+
+**8. Reader Update Has No Timeout (Low)**
+- **Issue**: Reader software update progress (lines 196-214) has no timeout
+- **Current behavior**: Shows progress updates
+- **Result**: Could be stuck indefinitely if update never completes
+- **Impact**: Very rare, Stripe SDK likely handles this
+
+#### 🎯 Edge Case Scenarios
+
+**Scenario A: Airplane Mode During Connection**
+1. Discovery succeeds → finds reader
+2. User enables airplane mode
+3. `connectToReader()` called
+4. Connection attempt hangs (no network)
+5. **Result**: Stuck at "Connecting to reader..." forever (no timeout, retry broken)
+
+**Scenario B: Poor Network During Connection**
+1. Discovery succeeds
+2. Connection attempt fails with timeout error
+3. Retry logic tries to execute (line 79)
+4. `reader` is nil in error handler
+5. **Result**: Shows "Reader is nil, cannot retry" and stops
+
+**Scenario C: Force Quit During Payment**
+1. User taps $50 item
+2. Payment intent created successfully
+3. `collectPaymentMethod` in progress
+4. User force-quits app
+5. **Result**: Payment doesn't complete (Stripe safety guarantees prevent charge), but no in-app record
+6. **Acceptable**: Merchant checks Stripe dashboard for transaction status
+
+**Scenario D: App Backgrounded During Discovery**
+1. Discovery in progress, timer at 15 seconds
+2. User backgrounds app
+3. iOS suspends timers
+4. User returns 5 minutes later
+5. **Result**: Timer resumes from 15 seconds, discovery may have failed long ago
+
+#### 💡 Potential Future Improvements
+
+**When ready to tackle robustness systematically, consider:**
+
+1. **Add connection timeout** - Same 30-second watchdog pattern as discovery
+2. **Fix connection retry logic** - Store reader reference before attempting connection
+3. **Add app lifecycle monitoring** - Pause operations on background, reconnect on foreground using `@Environment(\.scenePhase)`
+4. **Replace `try!` with proper error handling** - Use do-catch blocks
+5. **Implement reader disconnect delegate** - Detect and handle unexpected disconnections
+6. **Cap total retry attempts** - Prevent infinite loops across watchdog timeouts
+7. **Add reader update timeout** - Safety net for stuck update operations
+8. **Optional: Network reachability monitoring** - Proactively detect and handle offline state
+9. **Optional: Payment intent persistence** - Save in-flight payment IDs for recovery (likely overkill for this use case)
+
+#### 📊 Robustness Assessment
+
+**Score: 4/10**
+
+**Strengths:**
+- Works perfectly for normal usage (farmers market, retail scenarios)
+- Discovery timeout protection exists and works
+- Payment error handling is decent
+- Stripe SDK provides good safety guarantees
+
+**Weaknesses:**
+- Connection timeout missing (critical gap, but rare in practice)
+- Connection retry broken (medium issue, network failures won't retry)
+- No lifecycle awareness (medium issue, battery drain potential)
+- Several smaller gaps that compound
+
+**Recommendation**: Document these issues but don't fix yet. App works well for current use case. Tackle in dedicated "robustness" branch when ready for systematic improvements.
+
 ---
 
 ## Nov 2025: Claude Code Initial Observations and Possible Improvements

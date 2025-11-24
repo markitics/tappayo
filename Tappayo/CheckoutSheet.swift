@@ -557,7 +557,7 @@ struct TipButton: View {
                 .foregroundColor(isSelected ? .white : .blue)
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
-                .background(isSelected ? Color.blue : Color.white)
+                .background(isSelected ? Color.blue : Color(UIColor.secondarySystemGroupedBackground))
                 .clipShape(UnevenRoundedRectangle(
                     topLeadingRadius: cornerRadius,
                     bottomLeadingRadius: cornerRadius,
@@ -584,7 +584,7 @@ struct TipButton: View {
                 .foregroundColor(isSelected ? .white : .blue)
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
-                .background(isSelected ? Color.blue : Color.white)
+                .background(isSelected ? Color.blue : Color(UIColor.secondarySystemGroupedBackground))
                 .clipShape(Rectangle())
                 .overlay(Rectangle().stroke(Color.blue, lineWidth: 1))
         }
@@ -598,7 +598,7 @@ struct TipButton: View {
                 .foregroundColor(isSelected ? .white : .blue)
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
-                .background(isSelected ? Color.blue : Color.white)
+                .background(isSelected ? Color.blue : Color(UIColor.secondarySystemGroupedBackground))
                 .clipShape(UnevenRoundedRectangle(
                     topLeadingRadius: 0,
                     bottomLeadingRadius: 0,
