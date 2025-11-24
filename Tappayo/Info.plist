@@ -11,5 +11,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is required to accept payments.
 </string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is used to take photos of products for your quick-add buttons.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is used to choose photos of products for your quick-add buttons.</string>
 </dict>
 </plist>
