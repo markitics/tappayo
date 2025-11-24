@@ -2,19 +2,20 @@
 //  Tappayo
 //  Created by M@rkMoriarty.com
 
+//import Foundation
+//
+//struct UserDefaultsKeys {
+//    static let quickAmounts = "quickAmounts"
+//    static let accentColor = "accentColor"
+//    static let darkModePreference = "darkModePreference"
+//}
+
+
 import Foundation
 
 enum UserDefaultsKeys: String {
     case quickAmounts
-    case savedProducts
     case myAccentColor
     case darkModePreference
-    case businessName
-    case taxRate
-    case taxRateBasisPoints
-    case taxEnabled
-    case tippingEnabled
-    case dismissKeypadAfterAdd
-    case inputMode  // "cents" or "dollars"
 }
 

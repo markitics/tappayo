@@ -5,7 +5,7 @@
 import SwiftUI
 
 struct CurrencyTextField: UIViewRepresentable {
-    @Binding var value: Int // Stored as cents (1000 = $10.00)
+    @Binding var value: Int
     let placeholder: String
     let font: Font
 
@@ -39,12 +39,9 @@ struct CurrencyTextField: UIViewRepresentable {
     func makeUIView(context: Context) -> UITextField {
         let textField = UITextField()
         textField.placeholder = placeholder
-        textField.keyboardType = .numberPad
+        textField.keyboardType = .decimalPad
         textField.delegate = context.coordinator
-        textField.textAlignment = .left
-
-        // No border - let parent view handle styling
-        textField.borderStyle = .none
+        textField.textAlignment = .center // Center align text
 
         // Convert SwiftUI Font to UIFont and apply
         let uiFont = UIFont.preferredFont(from: font)
@@ -53,7 +50,7 @@ struct CurrencyTextField: UIViewRepresentable {
         // Add a toolbar with a done button
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .save, target: textField, action: #selector(UITextField.resignFirstResponder))
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: textField, action: #selector(UITextField.resignFirstResponder))
         toolbar.setItems([doneButton], animated: false)
         textField.inputAccessoryView = toolbar
 
@@ -63,16 +60,16 @@ struct CurrencyTextField: UIViewRepresentable {
     func updateUIView(_ uiView: UITextField, context: Context) {
         uiView.text = format(cents: value)
         uiView.font = UIFont.preferredFont(from: font)
-        uiView.textAlignment = .left // Ensure text remains left-aligned on update
+        uiView.textAlignment = .center // Ensure text remains centered on update
     }
 
     private func format(cents: Int) -> String? {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencySymbol = "$"
-        formatter.usesGroupingSeparator = true
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
+//        formatter.currencyCode = "USD"
+        formatter.currencySymbol = "$" // Remove "US"
         return formatter.string(from: NSNumber(value: Double(cents) / 100))
     }
 }
