@@ -28,15 +28,7 @@ struct SettingsView: View {
                 Toggle("Add tax", isOn: $taxEnabled)
 
                 if taxEnabled {
-                    HStack {
-                        PercentageTextField(
-                            value: $taxRateBasisPoints,
-                            placeholder: "0.00",
-                            font: .body
-                        )
-                        Text("%")
-                            .foregroundColor(.secondary)
-                    }
+                    PercentageTaxField(value: $taxRateBasisPoints)
                 }
             }
 

@@ -70,7 +70,8 @@ struct ProductEditorView: View {
 
                 Spacer()
             }
-            .background(Color(.systemBackground))
+            .padding(.horizontal, 32)
+            .sheetGradientBackground()
             .navigationTitle("Edit Product")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -70,13 +70,14 @@ struct ItemEditorView: View {
             // Price editing
             ProductPriceField(priceInCents: $editedPriceInCents)
 
-            // Calculation row (only if quantity > 1)
-            if currentQuantity > 1 {
-                Text("\(formatAmount(editedPriceInCents, true)) × \(currentQuantity) = \(formatAmount(editedPriceInCents * currentQuantity, true))")
-                    .font(.title2)
-                    .fontWeight(.medium)
-                    .foregroundColor(.secondary)
-            }
+            // Calculation row (always reserve space to prevent UI jumping)
+            Text(currentQuantity > 1
+                ? "\(formatAmount(editedPriceInCents, true)) × \(currentQuantity) = \(formatAmount(editedPriceInCents * currentQuantity, true))"
+                : " ")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.secondary)
+                .opacity(currentQuantity > 1 ? 1.0 : 0.0)
 
 
             // Quantity section
@@ -127,7 +128,8 @@ struct ItemEditorView: View {
 
             Spacer()
             }
-            .background(Color(.systemBackground))
+            .padding(.horizontal, 32)
+            .sheetGradientBackground()
             .navigationTitle(item.isProduct ? "Edit Product" : "Edit Item")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

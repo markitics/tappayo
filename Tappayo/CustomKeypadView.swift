@@ -23,6 +23,7 @@ struct CustomKeypadView: View {
 
             keypadContent(buttonSize: buttonSize, spacing: buttonSpacing, horizontalEdgePadding: horizontalEdgePadding)
         }
+        .sheetGradientBackground()
     }
 
     private func keypadContent(buttonSize: CGFloat, spacing: CGFloat, horizontalEdgePadding: CGFloat) -> some View {
@@ -139,24 +140,6 @@ struct CustomKeypadView: View {
         }
         .padding(.vertical, 30)
         .padding(.horizontal, horizontalEdgePadding)  // Consistent padding on all edges
-        .background(
-            // Gradient background: light mode only (elegant white on gray gradient)
-            Group {
-                if colorScheme == .light {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.92, green: 0.92, blue: 0.94),  // Slightly darker gray (more visible)
-                            Color(red: 0.98, green: 0.98, blue: 0.99)   // Very light gray (not pure white)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                } else {
-                    Color.clear  // Dark mode: no background (inherits sheet background)
-                }
-            }
-        )
-
     }
 
     // Helper to create number buttons

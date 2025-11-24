@@ -28,19 +28,19 @@ struct ProductIconPicker: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 100, height: 100)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .frame(width: 220, height: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
                 } else if let emoji = product.emoji {
                     // Show emoji
                     Text(emoji)
-                        .font(.system(size: 80))
-                        .frame(width: 100, height: 100)
+                        .font(.system(size: 176))
+                        .frame(width: 220, height: 220)
                 } else {
                     // Show placeholder
                     Image(systemName: "photo.badge.plus")
-                        .font(.system(size: 80))
+                        .font(.system(size: 176))
                         .foregroundColor(.gray)
-                        .frame(width: 100, height: 100)
+                        .frame(width: 220, height: 220)
                 }
             }
         }

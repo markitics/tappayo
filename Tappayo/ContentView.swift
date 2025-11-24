@@ -26,6 +26,7 @@ struct ContentView: View {
     @State private var editingItem: CartItem? = nil
     @State private var showQuantityEditor = false
     @State private var showCheckoutSheet = false
+    @State private var isEmailFieldFocused = false
 
     // Animation state for cart row updates
     @State private var lastChangedItemId: UUID? = nil
@@ -381,6 +382,7 @@ struct ContentView: View {
                     savedProducts: $savedProducts,
                     lastChangedItemId: $lastChangedItemId,
                     isAnimatingQuantity: $isAnimatingQuantity,
+                    isEmailFieldFocused: $isEmailFieldFocused,
                     receiptEmail: $receiptEmail,
                     businessName: businessName,
                     tippingEnabled: tippingEnabled,
@@ -410,7 +412,9 @@ struct ContentView: View {
                     allItemsQuantityOne: allItemsQuantityOne,
                     cartHasAnyCents: cartHasAnyCents
                 )
-                .presentationDetents([.fraction(0.96)]) // detents of the checkout sheet (leave a little room on top to see the business name in the background, and to make it obvious it's a sheet we can dismiss down)
+                .presentationDetents(isEmailFieldFocused
+                    ? [.fraction(0.6), .large]  // Shorter when keyboard visible
+                    : [.fraction(0.96), .large]) // Full height normally (0.96 = preferred, leave a little room on top to see the business name in the background, and to make it obvious it's a sheet we can dismiss down; .large is full-screen if we really want max height to view items)
                 .presentationDragIndicator(.visible)
             }
         }

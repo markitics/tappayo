@@ -20,7 +20,7 @@ struct CheckoutSheet: View {
     @State private var clearCartTimer: Timer? = nil
     @State private var showingClearCartCountdown = false
     @State private var showEmailField = false
-    @FocusState private var isEmailFieldFocused: Bool
+    @Binding var isEmailFieldFocused: Bool
     @Binding var receiptEmail: String
     @State private var selectedTipPercentage: Double = 0.0  // 0, 12, 18, or 22
     @Environment(\.dismiss) private var dismiss
@@ -81,11 +81,9 @@ struct CheckoutSheet: View {
 //                Text("Cart")
 //                    .font(.headline)
 //                    .fontWeight(.bold)
-//                    .padding(.horizontal, 20)
+//                    .padding(.horizontal, 24)
 //                Spacer()
 //            }
-
-            Spacer() // spacer between business name and cart items
 
             // Hide cart items when email field is focused (keyboard takes up too much space)
             if !isEmailFieldFocused {
@@ -157,11 +155,12 @@ struct CheckoutSheet: View {
             // Everything below cart needs horizontal padding
             VStack(spacing: 0) {
                 // Subtotal, Tax, Tip, Total breakdown
-                VStack(spacing: 8) {
+                VStack(spacing: 14) {
                     // Show Subtotal only when there's a breakdown (tax > 0 or tip > 0)
                     let hasBreakdown = taxAmountInCents > 0 || tipAmountInCents > 0
 
-                    if hasBreakdown {
+                    // Render subtotal when tax exists OR tipping enabled (reserves space to prevent jumping)
+                    if taxAmountInCents > 0 || tippingEnabled {
                         HStack {
                             Text("Subtotal")
                             Spacer()
@@ -169,6 +168,7 @@ struct CheckoutSheet: View {
                                 .font(.system(.body, design: .monospaced))
                         }
                         .padding(.horizontal, 12)
+                        .opacity(hasBreakdown ? 1.0 : 0.1)  // Invisible when subtotal == Total
                     }
 
                     if taxAmountInCents > 0 {
@@ -191,89 +191,25 @@ struct CheckoutSheet: View {
                         .padding(.horizontal, 12)
                     }
 
+                    
                     // Total line - show when multiple items OR breakdown exists (tax/tip)
                     // Hide when single item with no tax/tip (item price = total, so redundant)
                     if basket.count != 1 || taxAmountInCents > 0 || tipAmountInCents > 0 {
+                        Divider()
                         HStack {
                             Text("Total")
                                 .fontWeight(.semibold)
                             Spacer()
                             Text(formatMoney(totalWithTipInCents))
                                 .font(.system(.body, design: .monospaced))
-                                .fontWeight(.semibold)
+                                .fontWeight(.bold)
                         }
                         .padding(.horizontal, 12)
-                        .padding(.top, 8)  // Extra space above total for visual separation
+//                        .padding(.top, 8)  // Extra space above total for visual separation
                     }
                 }
 
                 Spacer()
-
-                // Email field for receipt (optional) OR receipt confirmation
-                if paymentSucceeded {
-                    // Show receipt confirmation only if email was provided
-                    if !receiptEmail.isEmpty {
-                        Text("Receipt sent to \(receiptEmail)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .padding(.bottom, 8)
-                    }
-                    // If no email: hide this section entirely
-                } else {
-                    // Before payment: progressive disclosure for email
-                    if !showEmailField && receiptEmail.isEmpty {
-                        // Button to reveal email field (only show if email is empty)
-                        Button(action: {
-                            showEmailField = true
-                            isEmailFieldFocused = true
-                        }) {
-                            HStack {
-                                Image(systemName: "envelope")
-                                Text("Email for receipt")
-                            }
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                        }
-                        .padding(.bottom, 8)
-                    } else if showEmailField || !receiptEmail.isEmpty {
-                        // Email field with remove option
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Email for receipt")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Button("Remove") {
-                                    showEmailField = false
-                                    receiptEmail = ""
-                                    isEmailFieldFocused = false
-                                }
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
-                            TextField("your@email.com", text: $receiptEmail)
-                                .textContentType(.emailAddress)
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                                .textFieldStyle(.roundedBorder)
-                                .font(.body)
-                                .submitLabel(.done)
-                                .onSubmit {
-                                    isEmailFieldFocused = false
-                                }
-                                .focused($isEmailFieldFocused)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .keyboard) {
-                                        Spacer()
-                                        Button("Done") {
-                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                                        }
-                                    }
-                                }
-                        }
-                        .padding(.bottom, 8)
-                    }
-                }
 
                 // Tip selector (only show if tipping enabled and before payment)
                 if tippingEnabled && !paymentSucceeded {
@@ -293,6 +229,14 @@ struct CheckoutSheet: View {
                     }
                     .padding(.bottom, 8)
                 }
+
+                // Email field for receipt (optional) OR receipt confirmation
+                EmailReceiptSection(
+                    showEmailField: $showEmailField,
+                    isEmailFieldFocused: $isEmailFieldFocused,
+                    receiptEmail: $receiptEmail,
+                    paymentSucceeded: paymentSucceeded
+                )
 
                 Spacer()
 
@@ -400,6 +344,7 @@ struct CheckoutSheet: View {
                 }
             }
             .padding(.horizontal, 24)
+            .padding(.top, 32)
         }
 //        .padding(.bottom, 20)
         .background(Color(.systemBackground))
@@ -518,6 +463,107 @@ struct CheckoutSheet: View {
             } // Close VStack
         } // Close GeometryReader
     }
+
+// MARK: - Email Receipt Section Component
+
+struct EmailReceiptSection: View {
+    @Binding var showEmailField: Bool
+    @Binding var isEmailFieldFocused: Bool
+    @Binding var receiptEmail: String
+    let paymentSucceeded: Bool
+    @Environment(\.colorScheme) var colorScheme
+    @FocusState private var localFocus: Bool
+
+    var body: some View {
+        Group {
+            if paymentSucceeded {
+                // Show receipt confirmation only if email was provided
+                if !receiptEmail.isEmpty {
+                    Text("Receipt sent to \(receiptEmail)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 8)
+                }
+            } else {
+                // Before payment: progressive disclosure for email
+                if !showEmailField && receiptEmail.isEmpty {
+                    Button(action: {
+                        showEmailField = true
+                        localFocus = true
+                    }) {
+                        HStack {
+                            Image(systemName: "envelope")
+                            Text("Email for receipt") // text we see before clicking on email input
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                    }
+                    .padding(.top, 24)
+//                    .padding(.bottom, 16)
+                } else if showEmailField || !receiptEmail.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Email for receipt") // small label we see beside the input field when focus is active
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Button("Remove") {
+                                showEmailField = false
+                                receiptEmail = ""
+                                localFocus = false
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        }
+                        TextField("your@email.com", text: $receiptEmail)
+                            .textContentType(.emailAddress)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                            .font(.body)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(
+                                Group {
+                                    if colorScheme == .light {
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(.white.opacity(0.9))
+                                            .shadow(color: Color.gray.opacity(0.15), radius: 8, y: 4)
+                                    } else {
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color(.systemGray5))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                                            )
+                                    }
+                                }
+                            )
+                            .submitLabel(.done)
+                            .onSubmit {
+                                localFocus = false
+                            }
+                            .focused($localFocus)
+                            .onChange(of: localFocus) { _, newValue in
+                                isEmailFieldFocused = newValue
+                            }
+                            .onChange(of: isEmailFieldFocused) { _, newValue in
+                                localFocus = newValue
+                            }
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button("Done") {
+                                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                    }
+                                }
+                            }
+                    }
+                    .padding(.bottom, 8)
+                }
+            }
+        }
+    }
+}
 
 // MARK: - Tip Button Component
 

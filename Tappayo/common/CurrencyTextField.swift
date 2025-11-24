@@ -43,8 +43,8 @@ struct CurrencyTextField: UIViewRepresentable {
         textField.delegate = context.coordinator
         textField.textAlignment = .left
 
-        // Apply rounded border style to match SwiftUI's .roundedBorder
-        textField.borderStyle = .roundedRect
+        // No border - let parent view handle styling
+        textField.borderStyle = .none
 
         // Convert SwiftUI Font to UIFont and apply
         let uiFont = UIFont.preferredFont(from: font)

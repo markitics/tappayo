@@ -1,27 +1,28 @@
-//  ProductNameField.swift
+//  PercentageTaxField.swift
 //  Tappayo
 //
-//  Reusable component for editing product names
+//  Reusable component for editing tax rate as percentage (basis points)
 
 import SwiftUI
 
-struct ProductNameField: View {
-    @Binding var name: String
-    let label: String
-    var onSubmit: (() -> Void)? = nil
-
-    @FocusState private var isFocused: Bool
+struct PercentageTaxField: View {
+    @Binding var value: Int
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(label)
+            Text("Tax Rate")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-            TextField("Enter name", text: $name)
-                .font(.title3)
+
+            HStack(spacing: 8) {
+                PercentageTextField(
+                    value: $value,
+                    placeholder: "0.00",
+                    font: .body
+                )
+                .frame(height: 50)
                 .padding(.horizontal, 16)
-                .padding(.vertical, 12)
                 .background(
                     // Light mode: white frosted glass like keypad buttons
                     // Dark mode: medium-dark grey for visibility
@@ -40,10 +41,11 @@ struct ProductNameField: View {
                         }
                     }
                 )
-                .focused($isFocused)
-                .onSubmit {
-                    onSubmit?()
-                }
+
+                Text("%")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.horizontal)
     }
