@@ -143,7 +143,8 @@ struct CheckoutSheet: View {
                     .listStyle(.plain)
                     .padding(.horizontal, 24)
                     .padding(.top, 48) // Breathing room above cart
-                    .frame(maxHeight: min(600, CGFloat(200 + 50 * basket.count)))
+//                    .frame(maxHeight: min(600, CGFloat(200 + 50 * basket.count)))
+                    .frame(maxHeight: min(400, CGFloat(200 + 50 * basket.count)))
                 }
             }
 

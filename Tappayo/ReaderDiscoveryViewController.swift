@@ -10,6 +10,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     var isConnected = false
     var isDiscovering = false
     var isProcessingPayment = false
+    var discoveryWatchdogTimer: Timer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,6 +31,13 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         isDiscovering = true
         let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
         updateConnectionStatus?("Discovering readers...")
+
+        // Start 30-second watchdog timer to detect stuck discovery
+        discoveryWatchdogTimer?.invalidate()
+        discoveryWatchdogTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: false) { [weak self] _ in
+            self?.handleDiscoveryTimeout()
+        }
+
         self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
             self.isDiscovering = false
             if let error = error {
@@ -44,7 +52,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 }
             } else {
                 print("discoverReaders succeeded")
-                self.updateConnectionStatus?("Discover readers succeeded")
+                self.updateConnectionStatus?("Connecting to reader...")
             }
         }
     }
@@ -59,6 +67,7 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 if let reader = reader {
                     print("Successfully connected to reader: \(reader)")
                     self.isConnected = true
+                    self.discoveryWatchdogTimer?.invalidate() // Cancel watchdog - connection succeeded
                     self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
                 } else if let error = error {
                     print("connectLocalMobileReader failed: \(error)")
@@ -156,7 +165,22 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
             }
         }
     }
-    
+
+    private func handleDiscoveryTimeout() {
+        print("Discovery watchdog triggered after 30 seconds")
+
+        if isConnected {
+            // Already connected but UI state is stuck - fix it
+            print("Already connected, updating status")
+            updateConnectionStatus?("Ready for Tap to Pay on iPhone")
+        } else {
+            // Discovery genuinely stuck - retry
+            print("Not connected after 30s, retrying discovery")
+            updateConnectionStatus?("Discovery timed out. Retrying...")
+            discoverAndConnectReader()
+        }
+    }
+
     // MARK: DiscoveryDelegate
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         if let firstReader = readers.first {
