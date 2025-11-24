@@ -8,7 +8,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Business")) {
+            Section(header: Text("Business name")) {
                 TextField("Business name", text: $businessName)
             }
 
@@ -20,7 +20,7 @@ struct SettingsView: View {
 
             Section(header: Text("Display")) {
                 NavigationLink(destination: DisplayOptionsView()) {
-                    Text("Display Options")
+                    Text("Display options")
                 }
             }
 

@@ -66,7 +66,8 @@ struct CheckoutSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
             // Business name header removed - .presentationDetents([.fraction(0.9)]) means we can see business name on the main page behind this sheet
 //            Text(businessName)
 //                .font(.title2)
@@ -143,8 +144,13 @@ struct CheckoutSheet: View {
                     .listStyle(.plain)
                     .padding(.horizontal, 24)
                     .padding(.top, 48) // Breathing room above cart
-//                    .frame(maxHeight: min(600, CGFloat(200 + 50 * basket.count)))
-                    .frame(maxHeight: min(400, CGFloat(200 + 50 * basket.count)))
+                    .frame(maxHeight: {
+                        // Calculate fixed UI height (breakdown, email, tip, pay button, etc.)
+                        let fixedUIHeight: CGFloat = 500 // Approximate: breakdown + email + tip selector + buttons + padding
+                        let availableHeight = geometry.size.height - fixedUIHeight
+                        let desiredHeight = CGFloat(200 + 50 * basket.count)
+                        return max(200, min(availableHeight, desiredHeight)) // Minimum 200, max available
+                    }())
                 }
             }
 
@@ -509,8 +515,9 @@ struct CheckoutSheet: View {
                 onDismiss()
             }
         }
+            } // Close VStack
+        } // Close GeometryReader
     }
-}
 
 // MARK: - Tip Button Component
 
