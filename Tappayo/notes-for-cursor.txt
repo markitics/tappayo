@@ -1,0 +1,35 @@
+Please note the following preferences when helpling me to code.
+
+# 1. Almost never suggest removing comments, except when the comments are specifically related to the edit you're making.
+
+You can do this:
+If I had a line
+```
+// set the name of the player to display later
+var name = "Mark" // name of the player
+```
+
+then if you delete the line `var name = "Mark" // name of the player` you can also delete the comment immediately preceeding it.
+
+But, that's rare.
+
+Most of the time (99% of the time) you should not suggest deleting comments.
+
+For example, if I ask you to help me "dismiss the numerica keypad", then you should not take the opportunity to make random suggestions like this:
+
+- .background(Color.gray) // or myAccentColor
++ .background(Color.gray)
+
+Similarly do not suggest edits like this
+-  Spacer().frame(height: 34) // Maintain space when button is hidden
++  Spacer().frame(height: 34)
+
+If I accept such an edit, I lose the richness of the inline comment, which tells me WHY the line is there, or what alternative input values might be.
+
+# 2. Do not make multiple unrelated edits in one go.
+e.g., if I ask you to help me "dismiss the numerica keypad", then you should not take the opportunity to make random suggestions like this:
+
+- .background(Color.gray) // or myAccentColor
++ .background(Color.gray)
+
+# 3. Do not write out lengthy code samples in the composer view - instead, propose direct edits to the relevant file.

@@ -5,30 +5,59 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
 
     var discoverCancelable: Cancelable?
     var updateConnectionStatus: ((String) -> Void)?
+    var updatePaymentProcessing: ((Bool) -> Void)?
+    var onPaymentSuccess: (() -> Void)?
     var isConnected = false
-//    var pendingAmount: Int?
+    var isDiscovering = false
+    var isProcessingPayment = false
+    var discoveryWatchdogTimer: Timer?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Retrieve the saved accent color
+        // if let accentColor = UserDefaults.standard.colorForKey("AccentColor") {
+        //     self.navigationController?.navigationBar.tintColor = accentColor // title color
+        // }
         discoverAndConnectReader()
     }
     
-    func discoverAndConnectReader() {
+    func discoverAndConnectReader(retriesRemaining: Int = 3) {
+        guard !isDiscovering else { return } // Prevent multiple discoveries
+        guard !isConnected else {
+            // Skip discovery if already connected (e.g., we click into Settings page, and then come back to main ConentView, triggering viewDidLoad again, but we've remained Connected the whole time
+            self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
+            return
+        }
+        isDiscovering = true
         let config = try! LocalMobileDiscoveryConfigurationBuilder().build()
         updateConnectionStatus?("Discovering readers...")
+
+        // Start 30-second watchdog timer to detect stuck discovery
+        discoveryWatchdogTimer?.invalidate()
+        discoveryWatchdogTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: false) { [weak self] _ in
+            self?.handleDiscoveryTimeout()
+        }
+
         self.discoverCancelable = Terminal.shared.discoverReaders(config, delegate: self) { error in
+            self.isDiscovering = false
             if let error = error {
                 print("discoverReaders failed: \(error)")
-                self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription)")
+                if retriesRemaining > 0 {
+                    self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription). Will retry...")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // Retry after 2 seconds
+                        self.discoverAndConnectReader(retriesRemaining: retriesRemaining - 1)
+                    }
+                } else {
+                    self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription). Exceeded maximum retries.")
+                }
             } else {
                 print("discoverReaders succeeded")
-                self.updateConnectionStatus?("Discover readers succeeded")
+                self.updateConnectionStatus?("Connecting to reader...")
             }
         }
     }
-
     
-    func connectToReader(reader: Reader) {
+    func connectToReader(reader: Reader, retriesRemaining: Int = 3) {
         do {
             let connectionConfig = try LocalMobileConnectionConfigurationBuilder(locationId: "tml_FhUnQwoWdFn95V")
                 .setAutoReconnectOnUnexpectedDisconnect(true)
@@ -38,11 +67,24 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 if let reader = reader {
                     print("Successfully connected to reader: \(reader)")
                     self.isConnected = true
-                    self.updateConnectionStatus?("Successfully connected to reader")
-                    
+                    self.discoveryWatchdogTimer?.invalidate() // Cancel watchdog - connection succeeded
+                    self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
                 } else if let error = error {
                     print("connectLocalMobileReader failed: \(error)")
-                    self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription)")
+                    if retriesRemaining > 0 {
+                        self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription). Will retry...")
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // Retry after 2 seconds
+                            if let reader = reader {    
+                                // This block runs only if 'reader' is not nil
+                                self.connectToReader(reader: reader, retriesRemaining: retriesRemaining - 1)
+                            } else {
+                                // This block runs if 'reader' is nil
+                                self.updateConnectionStatus?("Reader is nil, cannot retry.")
+                            }
+                        }
+                    } else {
+                        self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription). Exceeded maximum retries.")
+                    }
                 }
             }
         } catch {
@@ -51,58 +93,102 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
         }
     }
 
-    
+    func checkoutAction(amount: Int, receiptEmail: String? = nil) throws {
+        guard !isProcessingPayment else { return } // Prevent duplicate payment attempts
 
-  
-    // Action for a "Checkout" button
-    func checkoutAction(amount: Int) throws {
-            guard isConnected else {
-                updateConnectionStatus?("Not connected to a reader. Connecting now...")
-                discoverAndConnectReader()
-                return
-            }
+        guard !isDiscovering else {
+            updateConnectionStatus?("Discovering readers, please wait...")
+            return
+        }
 
-            let params = try PaymentIntentParametersBuilder(amount: UInt(amount * 100), currency: "usd")
-                .setCaptureMethod(.automatic)
-                .build()
+        guard isConnected else {
+            updateConnectionStatus?("Not connected to a reader. Connecting now...")
+            discoverAndConnectReader()
+            return
+        }
 
-            Terminal.shared.createPaymentIntent(params) { createResult, createError in
-                if let error = createError {
-                    print("createPaymentIntent failed: \(error)")
-                    self.updateConnectionStatus?("Create payment intent failed: \(error.localizedDescription)")
-                } else if let paymentIntent = createResult {
-                    print("createPaymentIntent succeeded")
-                    self.updateConnectionStatus?("Create payment intent succeeded")
+        isProcessingPayment = true
+        updatePaymentProcessing?(true)
+        updateConnectionStatus?("Processing payment...")
 
-                    _ = Terminal.shared.collectPaymentMethod(paymentIntent) { collectResult, collectError in
-                        if let error = collectError {
-                            print("collectPaymentMethod failed: \(error)")
-                            self.updateConnectionStatus?("Collect payment method failed: \(error.localizedDescription)")
-                        } else if let paymentIntent = collectResult {
-                            print("collectPaymentMethod succeeded")
-                            self.updateConnectionStatus?("Collect payment method succeeded")
-                            // ... Confirm the payment
-                            // https://docs.stripe.com/terminal/payments/collect-card-payment?terminal-sdk-platform=ios#confirm-payment
-                            Terminal.shared.confirmPaymentIntent(paymentIntent) { confirmResult, confirmError in
-                                if let error = confirmError {
-                                    print("confirmPaymentIntent failed: \(error)")
-                                    self.updateConnectionStatus?("Confirm payment intent failed: \(error.localizedDescription)")
-                                } else if confirmResult != nil {
-                                    print("confirmPaymentIntent succeeded")
-                                    self.updateConnectionStatus?("Confirm payment intent succeeded")
-                                }
+        let builder = PaymentIntentParametersBuilder(amount: UInt(amount), currency: "usd") // amount is amount in cents, not dollars
+            .setCaptureMethod(.automatic)
+
+        if let email = receiptEmail {
+            builder.setReceiptEmail(email)
+        }
+
+        let params = try builder.build()
+
+        Terminal.shared.createPaymentIntent(params) { createResult, createError in
+            if let error = createError {
+                print("createPaymentIntent failed: \(error)")
+                self.updateConnectionStatus?("Create payment intent failed: \(error.localizedDescription)")
+                self.isProcessingPayment = false
+                self.updatePaymentProcessing?(false)
+            } else if let paymentIntent = createResult {
+                print("createPaymentIntent succeeded")
+                self.updateConnectionStatus?("Success: Created payment intent with Stripe…")
+
+                _ = Terminal.shared.collectPaymentMethod(paymentIntent) { collectResult, collectError in
+                    if let error = collectError as NSError?, (error.code == 1 || error.code == 2020) {
+                        print("collectPaymentMethod was canceled: \(error)")
+                        self.updateConnectionStatus?("Ready")
+                        self.isProcessingPayment = false
+                        self.updatePaymentProcessing?(false)
+                    } else if let error = collectError {
+                        print("collectPaymentMethod failed: \(error)")
+                        self.updateConnectionStatus?("Collect payment method failed: \(error.localizedDescription)")
+                        self.isProcessingPayment = false
+                        self.updatePaymentProcessing?(false)
+                    }  else if let paymentIntent = collectResult {
+                        print("collectPaymentMethod succeeded")
+                        self.updateConnectionStatus?("Collect payment method succeeded")
+                        // ... Confirm the payment
+                        // https://docs.stripe.com/terminal/payments/collect-card-payment?terminal-sdk-platform=ios#confirm-payment
+                        Terminal.shared.confirmPaymentIntent(paymentIntent) { confirmResult, confirmError in
+                            if let error = confirmError {
+                                print("confirmPaymentIntent failed: \(error)")
+                                self.updateConnectionStatus?("Confirm payment intent failed: \(error.localizedDescription)")
+                                self.isProcessingPayment = false
+                                self.updatePaymentProcessing?(false)
+                            } else if confirmResult != nil {
+                                print("confirmPaymentIntent succeeded")
+                                self.updateConnectionStatus?("Payment successful!")
+                                self.isProcessingPayment = false
+                                self.updatePaymentProcessing?(false)
+                                self.onPaymentSuccess?()
                             }
                         }
                     }
                 }
             }
         }
-    
+    }
+
+    private func handleDiscoveryTimeout() {
+        print("Discovery watchdog triggered after 30 seconds")
+
+        if isConnected {
+            // Already connected but UI state is stuck - fix it
+            print("Already connected, updating status")
+            updateConnectionStatus?("Ready for Tap to Pay on iPhone")
+        } else {
+            // Discovery genuinely stuck - retry
+            print("Not connected after 30s, retrying discovery")
+            updateConnectionStatus?("Discovery timed out. Retrying...")
+            discoverAndConnectReader()
+        }
+    }
+
     // MARK: DiscoveryDelegate
     func terminal(_ terminal: Terminal, didUpdateDiscoveredReaders readers: [Reader]) {
         if let firstReader = readers.first {
             print("didUpdateDiscoveredReaders / connectReader")
             connectToReader(reader: firstReader)
+        } else {
+            print("No readers discovered (may require physical device with Tap to Pay support)")
+            updateConnectionStatus?("No compatible readers found. Tap to Pay requires iPhone XS or newer.")
         }
     }
 
