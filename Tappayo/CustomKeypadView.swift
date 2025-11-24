@@ -14,7 +14,7 @@ struct CustomKeypadView: View {
     @Binding var toastMessage: String?
     @Environment(\.colorScheme) var colorScheme
 
-    @State private var itemName: String = ""
+    @Binding var itemName: String  // Changed from @State to @Binding to persist draft
 
     var body: some View {
         ZStack {
@@ -29,8 +29,19 @@ struct CustomKeypadView: View {
                 keypadContent(buttonSize: buttonSize, spacing: buttonSpacing, horizontalEdgePadding: horizontalEdgePadding)
             }
             .sheetGradientBackground()
+            .background(
+                // Tap anywhere to dismiss keyboard
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+            )
             .onAppear {
-                itemName = defaultItemName
+                // Only set default if itemName is empty (first time or after reset)
+                if itemName.isEmpty {
+                    itemName = defaultItemName
+                }
             }
 
             // Toast notification overlay
@@ -58,7 +69,8 @@ struct CustomKeypadView: View {
             ProductNameField(
                 name: $itemName,
                 label: "Description",
-                onSubmit: nil
+                onSubmit: nil,
+                autoSelectDefaultText: true
             )
             .padding(.top, 40)
             .padding(.horizontal, -28)  // Partially counteracts horizontalEdgePadding. Current: 72 - 28 + field's internal 16 = 60pt from edge. To match ItemEditorView/ProductEditorView exactly (48pt from edge), use: -(horizontalEdgePadding - 32). With 72: use -40 for exact match.
@@ -98,8 +110,8 @@ struct CustomKeypadView: View {
                     if amountInCents > 0 {
                         // Add to cart button (bottom-left when amount > 0)
                         Button(action: {
-                            let nextName = onAddToCart(itemName)
-                            itemName = nextName
+                            onAddToCart(itemName)
+                            // itemName updates via binding from ContentView
                         }) {
                             Image(systemName: "plus")
                                 .font(.system(size: buttonSize * 0.35, weight: .medium))  // Scales with button
@@ -150,8 +162,8 @@ struct CustomKeypadView: View {
             HStack(spacing: 12) {
                 // Add to Cart button (2/3 width)
                 Button(action: {
-                    let nextName = onAddToCart(itemName)
-                    itemName = nextName
+                    onAddToCart(itemName)
+                    // itemName updates via binding from ContentView
                 }) {
                     Text("Add to Cart")
                         .font(.title3)
@@ -241,7 +253,8 @@ struct CustomKeypadView_Previews: PreviewProvider {
                 onAddToCart: { name in return "Custom item 2" },
                 onCancel: {},
                 inputMode: "cents",
-                toastMessage: .constant(nil)
+                toastMessage: .constant(nil),
+                itemName: .constant("")
             )
             .previewDisplayName("Normal Amount ($25)")
 
@@ -252,7 +265,8 @@ struct CustomKeypadView_Previews: PreviewProvider {
                 onAddToCart: { name in return "Custom item 2" },
                 onCancel: {},
                 inputMode: "cents",
-                toastMessage: .constant(nil)
+                toastMessage: .constant(nil),
+                itemName: .constant("")
             )
             .previewDisplayName("Large Amount ($123,456)")
 
@@ -263,7 +277,8 @@ struct CustomKeypadView_Previews: PreviewProvider {
                 onAddToCart: { name in return "Custom item 2" },
                 onCancel: {},
                 inputMode: "cents",
-                toastMessage: .constant("$56.00 added to cart")
+                toastMessage: .constant("$56.00 added to cart"),
+                itemName: .constant("")
             )
             .previewDisplayName("With Toast Notification")
         }

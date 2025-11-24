@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ToastView: View {
     let message: String
-    let duration: Double = 3.0
+    let duration: Double = 4.0
     @Binding var isShowing: Bool
     @State private var progress: Double = 1.0
 
@@ -21,9 +21,14 @@ struct ToastView: View {
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(UIColor.systemBackground))
-                    .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 12,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 12
+                )
+                .fill(Color(UIColor.systemBackground))
+                .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
             )
 
             // Progress bar

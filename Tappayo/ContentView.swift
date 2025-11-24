@@ -26,6 +26,9 @@ struct ContentView: View {
     // Toast notification for cart additions
     @State private var toastMessage: String? = nil
 
+    // Draft item name for custom keypad (persists across sheet dismissals)
+    @State private var draftItemName: String = ""
+
     @State private var editingItem: CartItem? = nil
     @State private var showQuantityEditor = false
     @State private var showCheckoutSheet = false
@@ -151,14 +154,47 @@ struct ContentView: View {
         return formatted.replacingOccurrences(of: "$", with: "")
     }
 
+    // Helper to format amount for display (helps type-checker)
+    private func formatAmountForDisplay(_ cents: Int) -> String {
+        return formatCurrency(cents, forceDecimals: true)
+    }
+
+    // Product grid view (extracted to help type-checker)
+    private var productGridView: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: productGridSpacing),
+            GridItem(.flexible(), spacing: productGridSpacing),
+            GridItem(.flexible(), spacing: productGridSpacing)
+        ]
+
+        return LazyVGrid(columns: columns, spacing: productGridSpacing) {
+            ForEach(savedProducts.filter({ $0.priceInCents > 0 && $0.isVisible }), id: \.id) { product in
+                let quantityInCart = basket.first(where: { $0.productId == product.id && $0.isProduct })?.quantity ?? 0
+
+                ProductGridButton(
+                    product: product,
+                    quantityInCart: quantityInCart,
+                    productIconSize: productIconSize,
+                    basket: $basket,
+                    lastChangedItemId: $lastChangedItemId,
+                    isAnimatingQuantity: $isAnimatingQuantity,
+                    getCachedImage: getCachedImage,
+                    formatCurrency: formatCurrency
+                )
+            }
+        }
+        .padding(.horizontal, horizontalPadding)
+        .padding([.bottom], productGridSpacing+2)
+    }
+
     var body: some View {
-        ZStack {
+        return ZStack {
             NavigationView {
             VStack(spacing: 0) {
                 // Tappable amount display (triggers custom keypad)
                 AmountInputButton(
                     amountInCents: amountInCents,
-                    formatAmount: { formatCurrency($0, forceDecimals: true) },
+                    formatAmount: formatAmountForDisplay,
                     onTap: { isKeypadActive = true }
                 )
                 .padding(.bottom, productGridSpacing)
@@ -173,32 +209,8 @@ struct ContentView: View {
 //                    Spacer()
 //                }
 
-                let columns = [
-                    GridItem(.flexible(), spacing: productGridSpacing),
-                    GridItem(.flexible(), spacing: productGridSpacing),
-                    GridItem(.flexible(), spacing: productGridSpacing)
-                ]
-
-                LazyVGrid(columns: columns, spacing: productGridSpacing) {
-                    // used to also have requirement that to appear in shop, Product needed an image or emoji:
-                    // $0.priceInCents > 0 && $0.isVisible && ($0.emoji != nil || $0.photoFilename != nil)
-                    ForEach(savedProducts.filter({ $0.priceInCents > 0 && $0.isVisible }), id: \.id) { product in
-                        let quantityInCart = basket.first(where: { $0.productId == product.id && $0.isProduct })?.quantity ?? 0
-
-                        ProductGridButton(
-                            product: product,
-                            quantityInCart: quantityInCart,
-                            productIconSize: productIconSize,
-                            basket: $basket,
-                            lastChangedItemId: $lastChangedItemId,
-                            isAnimatingQuantity: $isAnimatingQuantity,
-                            getCachedImage: getCachedImage,
-                            formatCurrency: formatCurrency
-                        )
-                    }
-                }
-                .padding(.horizontal, horizontalPadding)
-                .padding([.bottom], productGridSpacing+2) // optically we actually need slightly more spacing here (eyball'd it)
+                // Product grid (extracted to help type-checker)
+                productGridView
 
                 // Edit: removing this heading entirely for now (temporary; to review)
 //                if !basket.isEmpty {
@@ -374,25 +386,26 @@ struct ContentView: View {
                         // Show toast notification
                         toastMessage = "\(formatCurrency(currentAmount)) added to cart"
 
-                        // Delay resetting amount to allow button animation to complete
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                            amountInCents = 0
+                        // Reset state immediately - no delays
+                        amountInCents = 0
+                        draftItemName = nextManualItemName()
 
-                            // Dismiss keypad if setting is "dismiss"
-                            if dismissKeypadAfterAdd == "dismiss" {
-                                isKeypadActive = false
-                            }
+                        // Dismiss keypad if setting is "dismiss"
+                        if dismissKeypadAfterAdd == "dismiss" {
+                            isKeypadActive = false
                         }
 
-                        // Return next item name for keypad to display
-                        return nextManualItemName()
+                        // Return value unused (kept for CustomKeypadView compatibility)
+                        return ""
                     },
                     onCancel: {
                         amountInCents = 0
+                        // Keep draftItemName (persist draft feature)
                         isKeypadActive = false
                     },
                     inputMode: inputMode,
-                    toastMessage: $toastMessage
+                    toastMessage: $toastMessage,
+                    itemName: $draftItemName
                 )
 //                .presentationDetents([.fraction(0.8), .large]) // original detents of the keypad, but if not max-size (large), then ios sheet animations distract from button-presses. Work-around, just have full-screen mode, so the only visual response when I touch a button is the custom animation we have (swelling button size, blue tint, then bounce back to original size with extraBounce
                 .presentationDetents([.large]) // new detents of the keypad (force full-screen only)
@@ -489,6 +502,7 @@ struct AmountInputButton: View {
             .padding()
             .contentShape(Rectangle())
         }
+        .buttonStyle(AmountInputButtonStyle())
         .foregroundColor(.primary)
         .background(Color(.systemBackground))
         .cornerRadius(8)
@@ -496,6 +510,24 @@ struct AmountInputButton: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray, lineWidth: 1)
         )
+    }
+}
+
+// Custom button style for AmountInputButton with press animation
+struct AmountInputButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(  // Blue background when pressed
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(configuration.isPressed ? Color.blue.opacity(0.35) : Color.clear)
+            )
+            .scaleEffect(configuration.isPressed ? 1.08 : 1.0)  // Grow to 108%
+            .animation(
+                configuration.isPressed
+                    ? .easeOut(duration: 0.03)  // Very fast smooth press (30ms)
+                    : .bouncy(duration: 0.4, extraBounce: 0.3),  // Bouncy when released
+                value: configuration.isPressed
+            )
     }
 }
 

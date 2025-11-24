@@ -9,6 +9,7 @@ struct ProductNameField: View {
     @Binding var name: String
     let label: String
     var onSubmit: (() -> Void)? = nil
+    var autoSelectDefaultText: Bool = false  // Auto-select text starting with "Custom item"
 
     @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) var colorScheme
@@ -43,6 +44,14 @@ struct ProductNameField: View {
                 .focused($isFocused)
                 .onSubmit {
                     onSubmit?()
+                }
+                .onChange(of: isFocused) { _, newValue in
+                    // Auto-select text when field gains focus if it starts with "Custom item"
+                    if newValue && autoSelectDefaultText && name.starts(with: "Custom item") {
+                        DispatchQueue.main.async {
+                            UIApplication.shared.sendAction(#selector(UIResponder.selectAll(_:)), to: nil, from: nil, for: nil)
+                        }
+                    }
                 }
         }
         .padding(.horizontal)

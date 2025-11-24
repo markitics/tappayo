@@ -559,6 +559,7 @@ struct EmailReceiptSection: View {
                             }
                     }
                     .padding(.bottom, 8)
+                    .padding(.top, 40) // end of email with input vstack
                 }
             }
         }
