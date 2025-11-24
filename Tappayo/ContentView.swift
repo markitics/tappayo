@@ -23,6 +23,9 @@ struct ContentView: View {
     @State private var inputMode: String = UserDefaults.standard.inputMode
     @State private var isKeypadActive: Bool = false
 
+    // Toast notification for cart additions
+    @State private var toastMessage: String? = nil
+
     @State private var editingItem: CartItem? = nil
     @State private var showQuantityEditor = false
     @State private var showCheckoutSheet = false
@@ -69,7 +72,7 @@ struct ContentView: View {
     // Helper to get next manual item name
     private func nextManualItemName() -> String {
         let manualItemCount = basket.filter { !$0.isProduct }.count
-        return "Custom Item \(manualItemCount + 1)"
+        return manualItemCount == 0 ? "Custom item" : "Custom item \(manualItemCount + 1)"
     }
 
     // Helper to get cached image (loads from disk only once per photo)
@@ -150,7 +153,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-        NavigationView {
+            NavigationView {
             VStack(spacing: 0) {
                 // Tappable amount display (triggers custom keypad)
                 AmountInputButton(
@@ -350,27 +353,46 @@ struct ContentView: View {
             .sheet(isPresented: $isKeypadActive) {
                 CustomKeypadView(
                     amountInCents: $amountInCents,
-                    onAddToCart: {
+                    defaultItemName: nextManualItemName(),
+                    onAddToCart: { name in
+                        // Save current amount before resetting
+                        let currentAmount = amountInCents
+
                         // Add to cart action
                         let item = CartItem(
-                            name: nextManualItemName(),
-                            priceInCents: amountInCents,
+                            name: name,
+                            priceInCents: currentAmount,
                             quantity: 1,
                             isProduct: false
                         )
                         basket.append(item)
-                        amountInCents = 0
 
-                        // Dismiss keypad if setting is "dismiss"
-                        if dismissKeypadAfterAdd == "dismiss" {
-                            isKeypadActive = false
+                        // Haptic feedback
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+
+                        // Show toast notification
+                        toastMessage = "\(formatCurrency(currentAmount)) added to cart"
+
+                        // Delay resetting amount to allow button animation to complete
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            amountInCents = 0
+
+                            // Dismiss keypad if setting is "dismiss"
+                            if dismissKeypadAfterAdd == "dismiss" {
+                                isKeypadActive = false
+                            }
                         }
+
+                        // Return next item name for keypad to display
+                        return nextManualItemName()
                     },
                     onCancel: {
                         amountInCents = 0
                         isKeypadActive = false
                     },
-                    inputMode: inputMode
+                    inputMode: inputMode,
+                    toastMessage: $toastMessage
                 )
 //                .presentationDetents([.fraction(0.8), .large]) // original detents of the keypad, but if not max-size (large), then ios sheet animations distract from button-presses. Work-around, just have full-screen mode, so the only visual response when I touch a button is the custom animation we have (swelling button size, blue tint, then bounce back to original size with extraBounce
                 .presentationDetents([.large]) // new detents of the keypad (force full-screen only)

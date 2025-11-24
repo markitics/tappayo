@@ -7,34 +7,69 @@ import SwiftUI
 
 struct CustomKeypadView: View {
     @Binding var amountInCents: Int
-    let onAddToCart: () -> Void
+    let defaultItemName: String
+    let onAddToCart: (String) -> String  // Returns the next item name to display
     let onCancel: () -> Void
     let inputMode: String
+    @Binding var toastMessage: String?
     @Environment(\.colorScheme) var colorScheme
 
+    @State private var itemName: String = ""
+
     var body: some View {
-        GeometryReader { geometry in
-            let horizontalEdgePadding: CGFloat = 48  // Padding on left/right edges of entire keypad
-            let buttonSpacing: CGFloat = 20          // Space between individual buttons
+        ZStack {
+            GeometryReader { geometry in
+                let horizontalEdgePadding: CGFloat = 60  // Padding on left/right edges of entire keypad content (check for long numbers like $123,456.78
+                let buttonSpacing: CGFloat = 24            // Space between individual buttons
 
-            let availableWidth = geometry.size.width - (2 * horizontalEdgePadding)
-            let calculatedSize = (availableWidth - (2 * buttonSpacing)) / 3  // 3 buttons per row
-            let buttonSize = max(calculatedSize, 60)  // Ensure minimum 60pt (prevents invalid frames build warning)
+                let availableWidth = geometry.size.width - (2 * horizontalEdgePadding)
+                let calculatedSize = (availableWidth - (2 * buttonSpacing)) / 3  // 3 buttons per row
+                let buttonSize = max(calculatedSize, 60)  // Ensure minimum 60pt (prevents invalid frames build warning)
 
-            keypadContent(buttonSize: buttonSize, spacing: buttonSpacing, horizontalEdgePadding: horizontalEdgePadding)
+                keypadContent(buttonSize: buttonSize, spacing: buttonSpacing, horizontalEdgePadding: horizontalEdgePadding)
+            }
+            .sheetGradientBackground()
+            .onAppear {
+                itemName = defaultItemName
+            }
+
+            // Toast notification overlay
+            if let message = toastMessage {
+                VStack {
+                    Spacer()
+                    ToastView(message: message, isShowing: Binding(
+                        get: { self.toastMessage != nil },
+                        set: { if !$0 { self.toastMessage = nil } }
+                    ))
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 0)  // distance from bottom of iPhone screen
+                    .id(message)  // Force view recreation when message changes to reset progress bar
+                    // Button height (50) + VStack bottom padding (30) + spacing (30)
+                }
+                .animation(.spring(), value: toastMessage)
+            }
         }
-        .sheetGradientBackground()
     }
 
     private func keypadContent(buttonSize: CGFloat, spacing: CGFloat, horizontalEdgePadding: CGFloat) -> some View {
         VStack(spacing: 40) {
+
+            // Item name field
+            ProductNameField(
+                name: $itemName,
+                label: "Description",
+                onSubmit: nil
+            )
+            .padding(.top, 40)
+            .padding(.horizontal, -28)  // Partially counteracts horizontalEdgePadding. Current: 72 - 28 + field's internal 16 = 60pt from edge. To match ItemEditorView/ProductEditorView exactly (48pt from edge), use: -(horizontalEdgePadding - 32). With 72: use -40 for exact match.
+
             // Amount display
             Text(formatAmount(amountInCents))
                 .font(.system(size: 56, weight: .medium, design: .default))
                 .foregroundStyle(.primary)
                 .frame(height: 70)
-                .padding(.top, 40)
-
+                .padding(.horizontal, -8)  // Partially counteracts aggressive horizontalEdgePadding; check it works for viewing all of $123,456.78
+            
             // Number pad grid
             VStack(spacing: spacing) {
                 // Row 1: 1, 2, 3
@@ -62,7 +97,10 @@ struct CustomKeypadView: View {
                 HStack(spacing: spacing) {
                     if amountInCents > 0 {
                         // Add to cart button (bottom-left when amount > 0)
-                        Button(action: onAddToCart) {
+                        Button(action: {
+                            let nextName = onAddToCart(itemName)
+                            itemName = nextName
+                        }) {
                             Image(systemName: "plus")
                                 .font(.system(size: buttonSize * 0.35, weight: .medium))  // Scales with button
                                 .foregroundStyle(.white)
@@ -111,7 +149,10 @@ struct CustomKeypadView: View {
             // Bottom buttons: Add to Cart and Dismiss
             HStack(spacing: 12) {
                 // Add to Cart button (2/3 width)
-                Button(action: onAddToCart) {
+                Button(action: {
+                    let nextName = onAddToCart(itemName)
+                    itemName = nextName
+                }) {
                     Text("Add to Cart")
                         .font(.title3)
                         .fontWeight(.medium)
@@ -138,7 +179,7 @@ struct CustomKeypadView: View {
                 .shadow(color: .red.opacity(0.2), radius: 6, y: 3)
             }
         }
-        .padding(.vertical, 30)
+        .padding(.vertical, 10)
         .padding(.horizontal, horizontalEdgePadding)  // Consistent padding on all edges
     }
 
@@ -192,13 +233,40 @@ struct CustomKeypadView: View {
 
 struct CustomKeypadView_Previews: PreviewProvider {
     static var previews: some View {
-        CustomKeypadView(
-            amountInCents: .constant(1234),
-            onAddToCart: {},
-            onCancel: {},
-            inputMode: "cents"
-        )
-        .presentationDetents([.fraction(0.8), .large]) // just the preview; what matters is contentview where this is called
+        Group {
+            // Normal amount - for testing typical layout
+            CustomKeypadView(
+                amountInCents: .constant(2500),  // $25.00
+                defaultItemName: "Custom item 1",
+                onAddToCart: { name in return "Custom item 2" },
+                onCancel: {},
+                inputMode: "cents",
+                toastMessage: .constant(nil)
+            )
+            .previewDisplayName("Normal Amount ($25)")
+
+            // Large amount - test horizontal padding with $123,456.78
+            CustomKeypadView(
+                amountInCents: .constant(12345678),  // $123,456.78
+                defaultItemName: "Custom item 1",
+                onAddToCart: { name in return "Custom item 2" },
+                onCancel: {},
+                inputMode: "cents",
+                toastMessage: .constant(nil)
+            )
+            .previewDisplayName("Large Amount ($123,456)")
+
+            // With toast notification - test positioning
+            CustomKeypadView(
+                amountInCents: .constant(5600),  // $56.00
+                defaultItemName: "Custom item 1",
+                onAddToCart: { name in return "Custom item 2" },
+                onCancel: {},
+                inputMode: "cents",
+                toastMessage: .constant("$56.00 added to cart")
+            )
+            .previewDisplayName("With Toast Notification")
+        }
     }
 }
 

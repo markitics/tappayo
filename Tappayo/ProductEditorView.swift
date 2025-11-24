@@ -13,7 +13,7 @@ struct ProductEditorView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
+            VStack(spacing: 32) {
                 Spacer()
 
                 // Product icon editing
@@ -67,6 +67,7 @@ struct ProductEditorView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.top, 10)
 
                 Spacer()
             }
