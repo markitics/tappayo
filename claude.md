@@ -10,24 +10,25 @@ The app provides a simple, streamlined interface for in-person payment processin
 
 ## Development History
 
-- **~18 months ago**: Initial development using "vibe-coding" approach
-- **November 2025**: Transitioning to Claude Code for systematic improvements and continued learning
+- **~18 months ago: ~April 2024**: Initial development using "vibe-coding" approach
+- **November 2025**: Transitioning to Claude Code for systematic improvements and continued learning. Still hard-coded to one Stripe account (a Stripe account owned by Mark).
+- **End Nov, and December 2025**: Transitioning to Claude Code for systematic improvements and continued learning
 
 ## Tech Stack
 
 - SwiftUI (primary UI framework)
 - UIKit (specialized views like ReaderDiscoveryViewController)
-- Stripe Terminal SDK (payment processing)
-- UserDefaults (settings persistence)
+- Stripe Terminal SDK (payment processing, using "Tap to Pay on iPhone", as the only payment option)
+- UserDefaults (settings persistence, like saving products locally to the iPhone only)
 
 ## Current Features
 
 - Simple cart-based checkout interface
 - Customizable quick-amount buttons for common prices
 - Swipe-to-delete cart items
-- Dark mode support
+- Light/Dark mode support
 - Accent color customization
-- Reader connection with retry logic (up to 3 attempts)
+- Reader discovery and connection with retry logic (up to 3 attempts each)
 - Auto-dismiss numeric keypad on outside tap
 - Auto-focus on quick amount input when adding new amounts
 
@@ -159,15 +160,8 @@ if dismissKeypadAfterAdd == "dismiss" {
 ### Emoji Picker Positioning (Nov 2025)
 **Context**: Redesigned product icon picker in SettingsView to use unified button with confirmationDialog for choosing emoji/photo/camera options.
 
-**Issue**: MCEmojiPicker (external library) has wonky positioning behavior. Even after moving `.emojiPicker()` modifier outside the ForEach to eliminate competing instances, the picker doesn't anchor consistently to the tapped product.
+**Issue**: MCEmojiPicker (external library) had wonky positioning behavior. We fixed this by switching to a different 3P package, "elegant emoji picker".
 
-**Current Status**: Functional but not ideal. The emoji picker appears in unpredictable locations rather than anchoring near the icon you tapped. Consider alternative approaches:
-- Different emoji picker library with better anchor support
-- Custom emoji picker implementation
-- Sheet-based modal for product editing (similar to ItemEditorView) that could contain emoji selection
-- Accept the current behavior as "good enough" for a learning project
-
-**File**: `SettingsView.swift:52-184` (unified icon button), `SettingsView.swift:185-202` (emoji picker modifier)
 
 ### Retry/Timeout Logic Robustness Analysis (Nov 2025)
 
@@ -192,12 +186,11 @@ if dismissKeypadAfterAdd == "dismiss" {
 - **Recovery**: None - user must force-quit app
 - **Impact**: Low likelihood in practice, but no graceful recovery
 
-**2. Connection Retry Logic is Broken (Critical)**
-- **Issue**: Retry attempt looks for `reader` parameter in error handler where it's guaranteed to be nil
-- **Lines**: ReaderDiscoveryViewController.swift:77-83
-- **Current behavior**: Shows "Reader is nil, cannot retry" instead of retrying
-- **Fix needed**: Store reader reference from function parameter before attempting connection
-- **Impact**: Connection failures (network issues, etc.) don't retry as intended
+**2. Connection Retry Logic - FIXED Nov 2025**
+- **Was**: Retry code checked shadowed `reader` variable (always nil in error path)
+- **Fix**: Renamed completion handler param to `connectedReader`, now uses function param `reader`
+- **Lines**: ReaderDiscoveryViewController.swift:66-84
+- **Current behavior**: Retries up to 3 times with 2-second delay (same as discovery)
 
 **3. Force Unwrap Will Crash App (Medium)**
 - **Line**: ReaderDiscoveryViewController.swift:32
@@ -246,14 +239,14 @@ if dismissKeypadAfterAdd == "dismiss" {
 2. User enables airplane mode
 3. `connectToReader()` called
 4. Connection attempt hangs (no network)
-5. **Result**: Stuck at "Connecting to reader..." forever (no timeout, retry broken)
+5. **Result**: Stuck at "Connecting to reader..." forever (no timeout on connection phase)
+   - Note: Retry logic now works (Nov 2025 fix), but connection phase still lacks a watchdog timer
 
 **Scenario B: Poor Network During Connection**
 1. Discovery succeeds
 2. Connection attempt fails with timeout error
-3. Retry logic tries to execute (line 79)
-4. `reader` is nil in error handler
-5. **Result**: Shows "Reader is nil, cannot retry" and stops
+3. Retry logic executes (lines 78-84)
+4. **Result (after Nov 2025 fix)**: Retries up to 3 times with 2-second delay
 
 **Scenario C: Force Quit During Payment**
 1. User taps $50 item
@@ -275,7 +268,7 @@ if dismissKeypadAfterAdd == "dismiss" {
 **When ready to tackle robustness systematically, consider:**
 
 1. **Add connection timeout** - Same 30-second watchdog pattern as discovery
-2. **Fix connection retry logic** - Store reader reference before attempting connection
+2. ~~**Fix connection retry logic**~~ - ✅ DONE Nov 2025
 3. **Add app lifecycle monitoring** - Pause operations on background, reconnect on foreground using `@Environment(\.scenePhase)`
 4. **Replace `try!` with proper error handling** - Use do-catch blocks
 5. **Implement reader disconnect delegate** - Detect and handle unexpected disconnections
@@ -286,7 +279,7 @@ if dismissKeypadAfterAdd == "dismiss" {
 
 #### 📊 Robustness Assessment
 
-**Score: 4/10**
+**Score: 5/10** (was 4/10, bumped after Nov 2025 retry fix)
 
 **Strengths:**
 - Works perfectly for normal usage (farmers market, retail scenarios)
@@ -296,7 +289,7 @@ if dismissKeypadAfterAdd == "dismiss" {
 
 **Weaknesses:**
 - Connection timeout missing (critical gap, but rare in practice)
-- Connection retry broken (medium issue, network failures won't retry)
+- ~~Connection retry broken~~ - ✅ Fixed Nov 2025
 - No lifecycle awareness (medium issue, battery drain potential)
 - Several smaller gaps that compound
 

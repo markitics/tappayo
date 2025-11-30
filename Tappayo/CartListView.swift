@@ -142,7 +142,7 @@ struct CartListView: View {
                 // Note: Previously had showSwipeHelper parameter to hide this in CheckoutSheet,
                 // but removed to reduce type-checker complexity. Now always shown.
                 if !basket.isEmpty {
-                    Text(basket.count == 1 ? "👆 Swipe row right to add, or left to remove" : "Swipe any row right to add, or left to add or remove")
+                    Text(basket.count == 1 ? "👆 Swipe row right to increase quantity" : "Swipe any item right/left to change quantity")
                         .font(.caption2)
                         .foregroundColor(.gray)
                 }
