@@ -63,9 +63,11 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                 .setAutoReconnectOnUnexpectedDisconnect(true)
                 .build()
             updateConnectionStatus?("Connecting to reader...")
-            Terminal.shared.connectLocalMobileReader(reader, delegate: self, connectionConfig: connectionConfig) { reader, error in
-                if let reader = reader {
-                    print("Successfully connected to reader: \(reader)")
+            Terminal.shared.connectLocalMobileReader(reader, delegate: self, connectionConfig: connectionConfig) { connectedReader, error in
+                // Note: Using 'connectedReader' to avoid shadowing the function parameter 'reader'.
+                // This matters for retry logic below, which needs the original 'reader' reference.
+                if let connectedReader = connectedReader {
+                    print("Successfully connected to reader: \(connectedReader)")
                     self.isConnected = true
                     self.discoveryWatchdogTimer?.invalidate() // Cancel watchdog - connection succeeded
                     self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
@@ -74,13 +76,11 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
                     if retriesRemaining > 0 {
                         self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription). Will retry...")
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // Retry after 2 seconds
-                            if let reader = reader {    
-                                // This block runs only if 'reader' is not nil
-                                self.connectToReader(reader: reader, retriesRemaining: retriesRemaining - 1)
-                            } else {
-                                // This block runs if 'reader' is nil
-                                self.updateConnectionStatus?("Reader is nil, cannot retry.")
-                            }
+                            // Fixed Nov 2025: Previously this checked 'if let reader = reader' which always
+                            // failed because 'reader' referred to the completion handler's nil value.
+                            // Now we use the function parameter 'reader' directly (always valid).
+                            print("Retrying connection, attempts remaining: \(retriesRemaining - 1)")
+                            self.connectToReader(reader: reader, retriesRemaining: retriesRemaining - 1)
                         }
                     } else {
                         self.updateConnectionStatus?("Connect reader failed: \(error.localizedDescription). Exceeded maximum retries.")
