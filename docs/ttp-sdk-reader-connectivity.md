@@ -140,6 +140,41 @@ All notes related to Stripe Terminal SDK, reader discovery, connection, and Tap 
 
 ---
 
+## "Already Connected" Discovery Error Bug (Fixed Dec 2025)
+
+**File**: ReaderDiscoveryViewController.swift:24-43
+
+**Symptom**: Error message displayed under Pay button: "Discover readers failed: Already connected to a reader. Disconnect from the reader, or power it off before trying again."
+
+**Root Cause**: We used a local `isConnected` instance variable to track connection state, but the Stripe Terminal SDK maintains its own connection state that persists independently. When the view controller was recreated (or the local flag got out of sync), our code would attempt discovery even though the SDK was already connected.
+
+**The Sequence**:
+1. App connects successfully → local `isConnected = true`
+2. User navigates away, view controller recreated
+3. New instance has `isConnected = false` (fresh instance variable)
+4. Code checks `guard !isConnected` → passes (local flag is false)
+5. Code calls `Terminal.shared.discoverReaders()`
+6. SDK returns error: "Already connected to a reader"
+
+**Fix**: Check `Terminal.shared.connectionStatus` (the SDK's actual state) before attempting discovery, not just our local flag.
+
+```swift
+// Check SDK's actual connection status, not just our local flag
+if Terminal.shared.connectionStatus == .connected {
+    self.isConnected = true
+    self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
+    return
+}
+```
+
+Also added a fallback check in the error handler — if discovery fails but `connectionStatus == .connected`, treat it as success.
+
+**Whose fault?**: **Ours.** Stripe's documentation explicitly recommends checking `terminal.connectionStatus` before attempting discovery: *"Only connect if we aren't currently connected."* We invented this bug by relying on a local flag instead of querying the SDK's actual state. No feedback needed to Stripe — their docs are correct.
+
+**Lesson learned**: When wrapping SDK state, always defer to the SDK's actual state rather than maintaining shadow state that can drift.
+
+---
+
 ## Reader Retry Logic Bug (Fixed Nov 2025)
 
 **File**: ReaderDiscoveryViewController.swift:65-72
