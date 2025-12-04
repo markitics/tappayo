@@ -35,6 +35,7 @@ struct SetupChecklistRow: View {
                 Image(systemName: isComplete ? "checkmark.circle.fill" : "circle")
                     .foregroundColor(isComplete ? .green : .secondary)
             }
+            .contentShape(Rectangle()) // Makes entire row tappable
         }
         .buttonStyle(.plain)
     }
