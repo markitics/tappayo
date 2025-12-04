@@ -74,7 +74,8 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -183,6 +184,11 @@
       "bases:Create new base": false
     }
   },
-  "active": "333b9d1ae1f6cc9f",
-  "lastOpenFiles": []
+  "active": "0338d38f8f02dd73",
+  "lastOpenFiles": [
+    "Tappayo/TapToPaySetupView.swift",
+    "Tappayo/Components/TapToPaySetupView.swift",
+    "Tappayo/Components/SetupChecklistRow.swift",
+    "Tappayo/SettingsView~.swift"
+  ]
 }

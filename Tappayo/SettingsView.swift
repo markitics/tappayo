@@ -12,6 +12,12 @@ struct SettingsView: View {
                 TextField("Business name", text: $businessName)
             }
 
+            Section(header: Text("Tap to Pay")) {
+                NavigationLink(destination: TapToPaySetupView()) {
+                    Text("Set up Tap to Pay on iPhone")
+                }
+            }
+
             Section(header: Text("Products")) {
                 NavigationLink(destination: ProductsView()) {
                     Text("Manage Products")
@@ -32,7 +38,7 @@ struct SettingsView: View {
                 }
             }
 
-            Section(header: Text("Tip")) {
+            Section(header: Text("Tips")) {
                 Toggle("Enable tipping", isOn: $tippingEnabled)
             }
 
