@@ -162,5 +162,16 @@ extension UserDefaults {
             set(newValue, forKey: UserDefaultsKeys.whenViewedTTPEducation.rawValue)
         }
     }
+
+    // MARK: - Onboarding
+
+    var hasCompletedInitialOnboarding: Bool {
+        get {
+            return bool(forKey: UserDefaultsKeys.hasCompletedInitialOnboarding.rawValue)
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.hasCompletedInitialOnboarding.rawValue)
+        }
+    }
 }
 

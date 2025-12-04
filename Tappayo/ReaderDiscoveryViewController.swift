@@ -22,6 +22,10 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     }
     
     func discoverAndConnectReader(retriesRemaining: Int = 3) {
+        // Gate: Don't auto-connect until user has completed initial onboarding
+        guard UserDefaults.standard.hasCompletedInitialOnboarding else {
+            return
+        }
         guard !isDiscovering else { return } // Prevent multiple discoveries
         guard !isConnected else {
             // Skip discovery if already connected (e.g., we click into Settings page, and then come back to main ConentView, triggering viewDidLoad again, but we've remained Connected the whole time

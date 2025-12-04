@@ -18,6 +18,7 @@
 		4D08BCA22BCE7E19007B1FBA /* StripeTerminal in Frameworks */ = {isa = PBXBuildFile; productRef = 4D08BCA12BCE7E19007B1FBA /* StripeTerminal */; };
 		4D14B3BF2BE36195009213AC /* ReaderDiscoveryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D14B3BE2BE36195009213AC /* ReaderDiscoveryViewController.swift */; };
 		4D14B3C52BE37E49009213AC /* TerminalConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D14B3C42BE37E49009213AC /* TerminalConnectionView.swift */; };
+		4D1BF3092EE19115005D4FB6 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1BF3082EE19115005D4FB6 /* WelcomeView.swift */; };
 		4D92B7152C0EA561005AD949 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B7142C0EA561005AD949 /* ContentView.swift */; };
 		4D92B71B2C0EE143005AD949 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B71A2C0EE143005AD949 /* SettingsView.swift */; };
 		4D92B71D2C0EE223005AD949 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B71C2C0EE223005AD949 /* UserDefaultsKeys.swift */; };
@@ -75,6 +76,7 @@
 		4D08BCA32BCE818F007B1FBA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4D14B3BE2BE36195009213AC /* ReaderDiscoveryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderDiscoveryViewController.swift; sourceTree = "<group>"; };
 		4D14B3C42BE37E49009213AC /* TerminalConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalConnectionView.swift; sourceTree = "<group>"; };
+		4D1BF3082EE19115005D4FB6 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		4D92B7142C0EA561005AD949 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		4D92B71A2C0EE143005AD949 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4D92B71C2C0EE223005AD949 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
@@ -156,6 +158,7 @@
 		4D08BC752BCE79B4007B1FBA /* Tappayo */ = {
 			isa = PBXGroup;
 			children = (
+				4D1BF3082EE19115005D4FB6 /* WelcomeView.swift */,
 				4DC733DF2EE1727F00F8A7FA /* Managers */,
 				4DD86DDE2ECEB42200332F37 /* DisplayOptionsView.swift */,
 				4DD86DDF2ECEB42200332F37 /* ProductEditorView.swift */,
@@ -411,6 +414,7 @@
 				4DC733DC2EE16DCB00F8A7FA /* TapToPaySetupView.swift in Sources */,
 				4D14B3C52BE37E49009213AC /* TerminalConnectionView.swift in Sources */,
 				4DD86DD62ECDA5FD00332F37 /* CartListView.swift in Sources */,
+				4D1BF3092EE19115005D4FB6 /* WelcomeView.swift in Sources */,
 				4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */,
 				4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */,
 				4DC733E02EE1727F00F8A7FA /* BluetoothPermissionManager.swift in Sources */,
