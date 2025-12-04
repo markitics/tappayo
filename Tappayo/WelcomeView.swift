@@ -2,11 +2,22 @@
 //  Tappayo
 
 import SwiftUI
+import AVKit
 
 struct WelcomeView: View {
     @State private var currentPage: Int = 0
-    @State private var businessName: String = ""
+    // Pre-populate if user has set a custom business name (not the default "Tappayo")
+    @State private var businessName: String = {
+        let saved = UserDefaults.standard.businessName
+        return saved == "Tappayo" ? "" : saved
+    }()
+    @State private var player: AVPlayer?
+    @State private var cardToPhonePlayer: AVPlayer?
+    @State private var cardToPhonePlayCount: Int = 0
+    @State private var phoneToPhonePlayer: AVPlayer?
+    @State private var phoneToPhonePlayCount: Int = 0
     @Binding var hasCompletedOnboarding: Bool
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         TabView(selection: $currentPage) {
@@ -14,97 +25,367 @@ struct WelcomeView: View {
             welcomePage
                 .tag(0)
 
-            // Page 2: Business name + Get Started
-            getStartedPage
+            // Page 2: Easy to use (reassurance)
+            easyToUsePage
                 .tag(1)
+
+            // Page 3: Business name + Get Started
+            businessNamePage
+                .tag(2)
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .ignoresSafeArea()
+        .onAppear {
+            updatePageControlAppearance()
+        }
+        .onChange(of: colorScheme) { _, _ in
+            updatePageControlAppearance()
+        }
+    }
+
+    private func updatePageControlAppearance() {
+        if colorScheme == .light {
+            UIPageControl.appearance().currentPageIndicatorTintColor = UIColor.darkGray
+            UIPageControl.appearance().pageIndicatorTintColor = UIColor.lightGray.withAlphaComponent(0.4)
+        } else {
+            UIPageControl.appearance().currentPageIndicatorTintColor = UIColor.white
+            UIPageControl.appearance().pageIndicatorTintColor = UIColor.gray
+        }
+    }
+
+    // MARK: - Shared gradient background
+    // TODO: Extract these colors to a central AppColors file to avoid duplication
+
+    @ViewBuilder
+    private var gradientBackground: some View {
+        if colorScheme == .light {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.90, green: 0.94, blue: 0.92),
+                    Color(red: 0.96, green: 0.98, blue: 0.97)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        } else {
+            Color(.systemBackground)
+        }
+    }
+
+    @ViewBuilder
+    private var gradientOverlay: some View {
+        if colorScheme == .light {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.90, green: 0.94, blue: 0.92),
+                    Color(red: 0.96, green: 0.98, blue: 0.97)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .opacity(0.92)
+        } else {
+            Color.black.opacity(0.85)
+        }
     }
 
     // MARK: - Page 1: Welcome
 
     private var welcomePage: some View {
-        VStack(spacing: 30) {
-            Spacer()
+        ZStack {
+            gradientBackground.ignoresSafeArea()
 
-            Image(systemName: "iphone.radiowaves.left.and.right")
-                .font(.system(size: 80))
-                .foregroundColor(.accentColor)
+            VStack(spacing: 20) {
+                Spacer()
 
-            Text("Welcome to Tappayo")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                Text("Welcome to Tappayo")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
 
-            Text("The easiest way to accept payments.\nNo card reader needed.")
-                .font(.title3)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+                Text("The easiest way to accept payments.\nNo card reader needed.")
+                    .font(.title3)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
 
-            Spacer()
-
-            Button(action: {
-                withAnimation {
-                    currentPage = 1
+                // Apple's Tap to Pay education video
+                if let player = player {
+                    VideoPlayer(player: player)
+                        .aspectRatio(16/9, contentMode: .fit)
+                        .cornerRadius(12)
                 }
-            }) {
-                Text("Continue")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .cornerRadius(12)
+
+                Spacer()
+
+                Button(action: {
+                    withAnimation {
+                        currentPage = 1
+                    }
+                }) {
+                    Text("Continue")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor)
+                        .cornerRadius(12)
+                }
+                .padding(.bottom, 60)
             }
             .padding(.horizontal, 40)
-            .padding(.bottom, 60)
+        }
+        .onAppear {
+            setupWelcomeVideoPlayer()
+        }
+        .onChange(of: currentPage) { _, newPage in
+            if newPage == 0, let player = player {
+                player.seek(to: .zero)
+                player.play()
+            }
         }
     }
 
-    // MARK: - Page 2: Get Started
+    // MARK: - Page 2: Easy to use (reassurance)
 
-    private var getStartedPage: some View {
-        VStack(spacing: 30) {
-            Spacer()
-
-            Image(systemName: "storefront")
-                .font(.system(size: 60))
-                .foregroundColor(.accentColor)
-
-            Text("What's your business called?")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            TextField("e.g. Mark's Coffee Shop", text: $businessName)
-                .textFieldStyle(.roundedBorder)
-                .padding(.horizontal, 40)
-
-            Text("You can change this anytime in Settings.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            Spacer()
-
-            Button(action: {
-                // Save business name
-                if !businessName.trimmingCharacters(in: .whitespaces).isEmpty {
-                    UserDefaults.standard.businessName = businessName
+    private var easyToUsePage: some View {
+        ZStack {
+            // Background video (card to phone)
+            if let cardToPhonePlayer = cardToPhonePlayer {
+                GeometryReader { geometry in
+                    VideoPlayer(player: cardToPhonePlayer)
+                        .aspectRatio(9/16, contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                        .disabled(true)
                 }
-                // Mark onboarding complete
-                UserDefaults.standard.hasCompletedInitialOnboarding = true
-                hasCompletedOnboarding = true
-            }) {
-                Text("Get Started")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .cornerRadius(12)
+                .ignoresSafeArea()
             }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 60)
+
+            gradientOverlay.ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Spacer()
+
+                Text("This app is easy to use")
+                    .font(.title)
+                    .fontWeight(.semibold)
+                    .foregroundColor(colorScheme == .light ? .primary : .white)
+                    .multilineTextAlignment(.center)
+
+                Text("Seriously, most people are ready to charge a card in less than two minutes.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Spacer()
+
+                Button(action: {
+                    withAnimation {
+                        currentPage = 2
+                    }
+                }) {
+                    Text("Let's go")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.accentColor)
+                        .cornerRadius(12)
+                }
+                .padding(.bottom, 80)
+            }
+            .padding(.horizontal, 48)
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            setupCardToPhoneVideoPlayer()
+        }
+        .onChange(of: currentPage) { _, newPage in
+            // Restart video when user swipes back to this page
+            if newPage == 1, let cardToPhonePlayer = cardToPhonePlayer {
+                cardToPhonePlayCount = 1
+                cardToPhonePlayer.seek(to: .zero)
+                cardToPhonePlayer.play()
+            }
+        }
+    }
+
+    // MARK: - Page 3: Business name + Get Started
+
+    private var businessNamePage: some View {
+        ZStack {
+            // Background video (phone to phone)
+            if let phoneToPhonePlayer = phoneToPhonePlayer {
+                GeometryReader { geometry in
+                    VideoPlayer(player: phoneToPhonePlayer)
+                        .aspectRatio(9/16, contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                        .disabled(true)
+                }
+                .ignoresSafeArea()
+            }
+
+            gradientOverlay.ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Spacer()
+
+                Text("What's your business called?")
+                    .font(.title)
+                    .fontWeight(.semibold)
+                    .foregroundColor(colorScheme == .light ? .primary : .white)
+                    .multilineTextAlignment(.center)
+
+                // Styled text field
+                TextField("e.g. Manny's Manicures", text: $businessName)
+                    .font(.title2)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(colorScheme == .light ? Color.white : Color(.systemGray5))
+                            .shadow(color: Color.black.opacity(0.15), radius: 8, y: 4)
+                    )
+                    .foregroundColor(.primary)
+
+                Text("You can change this anytime in Settings.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Spacer()
+
+                Button(action: {
+                    let trimmedName = businessName.trimmingCharacters(in: .whitespaces)
+                    if !trimmedName.isEmpty {
+                        UserDefaults.standard.businessName = trimmedName
+                    } else {
+                        UserDefaults.standard.removeObject(forKey: "businessName")
+                    }
+                    UserDefaults.standard.hasCompletedInitialOnboarding = true
+                    hasCompletedOnboarding = true
+                }) {
+                    Text("Get Started")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.accentColor)
+                        .cornerRadius(12)
+                }
+                .padding(.bottom, 80)
+            }
+            .padding(.horizontal, 48)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            setupPhoneToPhoneVideoPlayer()
+        }
+        .onChange(of: currentPage) { _, newPage in
+            if newPage == 2, let phoneToPhonePlayer = phoneToPhonePlayer {
+                phoneToPhonePlayCount = 1
+                phoneToPhonePlayer.seek(to: .zero)
+                phoneToPhonePlayer.play()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .keyboard) {
+                HStack {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Video Player Setup
+
+    private func setupWelcomeVideoPlayer() {
+        guard player == nil else { return }
+
+        guard let url = Bundle.main.url(
+            forResource: "How_to_Video_Short15_Social_Tap_to_Pay_on_iPhone",
+            withExtension: "mp4"
+        ) else { return }
+
+        let newPlayer = AVPlayer(url: url)
+        newPlayer.isMuted = true
+        self.player = newPlayer
+        newPlayer.play()
+
+        // Auto-advance to page 2 when video ends
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: newPlayer.currentItem,
+            queue: .main
+        ) { [self] _ in
+            withAnimation {
+                currentPage = 1
+            }
+        }
+    }
+
+    private func setupCardToPhoneVideoPlayer() {
+        guard cardToPhonePlayer == nil else { return }
+
+        guard let url = Bundle.main.url(
+            forResource: "vertical_9x16_card_to_iphone",
+            withExtension: "mp4"
+        ) else { return }
+
+        let newPlayer = AVPlayer(url: url)
+        newPlayer.isMuted = true
+        self.cardToPhonePlayer = newPlayer
+        self.cardToPhonePlayCount = 1
+        newPlayer.play()
+
+        // Play twice then stop
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: newPlayer.currentItem,
+            queue: .main
+        ) { [self] _ in
+            if cardToPhonePlayCount < 2 {
+                cardToPhonePlayCount += 1
+                newPlayer.seek(to: .zero)
+                newPlayer.play()
+            }
+        }
+    }
+
+    private func setupPhoneToPhoneVideoPlayer() {
+        guard phoneToPhonePlayer == nil else { return }
+
+        guard let url = Bundle.main.url(
+            forResource: "vertical_9x16_iphone_to_iphone",
+            withExtension: "mp4"
+        ) else { return }
+
+        let newPlayer = AVPlayer(url: url)
+        newPlayer.isMuted = true
+        self.phoneToPhonePlayer = newPlayer
+        self.phoneToPhonePlayCount = 1
+        newPlayer.play()
+
+        // Play twice then stop
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: newPlayer.currentItem,
+            queue: .main
+        ) { [self] _ in
+            if phoneToPhonePlayCount < 2 {
+                phoneToPhonePlayCount += 1
+                newPlayer.seek(to: .zero)
+                newPlayer.play()
+            }
         }
     }
 }

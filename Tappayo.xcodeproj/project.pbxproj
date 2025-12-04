@@ -19,6 +19,9 @@
 		4D14B3BF2BE36195009213AC /* ReaderDiscoveryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D14B3BE2BE36195009213AC /* ReaderDiscoveryViewController.swift */; };
 		4D14B3C52BE37E49009213AC /* TerminalConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D14B3C42BE37E49009213AC /* TerminalConnectionView.swift */; };
 		4D1BF3092EE19115005D4FB6 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1BF3082EE19115005D4FB6 /* WelcomeView.swift */; };
+		4D1BF30C2EE19A25005D4FB6 /* How_to_Video_Short15_Social_Tap_to_Pay_on_iPhone.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 4D1BF30A2EE19A25005D4FB6 /* How_to_Video_Short15_Social_Tap_to_Pay_on_iPhone.mp4 */; };
+		4D1BF30E2EE19F96005D4FB6 /* vertical_9x16_card_to_iphone.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 4D1BF30D2EE19F96005D4FB6 /* vertical_9x16_card_to_iphone.mp4 */; };
+		4D1BF3102EE19FB2005D4FB6 /* vertical_9x16_iphone_to_iphone.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 4D1BF30F2EE19FB2005D4FB6 /* vertical_9x16_iphone_to_iphone.mp4 */; };
 		4D92B7152C0EA561005AD949 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B7142C0EA561005AD949 /* ContentView.swift */; };
 		4D92B71B2C0EE143005AD949 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B71A2C0EE143005AD949 /* SettingsView.swift */; };
 		4D92B71D2C0EE223005AD949 /* UserDefaultsKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D92B71C2C0EE223005AD949 /* UserDefaultsKeys.swift */; };
@@ -77,6 +80,9 @@
 		4D14B3BE2BE36195009213AC /* ReaderDiscoveryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderDiscoveryViewController.swift; sourceTree = "<group>"; };
 		4D14B3C42BE37E49009213AC /* TerminalConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalConnectionView.swift; sourceTree = "<group>"; };
 		4D1BF3082EE19115005D4FB6 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		4D1BF30A2EE19A25005D4FB6 /* How_to_Video_Short15_Social_Tap_to_Pay_on_iPhone.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = How_to_Video_Short15_Social_Tap_to_Pay_on_iPhone.mp4; sourceTree = "<group>"; };
+		4D1BF30D2EE19F96005D4FB6 /* vertical_9x16_card_to_iphone.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = vertical_9x16_card_to_iphone.mp4; sourceTree = "<group>"; };
+		4D1BF30F2EE19FB2005D4FB6 /* vertical_9x16_iphone_to_iphone.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = vertical_9x16_iphone_to_iphone.mp4; sourceTree = "<group>"; };
 		4D92B7142C0EA561005AD949 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		4D92B71A2C0EE143005AD949 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4D92B71C2C0EE223005AD949 /* UserDefaultsKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsKeys.swift; sourceTree = "<group>"; };
@@ -158,6 +164,7 @@
 		4D08BC752BCE79B4007B1FBA /* Tappayo */ = {
 			isa = PBXGroup;
 			children = (
+				4D1BF30B2EE19A25005D4FB6 /* media */,
 				4D1BF3082EE19115005D4FB6 /* WelcomeView.swift */,
 				4DC733DF2EE1727F00F8A7FA /* Managers */,
 				4DD86DDE2ECEB42200332F37 /* DisplayOptionsView.swift */,
@@ -215,6 +222,16 @@
 				4D08BC932BCE79C8007B1FBA /* TappayoUITestsLaunchTests.swift */,
 			);
 			path = TappayoUITests;
+			sourceTree = "<group>";
+		};
+		4D1BF30B2EE19A25005D4FB6 /* media */ = {
+			isa = PBXGroup;
+			children = (
+				4D1BF30F2EE19FB2005D4FB6 /* vertical_9x16_iphone_to_iphone.mp4 */,
+				4D1BF30D2EE19F96005D4FB6 /* vertical_9x16_card_to_iphone.mp4 */,
+				4D1BF30A2EE19A25005D4FB6 /* How_to_Video_Short15_Social_Tap_to_Pay_on_iPhone.mp4 */,
+			);
+			path = media;
 			sourceTree = "<group>";
 		};
 		4D92B7242C0FF2EF005AD949 /* utils */ = {
@@ -366,8 +383,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D1BF30E2EE19F96005D4FB6 /* vertical_9x16_card_to_iphone.mp4 in Resources */,
 				4DA470962CF63B56009FAAD9 /* notes-for-cursor.txt in Resources */,
+				4D1BF30C2EE19A25005D4FB6 /* How_to_Video_Short15_Social_Tap_to_Pay_on_iPhone.mp4 in Resources */,
 				4D08BC7E2BCE79C7007B1FBA /* Preview Assets.xcassets in Resources */,
+				4D1BF3102EE19FB2005D4FB6 /* vertical_9x16_iphone_to_iphone.mp4 in Resources */,
 				4D08BC7B2BCE79C7007B1FBA /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

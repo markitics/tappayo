@@ -65,6 +65,17 @@ struct ProductEditorView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+
+                    // Eye icon matching the product list (visual consistency)
+                    HStack {
+                        Image(systemName: product.isVisible ? "eye.fill" : "eye.slash")
+                            .foregroundColor(product.isVisible ? .accentColor : .secondary)
+                            .font(.title3)
+                        Text(product.isVisible ? "Visible" : "Hidden")
+                            .font(.caption)
+                            .foregroundColor(product.isVisible ? .accentColor : .secondary)
+                    }
+                    .padding(.top, 4)
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)

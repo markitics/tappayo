@@ -10,7 +10,7 @@ import StripeTerminal
 
 @main
 struct TappayoApp: App {
-    @State private var hasCompletedOnboarding = UserDefaults.standard.hasCompletedInitialOnboarding
+    @AppStorage("hasCompletedInitialOnboarding") private var hasCompletedOnboarding = false
 
     init() {
         setupStripe()

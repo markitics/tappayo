@@ -66,6 +66,18 @@ struct TapToPaySetupView: View {
                     }
                 }
             }
+
+            // MARK: DEBUG - Restart Onboarding
+            Section(header: Text("Debug")) {
+                Button {
+                    UserDefaults.standard.hasCompletedInitialOnboarding = false
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.counterclockwise")
+                        Text("Restart Onboarding")
+                    }
+                }
+            }
         }
         .navigationTitle("Tap to Pay Setup")
         .navigationBarTitleDisplayMode(.inline)

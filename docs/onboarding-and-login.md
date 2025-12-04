@@ -87,6 +87,81 @@ That's it! You're now ready to:
 - [ ] Make your first live charge 🙌 (any amount $0.50 up to $2.00).
 (Button to trigger first TTP)
 
-**Milestone:** You can now sell up to $100 in total. 
+**Milestone:** You can now sell up to $100 in total.
 
 
+---
+
+# Onboarding Gate: Preventing Premature Auto-Connection
+
+## The Problem
+
+The Stripe Terminal SDK has a useful feature: it automatically attempts to reconnect to a previously-connected reader on app launch. For returning users, this is great—seamless, no friction.
+
+But for **new users**, this creates a jarring experience:
+
+1. User opens the app for the first time
+2. App immediately triggers `discoverAndConnectReader()`
+3. **BOOM** — Apple's scary "Tap to Pay on iPhone" terms sheet appears
+4. User hasn't seen any value, any explanation, or any context
+5. They feel ambushed, not welcomed
+
+This is particularly problematic because:
+- Apple's terms sheet is legally-dense and intimidating
+- The user hasn't invested any time in the app yet
+- They're more likely to abandon at this point
+- No trust or enthusiasm has been built
+
+## How Stripe SDK Handles Apple Account Linking
+
+The Stripe Terminal SDK automatically handles the "Link your Apple account" flow when needed. This is a one-time step required by Apple for Tap to Pay on iPhone. The SDK:
+
+1. Checks if the user has already accepted Apple's TTP terms
+2. If not, presents Apple's system terms sheet
+3. Handles the account linking transparently
+
+This is convenient for the developer, but means we **don't control when** this sheet appears unless we gate the reader connection.
+
+## The Solution: Gentle Onboarding Gate
+
+We gate the auto-connection behind a boolean: `hasCompletedInitialOnboarding`
+
+### Implementation
+
+1. **UserDefaults flag**: `hasCompletedInitialOnboarding` (defaults to `false`)
+
+2. **WelcomeView** (`WelcomeView.swift`) — A simple 2-page welcome flow:
+   - **Page 1**: Welcome message + friendly promise ("The easiest way to accept payments. No card reader needed.")
+   - **Page 2**: Business name input + "Get Started" button
+
+3. **Gate logic**:
+   - App's root view checks the flag
+   - If `false` → show `WelcomeView`
+   - If `true` → show `ContentView` (which triggers reader connection)
+
+4. **On "Get Started"**:
+   - Save business name (if entered)
+   - Set `hasCompletedInitialOnboarding = true`
+   - App transitions to main view
+   - Auto-connection naturally triggers → Apple's terms sheet appears
+
+### Why This Works
+
+By the time the Apple terms sheet appears, the user has:
+- Seen a welcoming first impression
+- Understood what the app does
+- Invested 30+ seconds of attention
+- Made a micro-commitment (entering business name)
+- Tapped "Get Started" — they're mentally ready for "next steps"
+
+The Apple sheet now feels like a **natural progression**, not a surprise attack.
+
+### Code Reference
+
+```swift
+// WelcomeView.swift — On "Get Started" button tap:
+UserDefaults.standard.hasCompletedInitialOnboarding = true
+hasCompletedOnboarding = true
+```
+
+The view uses `TabView` with `.page` style for swipeable pages, and binds to `hasCompletedOnboarding` to signal completion to the parent view.
