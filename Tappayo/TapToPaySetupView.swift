@@ -41,6 +41,7 @@ struct TapToPaySetupView: View {
                     presentEducation()
                 }
 
+                // TODO
                 SetupChecklistRow(
                     title: "Accept Apple Terms",
                     subtitle: "Required for Tap to Pay on iPhone",

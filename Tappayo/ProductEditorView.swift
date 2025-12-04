@@ -48,7 +48,7 @@ struct ProductEditorView: View {
                 )
 
                 // Visibility toggle
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(spacing: 8) {
                     Toggle(isOn: Binding(
                         get: { product.isVisible },
                         set: { newValue in
@@ -66,15 +66,24 @@ struct ProductEditorView: View {
                         }
                     }
 
-                    // Eye icon matching the product list (visual consistency)
-                    HStack {
-                        Image(systemName: product.isVisible ? "eye.fill" : "eye.slash")
-                            .foregroundColor(product.isVisible ? .accentColor : .secondary)
-                            .font(.title3)
-                        Text(product.isVisible ? "Visible" : "Hidden")
-                            .font(.caption)
-                            .foregroundColor(product.isVisible ? .accentColor : .secondary)
+                    // Tappable eye icon (matches list view behavior)
+                    Button(action: {
+                        if let index = savedProducts.firstIndex(where: { $0.id == product.id }) {
+                            savedProducts[index].isVisible.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: product.isVisible ? "eye.fill" : "eye.slash")
+                                .foregroundColor(product.isVisible ? .accentColor : .secondary)
+                                .font(.title3)
+                                .frame(width: 28, height: 28) // Fixed size prevents layout shift
+                            Text(product.isVisible ? "Visible" : "Hidden")
+                                .font(.caption)
+                                .foregroundColor(product.isVisible ? .accentColor : .secondary)
+                        }
                     }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 4)
                 }
                 .padding(.horizontal)

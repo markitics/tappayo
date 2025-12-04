@@ -15,7 +15,11 @@ struct ProductsView: View {
     @State private var savedProducts: [Product] = UserDefaults.standard.savedProducts
     @State private var editingProduct: Product?
     @State private var isEditingNewProduct = false
-    @State private var sortOption: ProductSortOption = .defaultOrder
+    @AppStorage("productSortOption") private var sortOptionRaw: String = ProductSortOption.defaultOrder.rawValue
+
+    private var sortOption: ProductSortOption {
+        get { ProductSortOption(rawValue: sortOptionRaw) ?? .defaultOrder }
+    }
 
     private var sortedProductIndices: [Int] {
         let indices = Array(savedProducts.indices)
@@ -31,14 +35,19 @@ struct ProductsView: View {
 
     var body: some View {
         List {
-            // Sort picker
-            Section {
-                Picker("Sort by", selection: $sortOption) {
-                    ForEach(ProductSortOption.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
+            // Sort picker (only shown when more than 6 products)
+            if savedProducts.count > 6 {
+                Section {
+                    Picker("Sort by", selection: Binding(
+                        get: { sortOption },
+                        set: { sortOptionRaw = $0.rawValue }
+                    )) {
+                        ForEach(ProductSortOption.allCases, id: \.self) { option in
+                            Text(option.rawValue).tag(option)
+                        }
                     }
+                    .pickerStyle(.segmented)
                 }
-                .pickerStyle(.segmented)
             }
 
             ForEach(sortedProductIndices, id: \.self) { index in

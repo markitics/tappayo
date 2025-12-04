@@ -49,8 +49,9 @@ struct WelcomeView: View {
             UIPageControl.appearance().currentPageIndicatorTintColor = UIColor.darkGray
             UIPageControl.appearance().pageIndicatorTintColor = UIColor.lightGray.withAlphaComponent(0.4)
         } else {
-            UIPageControl.appearance().currentPageIndicatorTintColor = UIColor.white
-            UIPageControl.appearance().pageIndicatorTintColor = UIColor.gray
+            // Reset to system defaults for dark mode (nil restores the default white/gray contrast)
+            UIPageControl.appearance().currentPageIndicatorTintColor = nil
+            UIPageControl.appearance().pageIndicatorTintColor = nil
         }
     }
 
@@ -103,7 +104,7 @@ struct WelcomeView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("The easiest way to accept payments.\nNo card reader needed.")
+                Text("The easiest way to accept payments.\nNo card reader needed.\nJust use your iPhone.")
                     .font(.title3)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -167,12 +168,17 @@ struct WelcomeView: View {
                 Spacer()
 
                 Text("This app is easy to use")
-                    .font(.title)
+                    .font(.largeTitle)
                     .fontWeight(.semibold)
                     .foregroundColor(colorScheme == .light ? .primary : .white)
                     .multilineTextAlignment(.center)
 
-                Text("Seriously, most people are ready to charge a card in less than two minutes.")
+                Text("Most people are ready to charge a card in less than two minutes.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Text("This app is designed to be used by anyone. Anywhere. At any age.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
