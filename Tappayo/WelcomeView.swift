@@ -103,8 +103,9 @@ struct WelcomeView: View {
                 Text("Welcome to Tappayo")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
 
-                Text("The easiest way to accept payments.\nNo card reader needed.\nJust use your iPhone.")
+                Text("The easiest way to accept payments.\nNo card reader needed.\n\nJust use your iPhone.")
                     .font(.title3)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

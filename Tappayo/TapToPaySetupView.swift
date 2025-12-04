@@ -41,7 +41,8 @@ struct TapToPaySetupView: View {
                     presentEducation()
                 }
 
-                // TODO
+                // TODO: clean up code if we don't use hasAcceptedTerms after all.
+                //
                 SetupChecklistRow(
                     title: "Accept Apple Terms",
                     subtitle: "Required for Tap to Pay on iPhone",
