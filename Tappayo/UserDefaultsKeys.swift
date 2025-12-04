@@ -16,5 +16,9 @@ enum UserDefaultsKeys: String {
     case tippingEnabled
     case dismissKeypadAfterAdd
     case inputMode  // "cents" or "dollars"
+
+    // Tap to Pay setup
+    case appleUserId
+    case whenViewedTTPEducation  // timestamp (Date)
 }
 

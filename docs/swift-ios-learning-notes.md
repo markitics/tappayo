@@ -215,3 +215,72 @@ If you want data to survive this cycle, it must live in the **parent's @State** 
 - Draft/form data should live in parent and be passed as `@Binding` to survive sheet lifecycle
 - `.onAppear` is not a one-time initializer - it runs every time the view appears
 - Use conditional logic in `.onAppear` if you only want to set defaults when truly empty
+
+---
+
+## Pattern: "Manager" Classes for Wrapping System Frameworks
+
+**Context:** December 2025 - Created `LocationPermissionManager` and `BluetoothPermissionManager` to wrap CoreLocation and CoreBluetooth.
+
+### What is a "Manager"?
+
+"Manager" is a naming convention (not a Swift language feature) for classes that wrap and manage some specific resource or system functionality.
+
+### Why Use Managers?
+
+1. **Wrap system frameworks** - Encapsulate `CLLocationManager`, `CBCentralManager`, etc.
+2. **Act as delegates** - Apple's APIs use the delegate pattern (callbacks). The manager receives those callbacks and translates them into `@Published` properties that SwiftUI can observe.
+3. **Provide a simpler interface** - Views call `manager.requestPermission()` and read `manager.isGranted` instead of dealing with framework complexity.
+
+### Example: Before vs After
+
+**Without Manager (messy view):**
+```swift
+struct MyView: View, CLLocationManagerDelegate {
+    let locationManager = CLLocationManager()
+    @State var status: CLAuthorizationStatus = .notDetermined
+
+    var body: some View { ... }
+
+    // View has to implement delegate methods
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        status = manager.authorizationStatus
+    }
+}
+```
+
+**With Manager (clean separation):**
+```swift
+// Manager handles all the framework complexity
+class LocationPermissionManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    @Published var authorizationStatus: CLAuthorizationStatus
+    private let locationManager = CLLocationManager()
+
+    func requestPermission() { locationManager.requestWhenInUseAuthorization() }
+    var isGranted: Bool { ... }
+}
+
+// View stays simple
+struct MyView: View {
+    @StateObject var locationManager = LocationPermissionManager()
+
+    var body: some View {
+        Text(locationManager.isGranted ? "Granted" : "Not granted")
+        Button("Request") { locationManager.requestPermission() }
+    }
+}
+```
+
+### Key Points
+
+- **@StateObject** - Use this to create managers in views (ensures single instance lifecycle)
+- **ObservableObject + @Published** - Makes state changes trigger SwiftUI updates
+- **NSObject inheritance** - Required if you need to be a delegate (CLLocationManagerDelegate, etc.)
+- **Other names** for similar patterns: `Service`, `Handler`, `Provider`, `Store`
+
+### When to Create a Manager
+
+- When a system framework uses delegates/callbacks
+- When you want to share state across multiple views
+- When framework setup code would clutter your view
+- When you need to test the logic independently

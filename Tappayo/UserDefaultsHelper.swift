@@ -142,5 +142,25 @@ extension UserDefaults {
             set(newValue, forKey: UserDefaultsKeys.inputMode.rawValue)
         }
     }
+
+    // MARK: - Tap to Pay Setup
+
+    var appleUserId: String? {
+        get {
+            return string(forKey: UserDefaultsKeys.appleUserId.rawValue)
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.appleUserId.rawValue)
+        }
+    }
+
+    var whenViewedTTPEducation: Date? {
+        get {
+            return object(forKey: UserDefaultsKeys.whenViewedTTPEducation.rawValue) as? Date
+        }
+        set {
+            set(newValue, forKey: UserDefaultsKeys.whenViewedTTPEducation.rawValue)
+        }
+    }
 }
 

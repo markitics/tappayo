@@ -108,6 +108,8 @@ All notes related to Stripe Terminal SDK, reader discovery, connection, and Tap 
 
 **When ready to tackle robustness systematically, consider:**
 
+0. **Add simulator guards for ProximityReader** - The `ProximityReader` framework (used for TTP terms acceptance and merchant education) only works on physical devices. Consider adding `#if targetEnvironment(simulator)` guards with appropriate messaging for simulator builds. Low priority since development/testing naturally happens on device for TTP features.
+
 1. **Add connection timeout** - Same 30-second watchdog pattern as discovery
 2. ~~**Fix connection retry logic**~~ - DONE Nov 2025
 3. **Add app lifecycle monitoring** - Pause operations on background, reconnect on foreground using `@Environment(\.scenePhase)`

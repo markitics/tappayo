@@ -12,7 +12,8 @@ struct AboutView: View {
                 .font(.body)
                 .padding()
             
-            Text("Slack: #simple-mobile-payments-app")
+            Link("Slack: #simple-tap-to-pay-mobile-app",
+                 destination: URL(string: "https://stripe.enterprise.slack.com/archives/C082GETCCQ1")!)
                 .font(.body)
                 .padding()
             

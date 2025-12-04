@@ -97,6 +97,23 @@ Feature backlog and improvement ideas. Does NOT include TTP SDK/reader connectiv
 
 ---
 
+## External Card Reader Support (Dec 2025)
+
+### Bluetooth Permission for External Readers
+- Currently removed from onboarding checklist since Tap to Pay uses NFC, not Bluetooth
+- If we later support external Bluetooth card readers (e.g., Stripe's BBPOS readers), we'd need to:
+  - Add Bluetooth back to the setup checklist
+  - Info.plist already has `NSBluetoothAlwaysUsageDescription` and `bluetooth-central` background mode
+  - The `BluetoothPermissionManager` class already exists in `Managers/` folder
+
+### UX Pattern for Denied Permissions
+- iOS restriction: Once a user denies a permission, the app cannot re-prompt
+- User must manually go to iOS Settings → Tappayo to change it
+- **Good UX pattern**: When permission is `.denied`, tapping the row should show an alert with "Open Settings" button that deep-links to the app's settings page (`UIApplication.openSettingsURLString`)
+- This pattern applies to Location, Bluetooth, Camera, Photo Library, etc.
+
+---
+
 ## Developer Experience (Optional)
 
 ### SwiftUI Previews
