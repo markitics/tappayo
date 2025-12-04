@@ -2,6 +2,7 @@
 //  Tappayo
 
 import SwiftUI
+import CoreLocation
 
 struct TapToPaySetupView: View {
     // MARK: - State (placeholder values for now)
@@ -9,8 +10,10 @@ struct TapToPaySetupView: View {
     @State private var isSignedIn: Bool = false
     @State private var hasViewedEducation: Bool = false
     @State private var hasAcceptedTerms: Bool = false
-    @State private var bluetoothStatus: String = "Not Set"
-    @State private var locationStatus: String = "Not Set"
+
+    // MARK: - Permission Managers
+
+    @StateObject private var locationManager = LocationPermissionManager()
 
     var body: some View {
         Form {
@@ -44,19 +47,13 @@ struct TapToPaySetupView: View {
 
             Section(header: Text("Permissions")) {
                 SetupChecklistRow(
-                    title: "Bluetooth",
-                    isComplete: bluetoothStatus == "Granted",
-                    statusText: bluetoothStatus
-                ) {
-                    // TODO: Step 2 - Request Bluetooth permission
-                }
-
-                SetupChecklistRow(
                     title: "Location",
-                    isComplete: locationStatus == "Granted",
-                    statusText: locationStatus
+                    isComplete: locationManager.isGranted,
+                    statusText: locationManager.statusText
                 ) {
-                    // TODO: Step 2 - Request Location permission
+                    if locationManager.authorizationStatus == .notDetermined {
+                        locationManager.requestPermission()
+                    }
                 }
             }
         }

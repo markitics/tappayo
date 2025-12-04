@@ -186,6 +186,9 @@
   },
   "active": "0338d38f8f02dd73",
   "lastOpenFiles": [
+    "Tappayo/Managers/BluetoothPermissionManager.swift",
+    "Tappayo/Managers/LocationPermissionManager.swift",
+    "Tappayo/Managers",
     "Tappayo/TapToPaySetupView.swift",
     "Tappayo/Components/TapToPaySetupView.swift",
     "Tappayo/Components/SetupChecklistRow.swift",

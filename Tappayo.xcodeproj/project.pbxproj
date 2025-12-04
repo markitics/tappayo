@@ -27,6 +27,8 @@
 		4DA470922CF60BFE009FAAD9 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA470912CF60BE2009FAAD9 /* AboutView.swift */; };
 		4DA470962CF63B56009FAAD9 /* notes-for-cursor.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */; };
 		4DC733DC2EE16DCB00F8A7FA /* TapToPaySetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC733DB2EE16DCB00F8A7FA /* TapToPaySetupView.swift */; };
+		4DC733E02EE1727F00F8A7FA /* BluetoothPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC733DD2EE1727F00F8A7FA /* BluetoothPermissionManager.swift */; };
+		4DC733E12EE1727F00F8A7FA /* LocationPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC733DE2EE1727F00F8A7FA /* LocationPermissionManager.swift */; };
 		4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DCA6AFB2BE347AB006220E5 /* APIClient.swift */; };
 		4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */; };
 		4DD86DD02ECD85FD00332F37 /* ItemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD86DCF2ECD85FD00332F37 /* ItemEditorView.swift */; };
@@ -81,6 +83,8 @@
 		4DA470912CF60BE2009FAAD9 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		4DA470952CF63B50009FAAD9 /* notes-for-cursor.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "notes-for-cursor.txt"; sourceTree = "<group>"; };
 		4DC733DB2EE16DCB00F8A7FA /* TapToPaySetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapToPaySetupView.swift; sourceTree = "<group>"; };
+		4DC733DD2EE1727F00F8A7FA /* BluetoothPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPermissionManager.swift; sourceTree = "<group>"; };
+		4DC733DE2EE1727F00F8A7FA /* LocationPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionManager.swift; sourceTree = "<group>"; };
 		4DCA6AFA2BE3386C006220E5 /* Tappayo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tappayo.entitlements; sourceTree = "<group>"; };
 		4DCA6AFB2BE347AB006220E5 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		4DD86DCB2ECD6B5100332F37 /* PhotoStorageHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoStorageHelper.swift; sourceTree = "<group>"; };
@@ -148,6 +152,7 @@
 		4D08BC752BCE79B4007B1FBA /* Tappayo */ = {
 			isa = PBXGroup;
 			children = (
+				4DC733DF2EE1727F00F8A7FA /* Managers */,
 				4DD86DDE2ECEB42200332F37 /* DisplayOptionsView.swift */,
 				4DD86DDF2ECEB42200332F37 /* ProductEditorView.swift */,
 				4DD86DE02ECEB42200332F37 /* ProductsView.swift */,
@@ -220,6 +225,15 @@
 				4D92B7262C0FF67C005AD949 /* CurrencyTextField.swift */,
 			);
 			path = common;
+			sourceTree = "<group>";
+		};
+		4DC733DF2EE1727F00F8A7FA /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				4DC733DD2EE1727F00F8A7FA /* BluetoothPermissionManager.swift */,
+				4DC733DE2EE1727F00F8A7FA /* LocationPermissionManager.swift */,
+			);
+			path = Managers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -387,6 +401,8 @@
 				4DD86DD62ECDA5FD00332F37 /* CartListView.swift in Sources */,
 				4DD86DCD2ECD6B5100332F37 /* PhotoStorageHelper.swift in Sources */,
 				4DCA6AFC2BE347AB006220E5 /* APIClient.swift in Sources */,
+				4DC733E02EE1727F00F8A7FA /* BluetoothPermissionManager.swift in Sources */,
+				4DC733E12EE1727F00F8A7FA /* LocationPermissionManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
