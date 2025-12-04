@@ -43,6 +43,16 @@ The app provides a simple, streamlined interface for in-person payment processin
 
 **Note on Commented-Out Code**: Inline comments are welcome and encouraged. Commented-out code often exists as a valuable papertrail showing earlier versions or alternative approaches.
 
+**Logging Hygiene**: Don't log sensitive identifiers in full. User IDs, Stripe account IDs, etc. should be truncated in logs to limit exposure if logs are leaked or sent to third-party services.
+
+```python
+# Bad - logs the full user ID
+logger.info(f"Creating charge for user {user_id}")
+
+# Better - logs a truncated version
+logger.info(f"Creating charge for user {user_id[:8]}...")
+```
+
 ---
 
 ## Documentation
@@ -75,4 +85,31 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 It's obvious from the existence of claude.md that Claude Code is helping pair-program this entire app. So let's keep the git history clean and avoid bragging about Claude's involvement in every commit.
 
+# Sign in and onboarding
+Detailed notes are in docs/onboarding-and-login.md
 
+One specal note on fraud mitigation: we're launching with just "Sign in with Apple" as the only auth option. This is consistent with making the onboarding the fastest of any mobile POS app available in the market. It also helps us reduce the chance that a given human will spin up multiple Tappayo accounts using one device.
+
+ With email/magic link:
+  - Burner emails are free and instant (guerrillamail, 10minutemail, etc.)
+  - Bad actor creates 10 accounts → processes $1,000 before any real onboarding
+  - Low friction to abuse
+
+  With Sign in with Apple:
+  - Apple IDs are expensive to create:
+    - Requires unique email
+    - Phone verification
+    - Tied to payment methods, devices, iCloud data
+  - Signing out of iCloud is painful:
+    - Affects all apps, photos, messages, keychain, etc.
+    - Nobody does this casually
+  - Most people have ONE Apple ID for life
+
+  The friction is real. A fraudster would need to either:
+  - Have multiple iPhones with different Apple IDs
+  - Factory reset and set up new Apple ID each time (huge hassle)
+  - Steal/buy Apple accounts (actual effort/cost)
+
+  So your $100 limit + Sign in with Apple is a solid anti-fraud combo. You've made the cost of abuse high enough that it's not worth it for small-time fraud.
+
+  Good catch - this is a legitimate reason to prefer Sign in with Apple over email for V1.
