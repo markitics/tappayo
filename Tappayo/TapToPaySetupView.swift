@@ -43,13 +43,13 @@ struct TapToPaySetupView: View {
 
                 // TODO: clean up code if we don't use hasAcceptedTerms after all.
                 //
-                SetupChecklistRow(
-                    title: "Accept Apple Terms",
-                    subtitle: "Required for Tap to Pay on iPhone",
-                    isComplete: hasAcceptedTerms
-                ) {
-                    // TODO: Step 4 - ProximityReader terms acceptance
-                }
+//                SetupChecklistRow(
+//                    title: "Accept Apple Terms",
+//                    subtitle: "Required for Tap to Pay on iPhone",
+//                    isComplete: hasAcceptedTerms
+//                ) {
+//                    // TODO: Step 4 - ProximityReader terms acceptance
+//                }
             }
 
             Section(header: Text("Permissions")) {

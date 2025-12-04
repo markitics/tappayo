@@ -61,6 +61,8 @@ struct SettingsView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .sheetGradientBackground()
         .navigationTitle("Tappayo Settings")
         .onAppear {
             businessName = UserDefaults.standard.businessName

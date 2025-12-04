@@ -139,7 +139,12 @@ struct WelcomeView: View {
         .onAppear {
             setupWelcomeVideoPlayer()
         }
-        .onChange(of: currentPage) { _, newPage in
+        .onChange(of: currentPage) { oldPage, newPage in
+            // Pause when leaving page 0
+            if oldPage == 0, let player = player {
+                player.pause()
+            }
+            // Restart from beginning when returning to page 0
             if newPage == 0, let player = player {
                 player.seek(to: .zero)
                 player.play()
@@ -207,8 +212,12 @@ struct WelcomeView: View {
         .onAppear {
             setupCardToPhoneVideoPlayer()
         }
-        .onChange(of: currentPage) { _, newPage in
-            // Restart video when user swipes back to this page
+        .onChange(of: currentPage) { oldPage, newPage in
+            // Pause when leaving page 1
+            if oldPage == 1, let cardToPhonePlayer = cardToPhonePlayer {
+                cardToPhonePlayer.pause()
+            }
+            // Restart video when returning to page 1
             if newPage == 1, let cardToPhonePlayer = cardToPhonePlayer {
                 cardToPhonePlayCount = 1
                 cardToPhonePlayer.seek(to: .zero)
@@ -256,6 +265,7 @@ struct WelcomeView: View {
                             .shadow(color: Color.black.opacity(0.15), radius: 8, y: 4)
                     )
                     .foregroundColor(.primary)
+                    .contentShape(Rectangle())
 
                 Text("You can change this anytime in Settings.")
                     .font(.subheadline)
@@ -294,7 +304,12 @@ struct WelcomeView: View {
         .onAppear {
             setupPhoneToPhoneVideoPlayer()
         }
-        .onChange(of: currentPage) { _, newPage in
+        .onChange(of: currentPage) { oldPage, newPage in
+            // Pause when leaving page 2
+            if oldPage == 2, let phoneToPhonePlayer = phoneToPhonePlayer {
+                phoneToPhonePlayer.pause()
+            }
+            // Restart video when returning to page 2
             if newPage == 2, let phoneToPhonePlayer = phoneToPhonePlayer {
                 phoneToPhonePlayCount = 1
                 phoneToPhonePlayer.seek(to: .zero)
@@ -328,14 +343,16 @@ struct WelcomeView: View {
         self.player = newPlayer
         newPlayer.play()
 
-        // Auto-advance to page 2 when video ends
+        // Auto-advance to page 2 when video ends (only if still on page 0)
         NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
             object: newPlayer.currentItem,
             queue: .main
         ) { [self] _ in
-            withAnimation {
-                currentPage = 1
+            if currentPage == 0 {
+                withAnimation {
+                    currentPage = 1
+                }
             }
         }
     }
