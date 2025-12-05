@@ -81,7 +81,7 @@ struct TapToPaySetupView: View {
                 }
             }
         }
-        .navigationTitle("Tap to Pay Setup")
+        .navigationTitle("Getting started checklist")
         .navigationBarTitleDisplayMode(.inline)
         // MARK: DEBUG - Remove this before shipping
         .onAppear {
