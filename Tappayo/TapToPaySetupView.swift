@@ -13,7 +13,6 @@ struct TapToPaySetupView: View {
     @State private var hasAcceptedTerms: Bool = false
     @State private var showLocationDeniedAlert: Bool = false
     @State private var showEducationError: Bool = false
-    @State private var educationErrorMessage: String = ""
     @State private var showEducationFallback: Bool = false
 
     // MARK: - Permission Managers
@@ -100,9 +99,12 @@ struct TapToPaySetupView: View {
             Text("To authorize payments with Tap to Pay on iPhone, and help with fraud prevention: set \"Location\" to \"While Using the App\".")
         }
         .alert("Education unavailable", isPresented: $showEducationError) {
-            Button("OK", role: .cancel) { }
+            Button("View Guide") {
+                showEducationFallback = true
+            }
+            Button("Cancel", role: .cancel) { }
         } message: {
-            Text(educationErrorMessage)
+            Text("Failed to load Apple's Tap to Pay tutorial. Restart the app to try again, or view our quick guide.")
         }
         .alert("Tap to Pay on iPhone", isPresented: $showEducationFallback) {
             Button("Learn more") {
@@ -129,6 +131,7 @@ struct TapToPaySetupView: View {
             presentEducationiOS18()
             // debugging only, force fallback
 //            showEducationFallback = true
+            // or to show the proximityreader api error, showEducationError=true
         } else {
             // iOS 17 fallback: show alert with link to Apple's website
             showEducationFallback = true
@@ -140,10 +143,12 @@ struct TapToPaySetupView: View {
         Task {
             do {
                 // Get the root view controller to present from
+                // Note: This guard is probably overkill and could be simplified to force-unwrap,
+                // since the user just tapped a button so the window definitely exists.
                 guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                       let viewController = windowScene.windows.first?.rootViewController else {
                     await MainActor.run {
-                        educationErrorMessage = "Unable to present education screen."
+                        print("⚠️ TTP Education: Could not find window scene or root view controller")
                         showEducationError = true
                     }
                     return
@@ -166,7 +171,7 @@ struct TapToPaySetupView: View {
                 }
             } catch {
                 await MainActor.run {
-                    educationErrorMessage = "Could not show education: \(error.localizedDescription)"
+                    print("⚠️ TTP Education API failed on iOS 18+: \(error)")
                     showEducationError = true
                 }
             }
