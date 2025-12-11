@@ -14,6 +14,7 @@ struct SettingsView: View {
         Form {
             Section(header: Text("Business name")) {
                 TextField("Business name", text: $businessName)
+                    .submitLabel(.done)
             }
 
             Section(header: Text("Tap to Pay")) {
@@ -61,6 +62,8 @@ struct SettingsView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .sheetGradientBackground()
         .navigationTitle("Tappayo Settings")
         .onAppear {
             businessName = UserDefaults.standard.businessName

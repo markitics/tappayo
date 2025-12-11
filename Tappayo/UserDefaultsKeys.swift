@@ -20,5 +20,8 @@ enum UserDefaultsKeys: String {
     // Tap to Pay setup
     case appleUserId
     case whenViewedTTPEducation  // timestamp (Date)
+
+    // Onboarding
+    case hasCompletedInitialOnboarding  // Bool - gates auto-connection
 }
 

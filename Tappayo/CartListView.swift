@@ -28,9 +28,9 @@ struct CartListView: View {
         ZStack(alignment: .bottom) {
             List {
             Section {
-                if basket.isEmpty {
-                    Text("Cart is empty").font(.subheadline)
-                }
+//                if basket.isEmpty {
+//                 no, moved to below, like a footer   Text("Cart is empty").font(.subheadline)
+//                }
                 ForEach(basket) { item in
                     let current = getCurrentProduct(item)
                     HStack(spacing: 2) {
@@ -145,9 +145,13 @@ struct CartListView: View {
                     Text(basket.count == 1 ? "👆 Swipe row right to increase quantity" : "Swipe any item right/left to change quantity")
                         .font(.caption2)
                         .foregroundColor(.gray)
+                } else {
+                    Text("Basket is empty")
+//                        .font(.caption)
+                        .foregroundColor(.gray)
                 }
-            }
-        }
+            } // end of Section
+        } // end of List
         .listRowSeparator(.hidden) // Hide all row separators (for .plain style)
         .scrollIndicators(.visible) // this is supposed to make scroll indicators always visible (if cart is too tall to view all at once), but it's not working for me (Nov 25)
         .modifier(FlashScrollIndicatorsModifier())

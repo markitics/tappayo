@@ -10,6 +10,7 @@ struct ProductEditorView: View {
     @Binding var savedProducts: [Product]
     let isNewProduct: Bool
     @Environment(\.dismiss) private var dismiss
+    @State private var isPriceFocused: Bool = false
 
     var body: some View {
         NavigationView {
@@ -44,11 +45,12 @@ struct ProductEditorView: View {
                                 savedProducts[index].priceInCents = newPrice
                             }
                         }
-                    )
+                    ),
+                    isFocused: $isPriceFocused
                 )
 
                 // Visibility toggle
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(spacing: 8) {
                     Toggle(isOn: Binding(
                         get: { product.isVisible },
                         set: { newValue in
@@ -65,6 +67,26 @@ struct ProductEditorView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+
+                    // Tappable eye icon (matches list view behavior)
+                    Button(action: {
+                        if let index = savedProducts.firstIndex(where: { $0.id == product.id }) {
+                            savedProducts[index].isVisible.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: product.isVisible ? "eye.fill" : "eye.slash")
+                                .foregroundColor(product.isVisible ? .accentColor : .secondary)
+                                .font(.title3)
+                                .frame(width: 28, height: 28) // Fixed size prevents layout shift
+                            Text(product.isVisible ? "Visible" : "Hidden")
+                                .font(.caption)
+                                .foregroundColor(product.isVisible ? .accentColor : .secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 4)
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)

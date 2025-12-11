@@ -10,13 +10,19 @@ import StripeTerminal
 
 @main
 struct TappayoApp: App {
+    @AppStorage("hasCompletedInitialOnboarding") private var hasCompletedOnboarding = false
+
     init() {
         setupStripe()
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if hasCompletedOnboarding {
+                ContentView()
+            } else {
+                WelcomeView(hasCompletedOnboarding: $hasCompletedOnboarding)
+            }
         }
     }
 

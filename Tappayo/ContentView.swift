@@ -338,7 +338,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: SettingsView()) {
-                        Text("Admin").font(.body).foregroundColor(myAccentColor)
+                        Text("Settings").font(.body).foregroundColor(myAccentColor)
                     }
                 }
             }

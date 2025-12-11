@@ -22,7 +22,20 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
     }
     
     func discoverAndConnectReader(retriesRemaining: Int = 3) {
+        // Gate: Don't auto-connect until user has completed initial onboarding
+        guard UserDefaults.standard.hasCompletedInitialOnboarding else {
+            return
+        }
         guard !isDiscovering else { return } // Prevent multiple discoveries
+
+        // Check SDK's actual connection status, not just our local flag
+        // This handles cases where the SDK reconnected automatically or persisted connection
+        if Terminal.shared.connectionStatus == .connected {
+            self.isConnected = true
+            self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
+            return
+        }
+
         guard !isConnected else {
             // Skip discovery if already connected (e.g., we click into Settings page, and then come back to main ConentView, triggering viewDidLoad again, but we've remained Connected the whole time
             self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
@@ -42,6 +55,15 @@ class ReaderDiscoveryViewController: UIViewController, DiscoveryDelegate, LocalM
             self.isDiscovering = false
             if let error = error {
                 print("discoverReaders failed: \(error)")
+
+                // Check if we're actually connected despite the error
+                // (SDK may report "already connected" as an error)
+                if Terminal.shared.connectionStatus == .connected {
+                    self.isConnected = true
+                    self.updateConnectionStatus?("Ready for Tap to Pay on iPhone")
+                    return
+                }
+
                 if retriesRemaining > 0 {
                     self.updateConnectionStatus?("Discover readers failed: \(error.localizedDescription). Will retry...")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // Retry after 2 seconds

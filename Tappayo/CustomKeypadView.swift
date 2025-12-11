@@ -110,7 +110,7 @@ struct CustomKeypadView: View {
                     if amountInCents > 0 {
                         // Add to cart button (bottom-left when amount > 0)
                         Button(action: {
-                            onAddToCart(itemName)
+                            _ = onAddToCart(itemName)
                             // itemName updates via binding from ContentView
                         }) {
                             Image(systemName: "plus")
@@ -162,7 +162,7 @@ struct CustomKeypadView: View {
             HStack(spacing: 12) {
                 // Add to Cart button (2/3 width)
                 Button(action: {
-                    onAddToCart(itemName)
+                    _ = onAddToCart(itemName)
                     // itemName updates via binding from ContentView
                 }) {
                     Text("Add to Cart")

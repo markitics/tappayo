@@ -81,6 +81,7 @@ Feature backlog and improvement ideas. Does NOT include TTP SDK/reader connectiv
 ### Accessibility
 - VoiceOver labels throughout
 - Dynamic Type support
+  - **Minor quirk**: `CurrencyTextField` (UIKit-based) respects Dynamic Type on app launch, but doesn't re-render live if the user changes font size while the app is open. A fresh Cmd-R fixes it. Low priority since users rarely change font size mid-session.
 - Color contrast validation
 - Reduced motion support
 
