@@ -14,6 +14,7 @@ struct SettingsView: View {
         Form {
             Section(header: Text("Business name")) {
                 TextField("Business name", text: $businessName)
+                    .submitLabel(.done)
             }
 
             Section(header: Text("Tap to Pay")) {

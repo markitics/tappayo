@@ -53,8 +53,9 @@ struct CurrencyTextField: UIViewRepresentable {
         // Add a toolbar with a done button
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .save, target: textField, action: #selector(UITextField.resignFirstResponder))
-        toolbar.setItems([doneButton], animated: false)
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: textField, action: #selector(UITextField.resignFirstResponder))
+        toolbar.setItems([flexSpace, doneButton], animated: false)
         textField.inputAccessoryView = toolbar
 
         return textField

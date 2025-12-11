@@ -278,6 +278,9 @@ struct WelcomeView: View {
                     )
                     .foregroundColor(.primary)
                     .contentShape(Rectangle())
+                    .onTapGesture {
+                        isBusinessNameFocused = true
+                    }
 
                 Text("You can change this anytime in Settings.")
                     .font(.subheadline)

@@ -21,6 +21,7 @@ struct ProductNameField: View {
                 .foregroundColor(.secondary)
             TextField("Enter name", text: $name)
                 .font(.title3)
+                .submitLabel(.done)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
