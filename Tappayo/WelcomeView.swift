@@ -49,9 +49,9 @@ struct WelcomeView: View {
             UIPageControl.appearance().currentPageIndicatorTintColor = UIColor.darkGray
             UIPageControl.appearance().pageIndicatorTintColor = UIColor.lightGray.withAlphaComponent(0.4)
         } else {
-            // Reset to system defaults for dark mode (nil restores the default white/gray contrast)
-            UIPageControl.appearance().currentPageIndicatorTintColor = nil
-            UIPageControl.appearance().pageIndicatorTintColor = nil
+            // Dark mode: explicit white/gray for better contrast
+            UIPageControl.appearance().currentPageIndicatorTintColor = UIColor.white
+            UIPageControl.appearance().pageIndicatorTintColor = UIColor.gray.withAlphaComponent(0.4)
         }
     }
 
@@ -97,7 +97,7 @@ struct WelcomeView: View {
         ZStack {
             gradientBackground.ignoresSafeArea()
 
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 Spacer()
 
                 Text("Welcome to Tappayo")
@@ -132,9 +132,9 @@ struct WelcomeView: View {
                         .background(Color.accentColor)
                         .cornerRadius(12)
                 }
-                .padding(.bottom, 60)
+                .padding(.bottom, 80)
             }
-            .padding(.horizontal, 40)
+            .padding(.horizontal, 48)
         }
         .onAppear {
             setupWelcomeVideoPlayer()
@@ -248,7 +248,7 @@ struct WelcomeView: View {
                 Spacer()
 
                 Text("What's your business called?")
-                    .font(.title)
+                    .font(.largeTitle)
                     .fontWeight(.semibold)
                     .foregroundColor(colorScheme == .light ? .primary : .white)
                     .multilineTextAlignment(.center)
