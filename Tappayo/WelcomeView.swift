@@ -320,6 +320,10 @@ struct WelcomeView: View {
             setupPhoneToPhoneVideoPlayer()
         }
         .onChange(of: currentPage) { oldPage, newPage in
+            // Dismiss keyboard when leaving page 2 (business name page)
+            if oldPage == 2 {
+                isBusinessNameFocused = false
+            }
             // Pause when leaving page 2
             if oldPage == 2, let phoneToPhonePlayer = phoneToPhonePlayer {
                 phoneToPhonePlayer.pause()
@@ -331,8 +335,15 @@ struct WelcomeView: View {
                 phoneToPhonePlayer.play()
             }
             // Auto-focus business name field if empty when arriving on page 2
+            // NOTE: The auto-focus keyboard can trigger during page transition when swiping,
+            // which may cause edge cases. One to watch for future refinement.
             if newPage == 2 && businessName.trimmingCharacters(in: .whitespaces).isEmpty {
-                isBusinessNameFocused = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    // Only focus if still on page 2 (user didn't swipe away)
+                    if currentPage == 2 {
+                        isBusinessNameFocused = true
+                    }
+                }
             }
         }
         .toolbar {
