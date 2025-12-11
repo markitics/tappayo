@@ -18,6 +18,7 @@ struct WelcomeView: View {
     @State private var phoneToPhonePlayCount: Int = 0
     @Binding var hasCompletedOnboarding: Bool
     @Environment(\.colorScheme) private var colorScheme
+    @FocusState private var isBusinessNameFocused: Bool
 
     var body: some View {
         TabView(selection: $currentPage) {
@@ -265,7 +266,9 @@ struct WelcomeView: View {
                 // Styled text field
                 TextField("e.g. Manny's Manicures", text: $businessName)
                     .font(.title2)
-                    .multilineTextAlignment(.center)
+                    .focused($isBusinessNameFocused)
+                    .multilineTextAlignment(isBusinessNameFocused ? .leading : .center)
+                    .submitLabel(.done)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
                     .background(
