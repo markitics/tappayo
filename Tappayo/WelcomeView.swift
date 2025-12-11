@@ -36,6 +36,9 @@ struct WelcomeView: View {
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .ignoresSafeArea()
+        // UIPageControl.appearance() is a global appearance proxy that only affects views when they're created.
+        // Without this .id(colorScheme) line, existing UIPageControl instances don't update when you change the appearance proxy.
+        .id(colorScheme)
         .onAppear {
             updatePageControlAppearance()
         }
@@ -105,8 +108,13 @@ struct WelcomeView: View {
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
-                Text("The easiest way to accept payments.\nNo card reader needed.\n\nJust use your iPhone.")
+                Text("The easiest way to accept payments.")
                     .font(.title3)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Text("No card reader needed.\nJust use your iPhone.")
+                    .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
 
@@ -128,7 +136,7 @@ struct WelcomeView: View {
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, 16)
                         .background(Color.accentColor)
                         .cornerRadius(12)
                 }
@@ -136,6 +144,7 @@ struct WelcomeView: View {
             }
             .padding(.horizontal, 48)
         }
+        .ignoresSafeArea()
         .onAppear {
             setupWelcomeVideoPlayer()
         }
@@ -175,17 +184,17 @@ struct WelcomeView: View {
 
                 Text("This app is easy to use")
                     .font(.largeTitle)
-                    .fontWeight(.semibold)
+                    .fontWeight(.bold)
                     .foregroundColor(colorScheme == .light ? .primary : .white)
                     .multilineTextAlignment(.center)
 
                 Text("Most people are ready to charge a card in less than two minutes.")
-                    .font(.body)
+                    .font(.title3)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
 
                 Text("This app is designed to be used by anyone. Anywhere. At any age.")
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
 
@@ -249,7 +258,7 @@ struct WelcomeView: View {
 
                 Text("What's your business called?")
                     .font(.largeTitle)
-                    .fontWeight(.semibold)
+                    .fontWeight(.bold)
                     .foregroundColor(colorScheme == .light ? .primary : .white)
                     .multilineTextAlignment(.center)
 
