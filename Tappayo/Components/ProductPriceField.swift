@@ -7,8 +7,9 @@ import SwiftUI
 
 struct ProductPriceField: View {
     @Binding var priceInCents: Int
+    @Binding var isFocused: Bool
 
-    @FocusState private var isFocused: Bool
+    @FocusState private var fieldFocused: Bool
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
@@ -41,7 +42,10 @@ struct ProductPriceField: View {
                     }
                 }
             )
-            .focused($isFocused)
+            .focused($fieldFocused)
+            .onChange(of: fieldFocused) { _, newValue in
+                isFocused = newValue
+            }
         }
         .padding(.horizontal)
     }

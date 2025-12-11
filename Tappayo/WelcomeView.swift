@@ -330,6 +330,10 @@ struct WelcomeView: View {
                 phoneToPhonePlayer.seek(to: .zero)
                 phoneToPhonePlayer.play()
             }
+            // Auto-focus business name field if empty when arriving on page 2
+            if newPage == 2 && businessName.trimmingCharacters(in: .whitespaces).isEmpty {
+                isBusinessNameFocused = true
+            }
         }
         .toolbar {
             ToolbarItem(placement: .keyboard) {

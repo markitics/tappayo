@@ -16,6 +16,8 @@ struct ItemEditorView: View {
     @State private var editedName: String = ""
     @State private var editedPriceInCents: Int
     @State private var currentQuantity: Int
+    @State private var isNameFocused: Bool = false
+    @State private var isPriceFocused: Bool = false
 
     init(item: CartItem, basketIndex: Int, basket: Binding<[CartItem]>, savedProducts: Binding<[Product]>, formatAmount: @escaping (Int, Bool) -> String) {
         self.item = item
@@ -64,63 +66,67 @@ struct ItemEditorView: View {
             ProductNameField(
                 name: $editedName,
                 label: item.isProduct ? "Product Name" : "Item Name",
-                onSubmit: saveChanges
+                onSubmit: saveChanges,
+                isFocused: $isNameFocused
             )
 
             // Price editing
-            ProductPriceField(priceInCents: $editedPriceInCents)
+            ProductPriceField(priceInCents: $editedPriceInCents, isFocused: $isPriceFocused)
 
-            // Calculation row (always reserve space to prevent UI jumping)
-            Text(currentQuantity > 1
-                ? "\(formatAmount(editedPriceInCents, true)) × \(currentQuantity) = \(formatAmount(editedPriceInCents * currentQuantity, true))"
-                : " ")
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundColor(.secondary)
-                .opacity(currentQuantity > 1 ? 1.0 : 0.0)
-
-
-            // Quantity section
-            VStack(spacing: 16) {
-                Text("Quantity")
-                    .font(.subheadline)
+            // Hide calculation and quantity when name or price field is focused to reduce clutter
+            if !isNameFocused && !isPriceFocused {
+                // Calculation row (always reserve space to prevent UI jumping)
+                Text(currentQuantity > 1
+                    ? "\(formatAmount(editedPriceInCents, true)) × \(currentQuantity) = \(formatAmount(editedPriceInCents * currentQuantity, true))"
+                    : " ")
+                    .font(.title2)
+                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
+                    .opacity(currentQuantity > 1 ? 1.0 : 0.0)
 
-                HStack(spacing: 40) {
-                    // Delete/Minus button
-                    Button(action: {
-                        if currentQuantity == 1 {
-                            // Delete item
-                            basket.remove(at: basketIndex)
-                            dismiss()
-                        } else {
-                            currentQuantity -= 1
-                            basket[basketIndex].quantity = currentQuantity
+
+                // Quantity section
+                VStack(spacing: 16) {
+                    Text("Quantity")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    HStack(spacing: 40) {
+                        // Delete/Minus button
+                        Button(action: {
+                            if currentQuantity == 1 {
+                                // Delete item
+                                basket.remove(at: basketIndex)
+                                dismiss()
+                            } else {
+                                currentQuantity -= 1
+                                basket[basketIndex].quantity = currentQuantity
+                            }
+                        }) {
+                            if currentQuantity == 1 {
+                                Text("Delete")
+                                    .font(.headline)
+                                    .foregroundColor(.red)
+                                    .frame(width: 80)
+                            } else {
+                                Image(systemName: "minus.circle.fill")
+                                    .font(.system(size: 44))
+                                    .foregroundColor(.blue)
+                            }
                         }
-                    }) {
-                        if currentQuantity == 1 {
-                            Text("Delete")
-                                .font(.headline)
-                                .foregroundColor(.red)
-                                .frame(width: 80)
-                        } else {
-                            Image(systemName: "minus.circle.fill")
+
+                        Text("\(currentQuantity)")
+                            .font(.system(size: 50, weight: .semibold, design: .rounded))
+                            .frame(minWidth: 70)
+
+                        Button(action: {
+                            currentQuantity += 1
+                            basket[basketIndex].quantity = currentQuantity
+                        }) {
+                            Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 44))
                                 .foregroundColor(.blue)
                         }
-                    }
-
-                    Text("\(currentQuantity)")
-                        .font(.system(size: 50, weight: .semibold, design: .rounded))
-                        .frame(minWidth: 70)
-
-                    Button(action: {
-                        currentQuantity += 1
-                        basket[basketIndex].quantity = currentQuantity
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundColor(.blue)
                     }
                 }
             }

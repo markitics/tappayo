@@ -10,6 +10,7 @@ struct ProductEditorView: View {
     @Binding var savedProducts: [Product]
     let isNewProduct: Bool
     @Environment(\.dismiss) private var dismiss
+    @State private var isPriceFocused: Bool = false
 
     var body: some View {
         NavigationView {
@@ -44,7 +45,8 @@ struct ProductEditorView: View {
                                 savedProducts[index].priceInCents = newPrice
                             }
                         }
-                    )
+                    ),
+                    isFocused: $isPriceFocused
                 )
 
                 // Visibility toggle
